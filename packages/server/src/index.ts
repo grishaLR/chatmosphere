@@ -6,6 +6,8 @@ import { createFirehoseConsumer } from './firehose/consumer.js';
 import { createWsServer } from './ws/server.js';
 import { PresenceTracker } from './presence/tracker.js';
 import { createPresenceService } from './presence/service.js';
+import { SessionStore } from './auth/session.js';
+import { RateLimiter } from './moderation/rate-limiter.js';
 
 function main() {
   const config = loadConfig();
@@ -15,17 +17,27 @@ function main() {
   const tracker = new PresenceTracker();
   const presenceService = createPresenceService(tracker);
 
-  const app = createApp(config, db, presenceService);
+  // Auth sessions + rate limiter
+  const sessions = new SessionStore(config.SESSION_TTL_MS);
+  const rateLimiter = new RateLimiter();
+
+  const app = createApp(config, db, presenceService, sessions, rateLimiter);
   const httpServer = createServer(app);
 
   // WebSocket server (shares the HTTP server)
-  const wss = createWsServer(httpServer, db, presenceService);
+  const wss = createWsServer(httpServer, db, presenceService, sessions, rateLimiter);
   console.log('WebSocket server attached');
 
   // Firehose consumer
   // Jetstream consumer (ATProto event stream)
   const firehose = createFirehoseConsumer(config.JETSTREAM_URL, db, wss);
   firehose.start();
+
+  // Periodic cleanup
+  const pruneInterval = setInterval(() => {
+    sessions.prune();
+    rateLimiter.prune();
+  }, 60_000);
 
   httpServer.listen(config.PORT, config.HOST, () => {
     console.log(`Server listening on http://${config.HOST}:${config.PORT}`);
@@ -35,6 +47,7 @@ function main() {
   // Graceful shutdown
   const shutdown = () => {
     console.log('Shutting down...');
+    clearInterval(pruneInterval);
     firehose.stop();
     wss.close();
     httpServer.close(() => {

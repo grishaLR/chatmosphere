@@ -32,7 +32,13 @@ export interface RequestBuddyPresenceMessage extends WsMessageBase {
   dids: string[];
 }
 
+export interface AuthMessage extends WsMessageBase {
+  type: 'auth';
+  token: string;
+}
+
 export type ClientMessage =
+  | AuthMessage
   | JoinRoomMessage
   | LeaveRoomMessage
   | StatusChangeMessage

@@ -1,5 +1,58 @@
 import type { RoomView, MessageView } from '../types';
 
+// -- Token management --
+
+let serverToken: string | null = null;
+
+export function setServerToken(token: string | null): void {
+  serverToken = token;
+}
+
+export function getServerToken(): string | null {
+  return serverToken;
+}
+
+// -- Server session --
+
+interface ServerSessionResponse {
+  token: string;
+  did: string;
+  handle: string;
+}
+
+export async function createServerSession(
+  did: string,
+  handle: string,
+): Promise<ServerSessionResponse> {
+  const res = await fetch('/api/auth/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ did, handle }),
+  });
+  if (!res.ok) throw new Error(`Failed to create server session: ${res.status}`);
+  return (await res.json()) as ServerSessionResponse;
+}
+
+export async function deleteServerSession(): Promise<void> {
+  if (!serverToken) return;
+  await fetch('/api/auth/session', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${serverToken}` },
+  });
+}
+
+// -- Auth fetch helper --
+
+async function authFetch(url: string, init?: RequestInit): Promise<Response> {
+  const headers = new Headers(init?.headers);
+  if (serverToken) {
+    headers.set('Authorization', `Bearer ${serverToken}`);
+  }
+  return fetch(url, { ...init, headers });
+}
+
+// -- Rooms --
+
 export async function fetchRooms(opts?: {
   visibility?: string;
   limit?: number;
@@ -11,7 +64,7 @@ export async function fetchRooms(opts?: {
   if (opts?.offset) params.set('offset', String(opts.offset));
 
   const qs = params.toString();
-  const res = await fetch(`/api/rooms${qs ? `?${qs}` : ''}`);
+  const res = await authFetch(`/api/rooms${qs ? `?${qs}` : ''}`);
   if (!res.ok) throw new Error(`Failed to fetch rooms: ${res.status}`);
 
   const data = (await res.json()) as { rooms: RoomView[] };
@@ -19,7 +72,7 @@ export async function fetchRooms(opts?: {
 }
 
 export async function fetchRoom(id: string): Promise<RoomView> {
-  const res = await fetch(`/api/rooms/${encodeURIComponent(id)}`);
+  const res = await authFetch(`/api/rooms/${encodeURIComponent(id)}`);
   if (!res.ok) {
     if (res.status === 404) throw new NotFoundError('Room not found');
     throw new Error(`Failed to fetch room: ${res.status}`);
@@ -38,7 +91,9 @@ export async function fetchMessages(
   if (opts?.before) params.set('before', opts.before);
 
   const qs = params.toString();
-  const res = await fetch(`/api/rooms/${encodeURIComponent(roomId)}/messages${qs ? `?${qs}` : ''}`);
+  const res = await authFetch(
+    `/api/rooms/${encodeURIComponent(roomId)}/messages${qs ? `?${qs}` : ''}`,
+  );
   if (!res.ok) throw new Error(`Failed to fetch messages: ${res.status}`);
 
   const data = (await res.json()) as { messages: MessageView[] };
@@ -62,7 +117,7 @@ export interface PresenceInfo {
 
 export async function fetchPresence(dids: string[]): Promise<PresenceInfo[]> {
   if (dids.length === 0) return [];
-  const res = await fetch(`/api/presence?dids=${encodeURIComponent(dids.join(','))}`);
+  const res = await authFetch(`/api/presence?dids=${encodeURIComponent(dids.join(','))}`);
   if (!res.ok) throw new Error(`Failed to fetch presence: ${res.status}`);
   const data = (await res.json()) as { presence: PresenceInfo[] };
   return data.presence;
@@ -79,7 +134,7 @@ export interface BuddyListResponse {
 }
 
 export async function fetchBuddyList(did: string): Promise<BuddyListResponse> {
-  const res = await fetch(`/api/buddylist/${encodeURIComponent(did)}`);
+  const res = await authFetch(`/api/buddylist/${encodeURIComponent(did)}`);
   if (!res.ok) throw new Error(`Failed to fetch buddy list: ${res.status}`);
   return (await res.json()) as BuddyListResponse;
 }

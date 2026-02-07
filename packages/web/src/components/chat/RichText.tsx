@@ -1,5 +1,6 @@
 import type { RichTextFacet, MentionFeature, LinkFeature } from '@chatmosphere/lexicon';
 import type { ReactNode } from 'react';
+import { isSafeUrl } from '../../lib/sanitize';
 
 interface RichTextProps {
   text: string;
@@ -19,6 +20,9 @@ function renderFeature(
         </span>
       );
     case 'app.chatmosphere.chat.message#link':
+      if (!isSafeUrl(feature.uri)) {
+        return <span key={key}>{text}</span>;
+      }
       return (
         <a
           key={key}

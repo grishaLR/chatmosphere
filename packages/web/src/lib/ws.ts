@@ -9,18 +9,20 @@ export interface WsClient {
   isConnected: () => boolean;
 }
 
-export function createWsClient(url: string, did: string): WsClient {
+export function createWsClient(url: string, token: string): WsClient {
   let ws: WebSocket | null = null;
   let handlers = new Set<WsHandler>();
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   let closed = false;
+  let authFailed = false;
 
   function connect() {
+    if (authFailed) return;
     ws = new WebSocket(url);
 
     ws.onopen = () => {
-      // Server expects first message to include DID
-      ws?.send(JSON.stringify({ did }));
+      // Send auth token as first message
+      ws?.send(JSON.stringify({ type: 'auth', token }));
     };
 
     ws.onmessage = (event) => {
@@ -34,7 +36,12 @@ export function createWsClient(url: string, did: string): WsClient {
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
+      // 4001 = auth failure — don't reconnect
+      if (event.code === 4001) {
+        authFailed = true;
+        return;
+      }
       if (!closed) {
         reconnectTimer = setTimeout(connect, 3000);
       }

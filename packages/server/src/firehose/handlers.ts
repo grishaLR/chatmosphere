@@ -1,10 +1,17 @@
 import { NSID } from '@chatmosphere/shared';
-import type { RoomRecord, MessageRecord, BanRecord, BuddyListRecord } from '@chatmosphere/lexicon';
+import type {
+  RoomRecord,
+  MessageRecord,
+  BanRecord,
+  BuddyListRecord,
+  RoleRecord,
+} from '@chatmosphere/lexicon';
 import type { Sql } from '../db/client.js';
 import { createRoom } from '../rooms/queries.js';
 import { insertMessage } from '../messages/queries.js';
-import { recordModAction } from '../moderation/queries.js';
+import { recordModAction, isUserBanned, upsertRoomRole } from '../moderation/queries.js';
 import { upsertBuddyList, syncBuddyMembers } from '../buddylist/queries.js';
+import { checkMessageContent } from '../moderation/service.js';
 import type { WsServer } from '../ws/server.js';
 
 export interface FirehoseEvent {
@@ -36,29 +43,42 @@ export function createHandlers(db: Sql, wss: WsServer) {
 
     [NSID.Message]: async (event) => {
       const record = event.record as MessageRecord;
+      const roomId = extractRkey(record.room);
+
+      // Content filter — skip indexing if blocked
+      const filterResult = checkMessageContent(record.text);
+      if (!filterResult.passed) {
+        console.log(`Message filtered from ${event.did}: ${filterResult.reason ?? 'blocked'}`);
+        return;
+      }
+
+      // Ban check — skip broadcast if banned (still index, record exists on ATProto)
+      const banned = await isUserBanned(db, roomId, event.did);
+
       await insertMessage(db, {
         id: event.rkey,
         uri: event.uri,
         did: event.did,
-        roomId: extractRkey(record.room),
+        roomId,
         text: record.text,
         replyTo: record.replyTo,
         createdAt: record.createdAt,
       });
 
-      // Push to WebSocket subscribers
-      wss.broadcastToRoom(extractRkey(record.room), {
-        type: 'message',
-        data: {
-          id: event.rkey,
-          uri: event.uri,
-          did: event.did,
-          roomId: extractRkey(record.room),
-          text: record.text,
-          replyTo: record.replyTo,
-          createdAt: record.createdAt,
-        },
-      });
+      if (!banned) {
+        wss.broadcastToRoom(roomId, {
+          type: 'message',
+          data: {
+            id: event.rkey,
+            uri: event.uri,
+            did: event.did,
+            roomId,
+            text: record.text,
+            replyTo: record.replyTo,
+            createdAt: record.createdAt,
+          },
+        });
+      }
     },
 
     [NSID.Ban]: async (event) => {
@@ -71,6 +91,21 @@ export function createHandlers(db: Sql, wss: WsServer) {
         reason: record.reason,
       });
       console.log(`Ban indexed: ${record.subject} from room ${extractRkey(record.room)}`);
+    },
+
+    [NSID.Role]: async (event) => {
+      const record = event.record as RoleRecord;
+      await upsertRoomRole(db, {
+        roomId: extractRkey(record.room),
+        subjectDid: record.subject,
+        role: record.role,
+        grantedBy: event.did,
+        uri: event.uri,
+        createdAt: record.createdAt,
+      });
+      console.log(
+        `Role indexed: ${record.subject} as ${record.role} in ${extractRkey(record.room)}`,
+      );
     },
 
     [NSID.BuddyList]: async (event) => {

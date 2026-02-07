@@ -3,51 +3,86 @@ import type { Server } from 'http';
 import { RoomSubscriptions } from './rooms.js';
 import { BuddyWatchers } from './buddy-watchers.js';
 import { handleClientMessage } from './handlers.js';
+import { attachHeartbeat } from './heartbeat.js';
 import type { PresenceService } from '../presence/service.js';
 import type { ClientMessage, ServerMessage } from './types.js';
 import type { Sql } from '../db/client.js';
+import type { SessionStore } from '../auth/session.js';
+import type { RateLimiter } from '../moderation/rate-limiter.js';
+
+const AUTH_TIMEOUT_MS = 5000;
 
 export interface WsServer {
   broadcastToRoom: (roomId: string, message: ServerMessage) => void;
   close: () => void;
 }
 
-export function createWsServer(httpServer: Server, sql: Sql, service: PresenceService): WsServer {
+export function createWsServer(
+  httpServer: Server,
+  sql: Sql,
+  service: PresenceService,
+  sessions: SessionStore,
+  rateLimiter: RateLimiter,
+): WsServer {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   const roomSubs = new RoomSubscriptions();
   const buddyWatchers = new BuddyWatchers(sql);
 
   wss.on('connection', (ws: WebSocket) => {
-    // For now, DID is sent as first message or query param
-    // Real auth will use ATProto OAuth session validation
     let did: string | null = null;
+    let authenticated = false;
+    let cleanupHeartbeat: (() => void) | null = null;
+
+    // Auth timeout — close if no auth message within 5 seconds
+    const authTimer = setTimeout(() => {
+      if (!authenticated) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Auth timeout' }));
+        ws.close(4001, 'Auth timeout');
+      }
+    }, AUTH_TIMEOUT_MS);
 
     ws.on('message', (raw: Buffer) => {
       try {
-        const data = JSON.parse(raw.toString('utf-8')) as ClientMessage & { did?: string };
+        const data = JSON.parse(raw.toString('utf-8')) as ClientMessage;
 
-        // First message must include DID (temporary — will use OAuth session)
-        if (!did) {
-          if ('did' in data && typeof data.did === 'string') {
-            did = data.did;
-            service.handleUserConnect(did);
-            buddyWatchers.notify(did, 'online');
-            console.log(`WS connected: ${did}`);
-          } else {
-            ws.send(JSON.stringify({ type: 'error', message: 'First message must include did' }));
+        // First message must be auth
+        if (!authenticated) {
+          if (data.type !== 'auth' || !('token' in data)) {
+            ws.send(JSON.stringify({ type: 'error', message: 'First message must be auth' }));
+            ws.close(4001, 'Auth required');
             return;
           }
+
+          const session = sessions.get(data.token);
+          if (!session) {
+            ws.send(JSON.stringify({ type: 'error', message: 'Invalid or expired token' }));
+            ws.close(4001, 'Invalid token');
+            return;
+          }
+
+          clearTimeout(authTimer);
+          authenticated = true;
+          did = session.did;
+          service.handleUserConnect(did);
+          buddyWatchers.notify(did, 'online');
+          cleanupHeartbeat = attachHeartbeat(ws);
+          console.log(`WS authenticated: ${did}`);
+          return;
         }
 
-        handleClientMessage(ws, did, data, roomSubs, buddyWatchers, service);
+        // Skip auth messages after authentication
+        if (data.type === 'auth' || !did) return;
+
+        void handleClientMessage(ws, did, data, roomSubs, buddyWatchers, service, sql, rateLimiter);
       } catch {
         ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
       }
     });
 
     ws.on('close', () => {
+      clearTimeout(authTimer);
+      cleanupHeartbeat?.();
       if (did) {
-        // Broadcast offline to every room before unsubscribing
         const rooms = service.getUserRooms(did);
         for (const roomId of rooms) {
           service.handleLeaveRoom(did, roomId);
@@ -56,7 +91,6 @@ export function createWsServer(httpServer: Server, sql: Sql, service: PresenceSe
             data: { did, status: 'offline' },
           });
         }
-        // Notify anyone watching this DID's buddy presence
         buddyWatchers.notify(did, 'offline');
         service.handleUserDisconnect(did);
         roomSubs.unsubscribeAll(ws);

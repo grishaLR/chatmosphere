@@ -4,17 +4,34 @@ import type { RoomSubscriptions } from './rooms.js';
 import type { BuddyWatchers } from './buddy-watchers.js';
 import type { PresenceService } from '../presence/service.js';
 import type { PresenceStatus, PresenceVisibility } from '@chatmosphere/shared';
+import type { Sql } from '../db/client.js';
+import type { RateLimiter } from '../moderation/rate-limiter.js';
+import { checkUserAccess } from '../moderation/service.js';
 
-export function handleClientMessage(
+export async function handleClientMessage(
   ws: WebSocket,
   did: string,
   data: ClientMessage,
   roomSubs: RoomSubscriptions,
   buddyWatchers: BuddyWatchers,
   service: PresenceService,
-): void {
+  sql: Sql,
+  rateLimiter: RateLimiter,
+): Promise<void> {
+  // Rate limit WS messages
+  if (!rateLimiter.check(`ws:${did}`)) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Rate limited' }));
+    return;
+  }
+
   switch (data.type) {
     case 'join_room': {
+      const access = await checkUserAccess(sql, data.roomId, did);
+      if (!access.allowed) {
+        ws.send(JSON.stringify({ type: 'error', message: access.reason ?? 'Access denied' }));
+        break;
+      }
+
       roomSubs.subscribe(data.roomId, ws);
       service.handleJoinRoom(did, data.roomId);
       const members = service.getRoomPresence(data.roomId);

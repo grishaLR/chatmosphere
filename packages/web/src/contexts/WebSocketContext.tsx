@@ -12,15 +12,15 @@ interface WebSocketContextValue {
 const WebSocketContext = createContext<WebSocketContextValue | null>(null);
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
-  const { did } = useAuth();
+  const { did, serverToken } = useAuth();
   const clientRef = useRef<WsClient | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (!did) return;
+    if (!did || !serverToken) return;
 
     const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
-    const client = createWsClient(wsUrl, did);
+    const client = createWsClient(wsUrl, serverToken);
     clientRef.current = client;
 
     // Poll connection status
@@ -34,7 +34,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       clientRef.current = null;
       setConnected(false);
     };
-  }, [did]);
+  }, [did, serverToken]);
 
   const value: WebSocketContextValue = {
     send(msg) {

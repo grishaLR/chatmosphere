@@ -17,6 +17,7 @@ export type {
   StatusChangeMessage,
   PingMessage,
   RequestBuddyPresenceMessage,
+  AuthMessage,
   ClientMessage,
   NewMessageEvent,
   PresenceUpdateEvent,

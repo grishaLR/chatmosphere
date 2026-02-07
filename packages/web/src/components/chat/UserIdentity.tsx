@@ -1,4 +1,5 @@
 import { useProfile } from '../../contexts/ProfileContext';
+import { isSafeUrl } from '../../lib/sanitize';
 import styles from './UserIdentity.module.css';
 
 interface UserIdentityProps {
@@ -19,7 +20,7 @@ export function UserIdentity({ did, showAvatar = false, size = 'sm' }: UserIdent
 
   return (
     <span className={styles.identity}>
-      {showAvatar && profile?.avatarUrl && (
+      {showAvatar && profile?.avatarUrl && isSafeUrl(profile.avatarUrl) && (
         <img className={`${styles.avatar} ${avatarSize}`} src={profile.avatarUrl} alt="" />
       )}
       <span className={styles.handle} title={did}>

@@ -65,6 +65,20 @@ CREATE TABLE IF NOT EXISTS buddy_members (
 
 CREATE INDEX IF NOT EXISTS idx_buddy_members_buddy ON buddy_members(buddy_did);
 
+-- room_roles: moderator/owner role assignments from ATProto role records
+CREATE TABLE IF NOT EXISTS room_roles (
+  id          SERIAL PRIMARY KEY,
+  room_id     TEXT NOT NULL REFERENCES rooms(id),
+  subject_did TEXT NOT NULL,
+  role        TEXT NOT NULL,
+  granted_by  TEXT NOT NULL,
+  uri         TEXT UNIQUE NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL,
+  indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_room_roles_unique ON room_roles(room_id, subject_did, role);
+
 -- firehose_cursor: resume position
 CREATE TABLE IF NOT EXISTS firehose_cursor (
   id          INTEGER PRIMARY KEY DEFAULT 1,

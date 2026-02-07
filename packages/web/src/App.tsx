@@ -8,10 +8,23 @@ import { ChatRoomPage } from './pages/ChatRoomPage';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { did, isLoading } = useAuth();
+  const { did, serverToken, isLoading, authError, logout } = useAuth();
 
   if (isLoading) return <div>Loading...</div>;
   if (!did) return <Navigate to="/login" replace />;
+
+  if (authError) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>{authError}</p>
+        <button onClick={logout} style={{ marginTop: '1rem' }}>
+          Back to login
+        </button>
+      </div>
+    );
+  }
+
+  if (!serverToken) return <div>Connecting to server...</div>;
 
   return <>{children}</>;
 }

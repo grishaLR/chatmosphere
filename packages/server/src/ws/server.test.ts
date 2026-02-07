@@ -1,0 +1,120 @@
+import { describe, it, expect, afterEach } from 'vitest';
+import { createServer } from 'http';
+import WebSocket from 'ws';
+import { createWsServer } from './server.js';
+import { SessionStore } from '../auth/session.js';
+import { RateLimiter } from '../moderation/rate-limiter.js';
+import { createPresenceService } from '../presence/service.js';
+import { PresenceTracker } from '../presence/tracker.js';
+
+// Minimal mock for Sql — ws server only passes it through
+const mockSql = {} as never;
+
+function setup() {
+  const httpServer = createServer();
+  const sessions = new SessionStore();
+  const rateLimiter = new RateLimiter();
+  const tracker = new PresenceTracker();
+  const service = createPresenceService(tracker);
+  const wss = createWsServer(httpServer, mockSql, service, sessions, rateLimiter);
+
+  return new Promise<{
+    httpServer: ReturnType<typeof createServer>;
+    sessions: SessionStore;
+    wss: ReturnType<typeof createWsServer>;
+    url: string;
+    cleanup: () => Promise<void>;
+  }>((resolve) => {
+    httpServer.listen(0, () => {
+      const addr = httpServer.address();
+      const port = typeof addr === 'object' && addr ? addr.port : 0;
+      resolve({
+        httpServer,
+        sessions,
+        wss,
+        url: `ws://127.0.0.1:${String(port)}/ws`,
+        cleanup: () =>
+          new Promise<void>((done) => {
+            wss.close();
+            httpServer.close(() => {
+              done();
+            });
+          }),
+      });
+    });
+  });
+}
+
+describe('WS token auth', () => {
+  let cleanup: (() => Promise<void>) | null = null;
+
+  afterEach(async () => {
+    await cleanup?.();
+    cleanup = null;
+  });
+
+  it('authenticates with valid token', async () => {
+    const ctx = await setup();
+    cleanup = ctx.cleanup;
+    const token = ctx.sessions.create('did:plc:test', 'test.bsky.social');
+
+    const ws = new WebSocket(ctx.url);
+    const messages: string[] = [];
+
+    await new Promise<void>((resolve) => {
+      ws.on('open', () => {
+        ws.send(JSON.stringify({ type: 'auth', token }));
+      });
+      ws.on('message', (data: Buffer) => {
+        messages.push(data.toString('utf-8'));
+      });
+      // After auth, send a ping to verify the connection is working
+      setTimeout(() => {
+        ws.send(JSON.stringify({ type: 'ping' }));
+        setTimeout(() => {
+          ws.close();
+          resolve();
+        }, 100);
+      }, 100);
+    });
+
+    const parsed = messages.map((m) => JSON.parse(m) as { type: string });
+    expect(parsed.some((m) => m.type === 'pong')).toBe(true);
+  });
+
+  it('closes with 4001 for invalid token', async () => {
+    const ctx = await setup();
+    cleanup = ctx.cleanup;
+
+    const ws = new WebSocket(ctx.url);
+
+    const code = await new Promise<number>((resolve) => {
+      ws.on('open', () => {
+        ws.send(JSON.stringify({ type: 'auth', token: 'bad-token' }));
+      });
+      ws.on('close', (c: number) => {
+        resolve(c);
+      });
+    });
+
+    expect(code).toBe(4001);
+  });
+
+  it('closes with 4001 for non-auth first message', async () => {
+    const ctx = await setup();
+    cleanup = ctx.cleanup;
+
+    const ws = new WebSocket(ctx.url);
+
+    const code = await new Promise<number>((resolve) => {
+      ws.on('open', () => {
+        ws.send(JSON.stringify({ type: 'join_room', roomId: 'test' }));
+      });
+      ws.on('close', (c: number) => {
+        resolve(c);
+      });
+    });
+
+    expect(code).toBe(4001);
+  });
+});

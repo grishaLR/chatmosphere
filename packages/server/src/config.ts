@@ -10,6 +10,7 @@ const envSchema = z.object({
   OAUTH_CLIENT_ID: z.string().optional(),
   OAUTH_REDIRECT_URI: z.string().url().optional(),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  SESSION_TTL_MS: z.coerce.number().default(8 * 60 * 60 * 1000), // 8 hours
 });
 
 export type Config = z.infer<typeof envSchema>;

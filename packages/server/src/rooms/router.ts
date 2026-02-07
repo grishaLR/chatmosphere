@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { LIMITS } from '@chatmosphere/shared';
 import { getRooms, getRoom } from './service.js';
 import type { Sql } from '../db/client.js';
 
@@ -12,7 +13,10 @@ export function roomsRouter(sql: Sql): Router {
         visibility:
           (typeof _req.query.visibility === 'string' ? _req.query.visibility : undefined) ??
           'public',
-        limit: Number(_req.query.limit) || 50,
+        limit: Math.min(
+          Math.max(Number(_req.query.limit) || LIMITS.defaultPageSize, 1),
+          LIMITS.maxPageSize,
+        ),
         offset: Number(_req.query.offset) || 0,
       });
       res.json({ rooms });

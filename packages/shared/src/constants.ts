@@ -41,4 +41,8 @@ export const LIMITS = {
   maxGroupMembers: 500,
   /** Default message retention in days */
   defaultRetentionDays: 7,
+  /** Maximum page size for paginated queries */
+  maxPageSize: 200,
+  /** Default page size for paginated queries */
+  defaultPageSize: 50,
 } as const;
