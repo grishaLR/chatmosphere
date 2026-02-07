@@ -26,3 +26,16 @@ export interface MessageView {
   /** Client-only: true while waiting for WS confirmation */
   pending?: boolean;
 }
+
+export interface MemberPresence {
+  did: string;
+  status: string;
+  awayMessage?: string;
+}
+
+export interface BuddyWithPresence {
+  did: string;
+  status: string;
+  awayMessage?: string;
+  addedAt: string;
+}

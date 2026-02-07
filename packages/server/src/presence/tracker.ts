@@ -1,8 +1,9 @@
 import type { PresenceStatus } from '@chatmosphere/shared';
 
-interface UserPresence {
+export interface UserPresence {
   did: string;
   status: PresenceStatus;
+  awayMessage?: string;
   lastSeen: Date;
   rooms: Set<string>;
 }
@@ -30,10 +31,11 @@ export class PresenceTracker {
     this.users.delete(did);
   }
 
-  setStatus(did: string, status: PresenceStatus): void {
+  setStatus(did: string, status: PresenceStatus, awayMessage?: string): void {
     const user = this.users.get(did);
     if (user) {
       user.status = status;
+      user.awayMessage = status === 'away' ? awayMessage : undefined;
       user.lastSeen = new Date();
     }
   }
@@ -54,6 +56,23 @@ export class PresenceTracker {
 
   getStatus(did: string): PresenceStatus {
     return this.users.get(did)?.status ?? 'offline';
+  }
+
+  getPresence(did: string): { status: PresenceStatus; awayMessage?: string } {
+    const user = this.users.get(did);
+    return { status: user?.status ?? 'offline', awayMessage: user?.awayMessage };
+  }
+
+  getPresenceBulk(dids: string[]): Map<string, { status: PresenceStatus; awayMessage?: string }> {
+    const result = new Map<string, { status: PresenceStatus; awayMessage?: string }>();
+    for (const did of dids) {
+      result.set(did, this.getPresence(did));
+    }
+    return result;
+  }
+
+  getUserRooms(did: string): Set<string> {
+    return this.users.get(did)?.rooms ?? new Set();
   }
 
   getRoomMembers(roomId: string): string[] {

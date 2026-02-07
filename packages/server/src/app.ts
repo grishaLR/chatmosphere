@@ -5,6 +5,8 @@ import { requestLogger } from './middleware/logger.js';
 import { roomsRouter } from './rooms/router.js';
 import { messagesRouter } from './messages/router.js';
 import { authRouter } from './auth/router.js';
+import { presenceRouter } from './presence/router.js';
+import { buddylistRouter } from './buddylist/router.js';
 import type { Config } from './config.js';
 
 export function createApp(config: Config): Express {
@@ -24,6 +26,8 @@ export function createApp(config: Config): Express {
   app.use('/api/auth', authRouter());
   app.use('/api/rooms', roomsRouter());
   app.use('/api/rooms', messagesRouter());
+  app.use('/api/presence', presenceRouter());
+  app.use('/api/buddylist', buddylistRouter());
 
   // Error handler (must be last)
   app.use(errorHandler);

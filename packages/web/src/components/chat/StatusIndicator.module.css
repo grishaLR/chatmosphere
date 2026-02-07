@@ -1,0 +1,31 @@
+.dot {
+  display: inline-block;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sm {
+  width: 8px;
+  height: 8px;
+}
+
+.md {
+  width: 10px;
+  height: 10px;
+}
+
+.online {
+  background-color: #22c55e;
+}
+
+.away {
+  background-color: #f59e0b;
+}
+
+.idle {
+  background-color: #9ca3af;
+}
+
+.offline {
+  background-color: #d1d5db;
+}

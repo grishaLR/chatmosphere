@@ -1,6 +1,12 @@
 import type { Agent } from '@atproto/api';
 import { NSID } from '@chatmosphere/shared';
-import type { RoomPurpose, RoomVisibility } from '@chatmosphere/shared';
+import type {
+  RoomPurpose,
+  RoomVisibility,
+  PresenceStatus,
+  PresenceVisibility,
+} from '@chatmosphere/shared';
+import type { BuddyGroup } from '@chatmosphere/lexicon';
 
 const TID_CHARS = '234567abcdefghijklmnopqrstuvwxyz';
 
@@ -108,4 +114,61 @@ export async function createMessageRecord(
     cid: response.data.cid,
     rkey,
   };
+}
+
+// -- Buddy List PDS helpers --
+
+export async function getBuddyListRecord(agent: Agent): Promise<BuddyGroup[]> {
+  try {
+    const response = await agent.com.atproto.repo.getRecord({
+      repo: agent.assertDid,
+      collection: NSID.BuddyList,
+      rkey: 'self',
+    });
+    const record = response.data.value as { groups?: BuddyGroup[] };
+    return record.groups ?? [];
+  } catch {
+    // Record doesn't exist yet
+    return [];
+  }
+}
+
+export async function putBuddyListRecord(
+  agent: Agent,
+  groups: BuddyGroup[],
+): Promise<{ uri: string; cid: string }> {
+  const response = await agent.com.atproto.repo.putRecord({
+    repo: agent.assertDid,
+    collection: NSID.BuddyList,
+    rkey: 'self',
+    record: {
+      $type: NSID.BuddyList,
+      groups,
+    },
+  });
+
+  return { uri: response.data.uri, cid: response.data.cid };
+}
+
+// -- Presence PDS helpers --
+
+export async function putPresenceRecord(
+  agent: Agent,
+  status: PresenceStatus,
+  opts?: { awayMessage?: string; visibleTo?: PresenceVisibility },
+): Promise<{ uri: string; cid: string }> {
+  const response = await agent.com.atproto.repo.putRecord({
+    repo: agent.assertDid,
+    collection: NSID.Presence,
+    rkey: 'self',
+    record: {
+      $type: NSID.Presence,
+      status,
+      visibleTo: opts?.visibleTo ?? 'everyone',
+      awayMessage: opts?.awayMessage,
+      updatedAt: new Date().toISOString(),
+    },
+  });
+
+  return { uri: response.data.uri, cid: response.data.cid };
 }

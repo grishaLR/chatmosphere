@@ -1,11 +1,25 @@
 .page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
 .main {
+  flex: 1;
+  min-width: 0;
   max-width: 800px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+.sidebar {
+  flex-shrink: 0;
 }
 
 .toolbar {

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchRoom, NotFoundError } from '../lib/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
-import type { RoomView } from '../types';
+import type { RoomView, MemberPresence } from '../types';
 import type { ServerMessage } from '@chatmosphere/shared';
 
 export function useRoom(roomId: string) {
   const [room, setRoom] = useState<RoomView | null>(null);
-  const [members, setMembers] = useState<string[]>([]);
+  const [members, setMembers] = useState<MemberPresence[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { send, subscribe } = useWebSocket();
@@ -49,17 +49,25 @@ export function useRoom(roomId: string) {
     const unsub = subscribe((msg: ServerMessage) => {
       if (msg.type === 'room_joined') {
         if (msg.roomId === roomId) {
-          setMembers(msg.members);
+          setMembers(msg.members.map((did) => ({ did, status: 'online' })));
         }
       } else if (msg.type === 'presence') {
         setMembers((prev) => {
           if (msg.data.status === 'offline') {
-            return prev.filter((d) => d !== msg.data.did);
+            return prev.filter((m) => m.did !== msg.data.did);
           }
-          if (!prev.includes(msg.data.did)) {
-            return [...prev, msg.data.did];
+          const existing = prev.find((m) => m.did === msg.data.did);
+          if (existing) {
+            return prev.map((m) =>
+              m.did === msg.data.did
+                ? { ...m, status: msg.data.status, awayMessage: msg.data.awayMessage }
+                : m,
+            );
           }
-          return prev;
+          return [
+            ...prev,
+            { did: msg.data.did, status: msg.data.status, awayMessage: msg.data.awayMessage },
+          ];
         });
       }
     });

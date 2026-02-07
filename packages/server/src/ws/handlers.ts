@@ -6,7 +6,10 @@ import {
   handleLeaveRoom,
   handleStatusChange,
   getRoomPresence,
+  getUserRooms,
+  getBulkPresence,
 } from '../presence/service.js';
+import { presenceTracker } from '../presence/tracker.js';
 import type { PresenceStatus } from '@chatmosphere/shared';
 
 export function handleClientMessage(
@@ -27,10 +30,11 @@ export function handleClientMessage(
           members,
         }),
       );
-      // Notify room of new member
+      // Notify room of new member (include awayMessage if present)
+      const presence = presenceTracker.getPresence(did);
       roomSubs.broadcast(data.roomId, {
         type: 'presence',
-        data: { did, status: 'online' },
+        data: { did, status: presence.status, awayMessage: presence.awayMessage },
       });
       break;
     }
@@ -46,7 +50,27 @@ export function handleClientMessage(
     }
 
     case 'status_change': {
-      handleStatusChange(did, data.status as PresenceStatus);
+      handleStatusChange(did, data.status as PresenceStatus, data.awayMessage);
+      // Broadcast presence update to all rooms the user is in
+      const rooms = getUserRooms(did);
+      for (const roomId of rooms) {
+        roomSubs.broadcast(roomId, {
+          type: 'presence',
+          data: { did, status: data.status, awayMessage: data.awayMessage },
+        });
+      }
+      break;
+    }
+
+    case 'request_buddy_presence': {
+      const capped = data.dids.slice(0, 100);
+      const presenceList = getBulkPresence(capped);
+      ws.send(
+        JSON.stringify({
+          type: 'buddy_presence',
+          data: presenceList,
+        }),
+      );
       break;
     }
 

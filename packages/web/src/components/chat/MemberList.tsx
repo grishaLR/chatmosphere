@@ -1,12 +1,10 @@
+import { StatusIndicator } from './StatusIndicator';
+import { UserIdentity } from './UserIdentity';
+import type { MemberPresence } from '../../types';
 import styles from './MemberList.module.css';
 
 interface MemberListProps {
-  members: string[];
-}
-
-function truncateDid(did: string): string {
-  if (did.length <= 20) return did;
-  return did.slice(0, 14) + '...' + did.slice(-4);
+  members: MemberPresence[];
 }
 
 export function MemberList({ members }: MemberListProps) {
@@ -14,9 +12,15 @@ export function MemberList({ members }: MemberListProps) {
     <div className={styles.container}>
       <h3 className={styles.heading}>Members ({members.length})</h3>
       <ul className={styles.list}>
-        {members.map((did) => (
-          <li key={did} className={styles.member}>
-            {truncateDid(did)}
+        {members.map((member) => (
+          <li key={member.did} className={styles.member}>
+            <StatusIndicator status={member.status} />
+            <div className={styles.memberInfo}>
+              <span className={styles.memberDid}>
+                <UserIdentity did={member.did} showAvatar />
+              </span>
+              {member.awayMessage && <span className={styles.awayMsg}>{member.awayMessage}</span>}
+            </div>
           </li>
         ))}
       </ul>

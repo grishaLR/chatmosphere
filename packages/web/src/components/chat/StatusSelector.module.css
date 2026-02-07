@@ -1,0 +1,86 @@
+.container {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.trigger:hover {
+  background: #f5f5f5;
+}
+
+.label {
+  text-transform: capitalize;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 100;
+  padding: 0.25rem 0;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: #333;
+  text-align: left;
+}
+
+.option:hover {
+  background: #f5f5f5;
+}
+
+.active {
+  font-weight: 600;
+}
+
+.awaySection {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.awayLabel {
+  display: block;
+  font-size: 0.6875rem;
+  color: #888;
+  margin-bottom: 0.25rem;
+}
+
+.awayInput {
+  width: 100%;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  box-sizing: border-box;
+}
+
+.awayInput:focus {
+  outline: none;
+  border-color: #999;
+}

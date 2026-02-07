@@ -1,9 +1,10 @@
 import { NSID } from '@chatmosphere/shared';
-import type { RoomRecord, MessageRecord, BanRecord } from '@chatmosphere/lexicon';
+import type { RoomRecord, MessageRecord, BanRecord, BuddyListRecord } from '@chatmosphere/lexicon';
 import type { Sql } from '../db/client.js';
 import { createRoom } from '../rooms/queries.js';
 import { insertMessage } from '../messages/queries.js';
 import { recordModAction } from '../moderation/queries.js';
+import { upsertBuddyList, syncBuddyMembers } from '../buddylist/queries.js';
 import type { WsServer } from '../ws/server.js';
 
 export interface FirehoseEvent {
@@ -70,6 +71,27 @@ export function createHandlers(db: Sql, wss: WsServer) {
         reason: record.reason,
       });
       console.log(`Ban indexed: ${record.subject} from room ${extractRkey(record.room)}`);
+    },
+
+    [NSID.BuddyList]: async (event) => {
+      const record = event.record as BuddyListRecord;
+      await upsertBuddyList(db, { did: event.did, groups: record.groups });
+
+      // Flatten all members across groups for denormalized lookup table
+      const allMembers: Array<{ did: string; addedAt: string }> = [];
+      for (const group of record.groups) {
+        for (const member of group.members) {
+          allMembers.push({ did: member.did, addedAt: member.addedAt });
+        }
+      }
+      await syncBuddyMembers(db, event.did, allMembers);
+      console.log(`Buddy list indexed for ${event.did}: ${allMembers.length} members`);
+    },
+
+    [NSID.Presence]: (event) => {
+      // Log-only for MVP — in-memory tracker handles ephemeral presence state
+      console.log(`Presence record from ${event.did} (rkey: ${event.rkey})`);
+      return Promise.resolve();
     },
   };
 

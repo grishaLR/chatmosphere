@@ -51,3 +51,35 @@ export class NotFoundError extends Error {
     this.name = 'NotFoundError';
   }
 }
+
+// -- Presence --
+
+export interface PresenceInfo {
+  did: string;
+  status: string;
+  awayMessage?: string;
+}
+
+export async function fetchPresence(dids: string[]): Promise<PresenceInfo[]> {
+  if (dids.length === 0) return [];
+  const res = await fetch(`/api/presence?dids=${encodeURIComponent(dids.join(','))}`);
+  if (!res.ok) throw new Error(`Failed to fetch presence: ${res.status}`);
+  const data = (await res.json()) as { presence: PresenceInfo[] };
+  return data.presence;
+}
+
+// -- Buddy List --
+
+export interface BuddyListResponse {
+  groups: Array<{
+    name: string;
+    isCloseFriends?: boolean;
+    members: Array<{ did: string; addedAt: string }>;
+  }>;
+}
+
+export async function fetchBuddyList(did: string): Promise<BuddyListResponse> {
+  const res = await fetch(`/api/buddylist/${encodeURIComponent(did)}`);
+  if (!res.ok) throw new Error(`Failed to fetch buddy list: ${res.status}`);
+  return (await res.json()) as BuddyListResponse;
+}

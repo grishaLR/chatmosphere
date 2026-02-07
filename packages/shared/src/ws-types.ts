@@ -19,13 +19,24 @@ export interface LeaveRoomMessage extends WsMessageBase {
 export interface StatusChangeMessage extends WsMessageBase {
   type: 'status_change';
   status: 'online' | 'away' | 'idle';
+  awayMessage?: string;
 }
 
 export interface PingMessage extends WsMessageBase {
   type: 'ping';
 }
 
-export type ClientMessage = JoinRoomMessage | LeaveRoomMessage | StatusChangeMessage | PingMessage;
+export interface RequestBuddyPresenceMessage extends WsMessageBase {
+  type: 'request_buddy_presence';
+  dids: string[];
+}
+
+export type ClientMessage =
+  | JoinRoomMessage
+  | LeaveRoomMessage
+  | StatusChangeMessage
+  | PingMessage
+  | RequestBuddyPresenceMessage;
 
 // Server → Client messages
 
@@ -47,7 +58,17 @@ export interface PresenceUpdateEvent extends WsMessageBase {
   data: {
     did: string;
     status: string;
+    awayMessage?: string;
   };
+}
+
+export interface BuddyPresenceEvent extends WsMessageBase {
+  type: 'buddy_presence';
+  data: Array<{
+    did: string;
+    status: string;
+    awayMessage?: string;
+  }>;
 }
 
 export interface RoomJoinedEvent extends WsMessageBase {
@@ -68,6 +89,7 @@ export interface ErrorEvent extends WsMessageBase {
 export type ServerMessage =
   | NewMessageEvent
   | PresenceUpdateEvent
+  | BuddyPresenceEvent
   | RoomJoinedEvent
   | PongEvent
   | ErrorEvent;

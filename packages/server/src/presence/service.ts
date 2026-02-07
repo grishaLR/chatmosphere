@@ -9,8 +9,12 @@ export function handleUserDisconnect(did: string): void {
   presenceTracker.setOffline(did);
 }
 
-export function handleStatusChange(did: string, status: PresenceStatus): void {
-  presenceTracker.setStatus(did, status);
+export function handleStatusChange(
+  did: string,
+  status: PresenceStatus,
+  awayMessage?: string,
+): void {
+  presenceTracker.setStatus(did, status, awayMessage);
 }
 
 export function handleJoinRoom(did: string, roomId: string): void {
@@ -27,4 +31,18 @@ export function getUserStatus(did: string): PresenceStatus {
 
 export function getRoomPresence(roomId: string): string[] {
   return presenceTracker.getRoomMembers(roomId);
+}
+
+export function getBulkPresence(
+  dids: string[],
+): Array<{ did: string; status: string; awayMessage?: string }> {
+  const presenceMap = presenceTracker.getPresenceBulk(dids);
+  return dids.map((did) => {
+    const p = presenceMap.get(did) ?? { status: 'offline' };
+    return { did, status: p.status, awayMessage: p.awayMessage };
+  });
+}
+
+export function getUserRooms(did: string): Set<string> {
+  return presenceTracker.getUserRooms(did);
 }

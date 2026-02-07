@@ -47,6 +47,24 @@ CREATE TABLE IF NOT EXISTS mod_actions (
 CREATE INDEX IF NOT EXISTS idx_mod_actions_room ON mod_actions(room_id);
 CREATE INDEX IF NOT EXISTS idx_mod_actions_subject ON mod_actions(subject_did);
 
+-- buddy_lists: indexed from ATProto buddylist records
+CREATE TABLE IF NOT EXISTS buddy_lists (
+  did         TEXT PRIMARY KEY,
+  groups      JSONB NOT NULL DEFAULT '[]',
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- buddy_members: denormalized for reverse lookups (who has me as a buddy?)
+CREATE TABLE IF NOT EXISTS buddy_members (
+  owner_did   TEXT NOT NULL,
+  buddy_did   TEXT NOT NULL,
+  added_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (owner_did, buddy_did)
+);
+
+CREATE INDEX IF NOT EXISTS idx_buddy_members_buddy ON buddy_members(buddy_did);
+
 -- firehose_cursor: resume position
 CREATE TABLE IF NOT EXISTS firehose_cursor (
   id          INTEGER PRIMARY KEY DEFAULT 1,
