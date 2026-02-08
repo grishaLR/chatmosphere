@@ -5,10 +5,10 @@
   max-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
   border-radius: 8px 8px 0 0;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 -2px 12px oklch(0 0 0 / 0.12);
   overflow: hidden;
 }
 
@@ -22,8 +22,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.625rem;
-  background: #0066cc;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-primary-content);
   cursor: pointer;
   flex-shrink: 0;
   min-height: 36px;
@@ -56,7 +56,7 @@
   background: none;
   border: none;
   border-radius: 3px;
-  color: #fff;
+  color: var(--color-primary-content);
   cursor: pointer;
   font-size: 0.875rem;
   line-height: 1;
@@ -65,12 +65,12 @@
 
 .headerBtn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.15);
+  background: oklch(1 0 0 / 0.15);
 }
 
 .headerBtn:focus-visible {
   opacity: 1;
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-primary-content);
   outline-offset: -1px;
 }
 
@@ -81,7 +81,7 @@
 
 .persistActive {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.2);
+  background: oklch(1 0 0 / 0.2);
 }
 
 .body {
@@ -99,8 +99,8 @@
   max-width: 36px;
   height: 18px;
   padding: 0 5px;
-  background: #e53e3e;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-error-content);
   border-radius: 9px;
   font-size: 0.6875rem;
   font-weight: 700;

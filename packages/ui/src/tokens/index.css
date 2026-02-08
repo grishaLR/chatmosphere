@@ -1,0 +1,56 @@
+/*
+ * Chatmosphere AIM Theme Tokens
+ *
+ * Modern retro AIM aesthetic: light gray panels, primary blue accents,
+ * status colors for presence indicators.
+ *
+ * daisyUI provides: --color-base-100/200/300, --color-base-content,
+ * --color-primary, --color-secondary, --color-success/warning/error, etc.
+ *
+ * Custom --cm-* tokens extend for app-specific needs.
+ */
+
+@theme {
+  /* AIM theme definition for daisyUI */
+  --color-base-100: oklch(0.97 0 0);        /* #f5f5f5 - main background */
+  --color-base-200: oklch(0.93 0 0);        /* #e8e8e8 - panel backgrounds */
+  --color-base-300: oklch(0.87 0 0);        /* #d4d4d4 - borders, dividers */
+  --color-base-content: oklch(0.28 0 0);    /* #333333 - primary text */
+
+  --color-primary: oklch(0.49 0.16 250);    /* #0066cc - AIM blue */
+  --color-primary-content: oklch(1 0 0);    /* white text on primary */
+
+  --color-secondary: oklch(0.75 0.16 75);   /* #f59e0b - amber accent */
+  --color-secondary-content: oklch(0.28 0 0);
+
+  --color-accent: oklch(0.49 0.16 250);     /* alias of primary for now */
+  --color-accent-content: oklch(1 0 0);
+
+  --color-neutral: oklch(0.28 0 0);         /* #333333 - dark elements */
+  --color-neutral-content: oklch(0.97 0 0);
+
+  --color-success: oklch(0.65 0.2 145);     /* #22c55e - online */
+  --color-warning: oklch(0.75 0.16 75);     /* #f59e0b - away */
+  --color-error: oklch(0.55 0.2 25);        /* #cc0000 - error/danger */
+
+  --color-success-content: oklch(1 0 0);
+  --color-warning-content: oklch(0.28 0 0);
+  --color-error-content: oklch(1 0 0);
+
+  /* Custom Chatmosphere tokens */
+  --cm-status-idle: oklch(0.7 0.02 250);    /* #9ca3af - idle gray */
+  --cm-status-offline: oklch(0.85 0.01 250); /* #d1d5db - offline light gray */
+
+  --cm-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.08);
+  --cm-shadow-md: 0 4px 12px oklch(0 0 0 / 0.1);
+  --cm-shadow-lg: 0 8px 24px oklch(0 0 0 / 0.12);
+
+  --cm-panel-width-buddy: 240px;
+  --cm-panel-width-sidebar: 200px;
+  --cm-panel-width-dm: 320px;
+
+  --cm-radius-sm: 3px;
+  --cm-radius-md: 6px;
+  --cm-radius-lg: 8px;
+  --cm-radius-pill: 12px;
+}

@@ -13,7 +13,7 @@
 }
 
 .subtitle {
-  color: #666;
+  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
   margin-bottom: 2rem;
 }
 

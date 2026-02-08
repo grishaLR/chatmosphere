@@ -1,7 +1,7 @@
 .card {
   display: block;
   padding: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-base-300);
   border-radius: 6px;
   text-decoration: none;
   color: inherit;
@@ -9,7 +9,7 @@
 }
 
 .card:hover {
-  border-color: #0066cc;
+  border-color: var(--color-primary);
 }
 
 .header {
@@ -27,18 +27,18 @@
 .badge {
   font-size: 0.75rem;
   padding: 0.125rem 0.5rem;
-  background: #eee;
+  background: var(--color-base-200);
   border-radius: 12px;
-  color: #555;
+  color: color-mix(in oklch, var(--color-base-content) 70%, var(--color-base-300));
 }
 
 .description {
   margin: 0.25rem 0 0.5rem;
   font-size: 0.875rem;
-  color: #444;
+  color: color-mix(in oklch, var(--color-base-content) 85%, var(--color-base-300));
 }
 
 .meta {
   font-size: 0.75rem;
-  color: #888;
+  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
 }

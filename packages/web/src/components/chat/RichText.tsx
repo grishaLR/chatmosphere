@@ -15,7 +15,7 @@ function renderFeature(
   switch (feature.$type) {
     case 'app.chatmosphere.chat.message#mention':
       return (
-        <span key={key} style={{ color: '#0066cc', fontWeight: 600 }}>
+        <span key={key} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
           {text}
         </span>
       );
@@ -29,7 +29,7 @@ function renderFeature(
           href={feature.uri}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#0066cc' }}
+          style={{ color: 'var(--color-primary)' }}
         >
           {text}
         </a>

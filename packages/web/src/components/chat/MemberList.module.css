@@ -5,7 +5,7 @@
 .heading {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #555;
+  color: color-mix(in oklch, var(--color-base-content) 70%, var(--color-base-300));
   margin: 0 0 0.5rem;
 }
 
@@ -30,7 +30,7 @@
 
 .memberDid {
   font-size: 0.75rem;
-  color: #333;
+  color: var(--color-base-content);
   word-break: break-all;
 }
 
@@ -61,7 +61,7 @@
 
 .awayMsg {
   font-size: 0.6875rem;
-  color: #888;
+  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
   font-style: italic;
   white-space: nowrap;
   overflow: hidden;

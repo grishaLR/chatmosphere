@@ -38,13 +38,13 @@
 }
 
 .alertBadge {
-  color: #e5a00d;
+  color: var(--color-warning);
   font-size: 0.75rem;
   flex-shrink: 0;
 }
 
 .infoBadge {
-  color: #888;
+  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
   font-size: 0.75rem;
   flex-shrink: 0;
 }

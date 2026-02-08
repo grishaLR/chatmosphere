@@ -13,21 +13,21 @@
 
 .input {
   padding: 0.625rem 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-base-300);
   border-radius: 4px;
   font-size: 1rem;
 }
 
 .input:focus {
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px oklch(from var(--color-primary) l c h / 0.2);
 }
 
 .button {
   padding: 0.625rem;
-  background: #0066cc;
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-primary-content);
   border: none;
   border-radius: 4px;
   font-size: 1rem;
@@ -35,7 +35,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background: #0055aa;
+  background: color-mix(in oklch, var(--color-primary) 85%, black);
 }
 
 .button:disabled {
@@ -44,7 +44,7 @@
 }
 
 .error {
-  color: #cc0000;
+  color: var(--color-error);
   font-size: 0.875rem;
   margin: 0;
 }

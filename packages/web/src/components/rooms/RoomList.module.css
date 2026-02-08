@@ -6,6 +6,6 @@
 
 .empty {
   text-align: center;
-  color: #666;
+  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
   padding: 2rem;
 }

@@ -16,9 +16,16 @@
     "@atproto/oauth-client-browser": "^0.3.0",
     "@chatmosphere/lexicon": "workspace:*",
     "@chatmosphere/shared": "workspace:*",
+    "@chatmosphere/ui": "workspace:^",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.18",
+    "daisyui": "^5.5.18",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.0"
+    "react-router-dom": "^7.1.0",
+    "tailwindcss": "^4.1.18",
+    "virtualized-ui": "^0.4.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

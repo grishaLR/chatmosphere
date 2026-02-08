@@ -7,13 +7,13 @@
 .loading,
 .empty {
   text-align: center;
-  color: #888;
+  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
   padding: 2rem;
 }
 
 .typing {
   padding: 0.25rem 1rem;
   font-size: 0.8125rem;
-  color: #666;
+  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
   font-style: italic;
 }

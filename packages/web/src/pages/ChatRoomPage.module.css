@@ -9,11 +9,11 @@
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--color-base-300);
 }
 
 .back {
-  color: #0066cc;
+  color: var(--color-primary);
   text-decoration: none;
   font-size: 0.875rem;
 }
@@ -28,7 +28,7 @@
 }
 
 .description {
-  color: #666;
+  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
   font-size: 0.8125rem;
 }
 
@@ -47,7 +47,7 @@
 
 .sidebar {
   width: 200px;
-  border-left: 1px solid #ddd;
+  border-left: 1px solid var(--color-base-300);
   overflow-y: auto;
 }
 
@@ -56,7 +56,7 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  color: #666;
+  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
 }
 
 .error {
@@ -64,5 +64,5 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  color: #cc0000;
+  color: var(--color-error);
 }

@@ -3,21 +3,21 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--cm-shadow-md);
   cursor: pointer;
   max-width: 280px;
   animation: slideUp 0.2s ease-out;
 }
 
 .notification:hover {
-  background: #f9f9f9;
+  background: var(--color-base-100);
 }
 
 .notification:focus-visible {
-  outline: 2px solid #0066cc;
+  outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
 
@@ -46,12 +46,12 @@
 .sender {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-base-content);
 }
 
 .preview {
   font-size: 0.75rem;
-  color: #666;
+  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -69,17 +69,17 @@
   border: none;
   border-radius: 3px;
   cursor: pointer;
-  color: #888;
+  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
   font-size: 0.875rem;
   flex-shrink: 0;
 }
 
 .closeBtn:hover {
-  background: #eee;
-  color: #333;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
 }
 
 .closeBtn:focus-visible {
-  outline: 2px solid #0066cc;
+  outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }

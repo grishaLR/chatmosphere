@@ -30,14 +30,14 @@
 }
 
 .own .bubble {
-  background: #0066cc;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-primary-content);
   border-bottom-right-radius: 4px;
 }
 
 .other .bubble {
-  background: #e8e8e8;
-  color: #333;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
   border-bottom-left-radius: 4px;
 }
 
@@ -47,7 +47,7 @@
 
 .time {
   font-size: 0.625rem;
-  color: #999;
+  color: color-mix(in oklch, var(--color-base-content) 35%, var(--color-base-300));
   margin-top: 0.125rem;
 }
 
@@ -57,7 +57,7 @@
 
 .typingIndicator {
   font-size: 0.75rem;
-  color: #888;
+  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
   font-style: italic;
   padding: 0.25rem 0;
 }
@@ -67,6 +67,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: color-mix(in oklch, var(--color-base-content) 35%, var(--color-base-300));
   font-size: 0.8125rem;
 }

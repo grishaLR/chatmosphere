@@ -15,17 +15,17 @@
 }
 
 .online {
-  background-color: #22c55e;
+  background-color: var(--color-success);
 }
 
 .away {
-  background-color: #f59e0b;
+  background-color: var(--color-warning);
 }
 
 .idle {
-  background-color: #9ca3af;
+  background-color: var(--cm-status-idle);
 }
 
 .offline {
-  background-color: #d1d5db;
+  background-color: var(--cm-status-offline);
 }
