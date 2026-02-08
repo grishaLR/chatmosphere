@@ -1,21 +1,22 @@
 import type { WebSocket } from 'ws';
 import { DM_LIMITS } from '@chatmosphere/shared';
-import type { ClientMessage } from './types.js';
+import type { ValidatedClientMessage } from './validation.js';
 import type { RoomSubscriptions } from './rooms.js';
 import type { DmSubscriptions } from '../dms/subscriptions.js';
 import type { UserSockets } from './server.js';
 import type { BuddyWatchers } from './buddy-watchers.js';
 import type { PresenceService } from '../presence/service.js';
 import type { DmService } from '../dms/service.js';
-import type { PresenceStatus, PresenceVisibility } from '@chatmosphere/shared';
+import type { PresenceVisibility } from '@chatmosphere/shared';
 import type { Sql } from '../db/client.js';
 import type { RateLimiter } from '../moderation/rate-limiter.js';
 import { checkUserAccess } from '../moderation/service.js';
+import type { BlockService } from '../moderation/block-service.js';
 
 export async function handleClientMessage(
   ws: WebSocket,
   did: string,
-  data: ClientMessage,
+  data: ValidatedClientMessage,
   roomSubs: RoomSubscriptions,
   buddyWatchers: BuddyWatchers,
   service: PresenceService,
@@ -24,6 +25,7 @@ export async function handleClientMessage(
   dmSubs: DmSubscriptions,
   userSockets: UserSockets,
   dmService: DmService,
+  blockService: BlockService,
 ): Promise<void> {
   // Rate limit WS messages
   if (!rateLimiter.check(`ws:${did}`)) {
@@ -70,7 +72,7 @@ export async function handleClientMessage(
 
     case 'status_change': {
       const visibleTo = data.visibleTo as PresenceVisibility | undefined;
-      service.handleStatusChange(did, data.status as PresenceStatus, data.awayMessage, visibleTo);
+      service.handleStatusChange(did, data.status, data.awayMessage, visibleTo);
       // Broadcast presence update to all rooms the user is in
       const rooms = service.getUserRooms(did);
       for (const roomId of rooms) {
@@ -85,8 +87,11 @@ export async function handleClientMessage(
     }
 
     case 'request_buddy_presence': {
-      const capped = data.dids.slice(0, 100);
-      const presenceList = service.getBulkPresence(capped);
+      const presenceList = service
+        .getBulkPresence(data.dids)
+        .map((p) =>
+          blockService.doesBlock(p.did, did) ? { did: p.did, status: 'offline' as const } : p,
+        );
       ws.send(
         JSON.stringify({
           type: 'buddy_presence',
@@ -94,7 +99,29 @@ export async function handleClientMessage(
         }),
       );
       // Register this socket as watching these DIDs for live updates
-      buddyWatchers.watch(ws, did, capped);
+      buddyWatchers.watch(ws, did, data.dids);
+      break;
+    }
+
+    case 'room_typing': {
+      // Only broadcast if the user is actually in the room
+      const roomMembers = roomSubs.getSubscribers(data.roomId);
+      if (roomMembers.has(ws)) {
+        roomSubs.broadcast(
+          data.roomId,
+          { type: 'room_typing', data: { roomId: data.roomId, did } },
+          ws,
+        );
+      }
+      break;
+    }
+
+    case 'sync_blocks': {
+      blockService.sync(did, data.blockedDids);
+      // Re-notify all watchers with block-filtered presence
+      // (newly blocked get offline, newly unblocked get real status)
+      const presence = service.getPresence(did);
+      buddyWatchers.notify(did, presence.status, presence.awayMessage);
       break;
     }
 
@@ -104,19 +131,13 @@ export async function handleClientMessage(
     }
 
     case 'dm_open': {
-      // Validate recipientDid
-      if (
-        typeof data.recipientDid !== 'string' ||
-        !data.recipientDid.startsWith('did:') ||
-        data.recipientDid === did
-      ) {
-        ws.send(
-          JSON.stringify({
-            type: 'error',
-            message:
-              data.recipientDid === did ? 'Cannot open DM with yourself' : 'Invalid recipient DID',
-          }),
-        );
+      if (data.recipientDid === did) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Cannot open DM with yourself' }));
+        break;
+      }
+
+      if (blockService.isBlocked(did, data.recipientDid)) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Cannot message this user' }));
         break;
       }
 
@@ -149,11 +170,6 @@ export async function handleClientMessage(
     }
 
     case 'dm_send': {
-      // Validate text
-      if (typeof data.text !== 'string' || data.text.trim().length === 0) {
-        ws.send(JSON.stringify({ type: 'error', message: 'Message text is required' }));
-        break;
-      }
       if (data.text.length > DM_LIMITS.maxMessageLength) {
         ws.send(
           JSON.stringify({
@@ -162,6 +178,15 @@ export async function handleClientMessage(
           }),
         );
         break;
+      }
+
+      // Check blocks before sending
+      {
+        const recipient = await dmService.getRecipientDid(data.conversationId, did);
+        if (recipient && blockService.isBlocked(did, recipient)) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Cannot message this user' }));
+          break;
+        }
       }
 
       try {
@@ -212,6 +237,12 @@ export async function handleClientMessage(
     }
 
     case 'dm_close': {
+      const isParticipant = await dmService.isParticipant(data.conversationId, did);
+      if (!isParticipant) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Not a participant' }));
+        break;
+      }
+
       dmSubs.unsubscribe(data.conversationId, ws);
 
       // If no subscribers remain, clean up ephemeral conversation

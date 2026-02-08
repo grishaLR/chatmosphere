@@ -7,10 +7,12 @@ import { handleClientMessage } from './handlers.js';
 import { attachHeartbeat } from './heartbeat.js';
 import type { PresenceService } from '../presence/service.js';
 import type { DmService } from '../dms/service.js';
-import type { ClientMessage, ServerMessage } from './types.js';
+import type { ServerMessage } from './types.js';
+import { parseClientMessage } from './validation.js';
 import type { Sql } from '../db/client.js';
 import type { SessionStore } from '../auth/session.js';
 import type { RateLimiter } from '../moderation/rate-limiter.js';
+import { BlockService } from '../moderation/block-service.js';
 
 const AUTH_TIMEOUT_MS = 5000;
 
@@ -59,7 +61,9 @@ export function createWsServer(
   const roomSubs = new RoomSubscriptions();
   const dmSubs = new DmSubscriptions();
   const userSockets = new UserSockets();
-  const buddyWatchers = new BuddyWatchers(sql);
+  const blockService = new BlockService();
+  blockService.startSweep();
+  const buddyWatchers = new BuddyWatchers(sql, blockService);
 
   wss.on('connection', (ws: WebSocket) => {
     let did: string | null = null;
@@ -75,81 +79,99 @@ export function createWsServer(
     }, AUTH_TIMEOUT_MS);
 
     ws.on('message', (raw: Buffer) => {
+      let json: unknown;
       try {
-        const data = JSON.parse(raw.toString('utf-8')) as ClientMessage;
+        json = JSON.parse(raw.toString('utf-8'));
+      } catch {
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON' }));
+        return;
+      }
 
-        // First message must be auth
-        if (!authenticated) {
-          if (data.type !== 'auth' || !('token' in data)) {
-            ws.send(JSON.stringify({ type: 'error', message: 'First message must be auth' }));
-            ws.close(4001, 'Auth required');
-            return;
-          }
-
-          const session = sessions.get(data.token);
-          if (!session) {
-            ws.send(JSON.stringify({ type: 'error', message: 'Invalid or expired token' }));
-            ws.close(4001, 'Invalid token');
-            return;
-          }
-
-          clearTimeout(authTimer);
-          authenticated = true;
-          did = session.did;
-          service.handleUserConnect(did);
-          userSockets.add(did, ws);
-          buddyWatchers.notify(did, 'online');
-          cleanupHeartbeat = attachHeartbeat(ws);
-          console.log(`WS authenticated: ${did}`);
+      // First message must be auth (handled separately — not in validated union)
+      if (!authenticated) {
+        const msg = json as Record<string, unknown>;
+        if (msg.type !== 'auth' || typeof msg.token !== 'string') {
+          ws.send(JSON.stringify({ type: 'error', message: 'First message must be auth' }));
+          ws.close(4001, 'Auth required');
           return;
         }
 
-        // Skip auth messages after authentication
-        if (data.type === 'auth' || !did) return;
+        const session = sessions.get(msg.token);
+        if (!session) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Invalid or expired token' }));
+          ws.close(4001, 'Invalid token');
+          return;
+        }
 
-        void handleClientMessage(
-          ws,
-          did,
-          data,
-          roomSubs,
-          buddyWatchers,
-          service,
-          sql,
-          rateLimiter,
-          dmSubs,
-          userSockets,
-          dmService,
-        );
-      } catch {
-        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+        clearTimeout(authTimer);
+        authenticated = true;
+        did = session.did;
+        service.handleUserConnect(did);
+        userSockets.add(did, ws);
+        blockService.touch(did);
+        buddyWatchers.notify(did, 'online');
+        cleanupHeartbeat = attachHeartbeat(ws);
+        console.log(`WS authenticated: ${did}`);
+        return;
       }
+
+      if (!did) return;
+
+      // Validate all post-auth messages with Zod
+      const data = parseClientMessage(json);
+      if (!data) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+        return;
+      }
+
+      void handleClientMessage(
+        ws,
+        did,
+        data,
+        roomSubs,
+        buddyWatchers,
+        service,
+        sql,
+        rateLimiter,
+        dmSubs,
+        userSockets,
+        dmService,
+        blockService,
+      );
     });
 
     ws.on('close', () => {
       clearTimeout(authTimer);
       cleanupHeartbeat?.();
       if (did) {
-        const rooms = service.getUserRooms(did);
-        for (const roomId of rooms) {
-          service.handleLeaveRoom(did, roomId);
-          roomSubs.broadcast(roomId, {
-            type: 'presence',
-            data: { did, status: 'offline' },
-          });
-        }
-        buddyWatchers.notify(did, 'offline');
-        service.handleUserDisconnect(did);
+        // Remove this socket first so we can check remaining connections
+        userSockets.remove(did, ws);
         roomSubs.unsubscribeAll(ws);
         buddyWatchers.unwatchAll(ws);
 
-        // DM cleanup: unsubscribe and clean up ephemeral conversations
-        userSockets.remove(did, ws);
         const abandonedConvos = dmSubs.unsubscribeAll(ws);
         for (const conversationId of abandonedConvos) {
           void dmService.cleanupIfEmpty(conversationId);
         }
 
-        console.log(`WS disconnected: ${did}`);
+        // Only tear down presence if this was the user's last connection
+        const remaining = userSockets.get(did);
+        if (remaining.size === 0) {
+          const rooms = service.getUserRooms(did);
+          for (const roomId of rooms) {
+            service.handleLeaveRoom(did, roomId);
+            roomSubs.broadcast(roomId, {
+              type: 'presence',
+              data: { did, status: 'offline' },
+            });
+          }
+          buddyWatchers.notify(did, 'offline');
+          service.handleUserDisconnect(did);
+        }
+
+        // Keep block list across reconnections — it will be overwritten by
+        // the next sync_blocks message, avoiding a flash of real presence.
+        console.log(`WS disconnected: ${did} (${String(remaining.size)} sessions remain)`);
       }
     });
 
@@ -163,6 +185,7 @@ export function createWsServer(
       roomSubs.broadcast(roomId, message);
     },
     close: () => {
+      blockService.stopSweep();
       wss.close();
     },
   };
