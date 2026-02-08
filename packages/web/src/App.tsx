@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ModerationProvider } from './contexts/ModerationContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
@@ -8,6 +9,8 @@ import { ChatRoomPage } from './pages/ChatRoomPage';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { DmProvider } from './contexts/DmContext';
 import { DmPopoverContainer } from './components/dm/DmPopoverContainer';
+import { BlockProvider } from './contexts/BlockContext';
+import { ConnectionBanner } from './components/ConnectionBanner';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { did, serverToken, isLoading, authError, logout } = useAuth();
@@ -59,14 +62,19 @@ export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ProfileProvider>
-          <WebSocketProvider>
-            <DmProvider>
-              <AppRoutes />
-              <DmPopoverContainer />
-            </DmProvider>
-          </WebSocketProvider>
-        </ProfileProvider>
+        <ModerationProvider>
+          <ProfileProvider>
+            <WebSocketProvider>
+              <ConnectionBanner />
+              <BlockProvider>
+                <DmProvider>
+                  <AppRoutes />
+                  <DmPopoverContainer />
+                </DmProvider>
+              </BlockProvider>
+            </WebSocketProvider>
+          </ProfileProvider>
+        </ModerationProvider>
       </AuthProvider>
     </BrowserRouter>
   );

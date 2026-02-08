@@ -66,6 +66,16 @@ export interface DmTogglePersistMessage extends WsMessageBase {
   persist: boolean;
 }
 
+export interface RoomTypingMessage extends WsMessageBase {
+  type: 'room_typing';
+  roomId: string;
+}
+
+export interface SyncBlocksMessage extends WsMessageBase {
+  type: 'sync_blocks';
+  blockedDids: string[];
+}
+
 export type ClientMessage =
   | AuthMessage
   | JoinRoomMessage
@@ -73,6 +83,8 @@ export type ClientMessage =
   | StatusChangeMessage
   | PingMessage
   | RequestBuddyPresenceMessage
+  | RoomTypingMessage
+  | SyncBlocksMessage
   | DmOpenMessage
   | DmCloseMessage
   | DmSendMessage
@@ -182,6 +194,14 @@ export interface DmIncomingEvent extends WsMessageBase {
   };
 }
 
+export interface RoomTypingEvent extends WsMessageBase {
+  type: 'room_typing';
+  data: {
+    roomId: string;
+    did: string;
+  };
+}
+
 export type ServerMessage =
   | NewMessageEvent
   | PresenceUpdateEvent
@@ -189,6 +209,7 @@ export type ServerMessage =
   | RoomJoinedEvent
   | PongEvent
   | ErrorEvent
+  | RoomTypingEvent
   | DmOpenedEvent
   | DmMessageEvent
   | DmTypingEvent

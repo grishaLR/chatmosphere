@@ -2,6 +2,7 @@ import type { Sql } from '../db/client.js';
 import { filterText, type FilterResult } from './filter.js';
 import { isUserBanned } from './queries.js';
 import { getRoomById } from '../rooms/queries.js';
+import { getDidCreationDate, getAccountAgeDays } from './account-age.js';
 
 export function checkMessageContent(text: string): FilterResult {
   return filterText(text);
@@ -22,17 +23,24 @@ export async function checkUserAccess(
     return { allowed: false, reason: 'User is banned from this room' };
   }
 
-  // Fetch room settings for additional checks
   const room = await getRoomById(sql, roomId);
   if (!room) {
     return { allowed: false, reason: 'Room not found' };
   }
 
-  // Account age check (alpha soft-gate)
+  // Account age gate
   if (room.min_account_age_days > 0) {
-    // For alpha: just check if the room requires account age
-    // Full implementation would resolve DID creation date via ATProto
-    // For now, log and allow (the infrastructure is in place)
+    const creationDate = await getDidCreationDate(did);
+    if (creationDate) {
+      const ageDays = getAccountAgeDays(creationDate);
+      if (ageDays < room.min_account_age_days) {
+        return {
+          allowed: false,
+          reason: `Account must be at least ${String(room.min_account_age_days)} days old to join this room`,
+        };
+      }
+    }
+    // If we can't resolve creation date (e.g. did:web), allow access
   }
 
   return { allowed: true };

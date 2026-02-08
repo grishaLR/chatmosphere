@@ -26,3 +26,25 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.blurred {
+  filter: blur(4px);
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.blurred:hover {
+  filter: blur(2px);
+}
+
+.alertBadge {
+  color: #e5a00d;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.infoBadge {
+  color: #888;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}

@@ -60,3 +60,16 @@ export async function getMessagesByRoom(
     LIMIT ${limit}
   `;
 }
+
+/** Delete room messages older than retentionDays. Returns count of deleted rows. */
+export async function pruneOldMessages(sql: Sql, retentionDays: number): Promise<number> {
+  const result = await sql<{ count: string }[]>`
+    WITH deleted AS (
+      DELETE FROM messages
+      WHERE created_at < NOW() - MAKE_INTERVAL(days => ${retentionDays})
+      RETURNING 1
+    )
+    SELECT COUNT(*) as count FROM deleted
+  `;
+  return Number(result[0]?.count ?? 0);
+}

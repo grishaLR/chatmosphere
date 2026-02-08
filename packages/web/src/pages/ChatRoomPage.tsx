@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useRoom } from '../hooks/useRoom';
 import { useMessages } from '../hooks/useMessages';
+import { useBlocks } from '../contexts/BlockContext';
 import { MessageList } from '../components/chat/MessageList';
 import { MessageInput } from '../components/chat/MessageInput';
 import { MemberList } from '../components/chat/MemberList';
@@ -15,7 +17,23 @@ export function ChatRoomPage() {
 
 function ChatRoomContent({ roomId }: { roomId: string }) {
   const { room, members, doorEvents, loading: roomLoading, error: roomError } = useRoom(roomId);
-  const { messages, loading: msgLoading, sendMessage } = useMessages(roomId);
+  const {
+    messages,
+    loading: msgLoading,
+    typingUsers,
+    sendMessage,
+    sendTyping,
+  } = useMessages(roomId);
+  const { blockedDids } = useBlocks();
+
+  const filteredMessages = useMemo(
+    () => messages.filter((m) => !blockedDids.has(m.did)),
+    [messages, blockedDids],
+  );
+  const filteredTyping = useMemo(
+    () => typingUsers.filter((d) => !blockedDids.has(d)),
+    [typingUsers, blockedDids],
+  );
 
   if (roomLoading) return <div className={styles.loading}>Room is being set up...</div>;
   if (roomError) return <div className={styles.error}>{roomError}</div>;
@@ -32,11 +50,16 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
       </header>
       <div className={styles.content}>
         <div className={styles.chatArea}>
-          <MessageList messages={messages} loading={msgLoading} />
+          <MessageList
+            messages={filteredMessages}
+            loading={msgLoading}
+            typingUsers={filteredTyping}
+          />
           <MessageInput
             onSend={(text) => {
               void sendMessage(text, room.uri);
             }}
+            onTyping={sendTyping}
           />
         </div>
         <aside className={styles.sidebar}>

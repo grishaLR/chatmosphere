@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './useAuth';
 import { useWebSocket } from '../contexts/WebSocketContext';
-import { getBuddyListRecord, putBuddyListRecord } from '../lib/atproto';
+import { getBuddyListRecord, putBuddyListRecord, generateTid } from '../lib/atproto';
 import { fetchPresence } from '../lib/api';
 import { playDoorOpen, playDoorClose } from '../lib/sounds';
 import type { BuddyGroup } from '@chatmosphere/lexicon';
@@ -23,9 +23,13 @@ export function useBuddyList() {
   const prevStatusRef = useRef<Map<string, string>>(new Map());
   const doorTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Derive close-friend DIDs from groups
-  const closeFriendDids = new Set(
-    groups.filter((g) => g.isCloseFriends === true).flatMap((g) => g.members.map((m) => m.did)),
+  // Derive close-friend DIDs from groups (memoized to avoid recomputing on every render)
+  const closeFriendDids = useMemo(
+    () =>
+      new Set(
+        groups.filter((g) => g.isCloseFriends === true).flatMap((g) => g.members.map((m) => m.did)),
+      ),
+    [groups],
   );
 
   // Load buddy list from PDS + fetch presence
@@ -59,33 +63,50 @@ export function useBuddyList() {
         return;
       }
 
-      const presenceList = await fetchPresence(allDids);
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- ref mutated in cleanup
-      if (cancelledRef.current) return;
-
-      // Seed previous status so first WS delta triggers door sounds
-      for (const p of presenceList) {
-        prevStatusRef.current.set(p.did, p.status);
-      }
-
       const cfDids = new Set(
         pdsGroups
           .filter((g) => g.isCloseFriends === true)
           .flatMap((g) => g.members.map((m) => m.did)),
       );
 
+      // Fetch ATProto block records to restore blockRkey for unblock operations
+      const blockMap = new Map<string, string>(); // subject DID → rkey
+      try {
+        let blockCursor: string | undefined;
+        do {
+          const res = await currentAgent.com.atproto.repo.listRecords({
+            repo: currentAgent.assertDid,
+            collection: 'app.bsky.graph.block',
+            limit: 100,
+            cursor: blockCursor,
+          });
+          for (const rec of res.data.records) {
+            const subject = (rec.value as { subject?: string }).subject;
+            if (subject) {
+              const rkey = rec.uri.split('/').pop();
+              if (rkey) blockMap.set(subject, rkey);
+            }
+          }
+          blockCursor = res.data.cursor;
+        } while (blockCursor);
+      } catch {
+        // Non-critical — block state just won't be restored
+      }
+
+      // Default all buddies to offline — WS request_buddy_presence
+      // will deliver block-filtered presence shortly after
       setBuddies(
-        presenceList.map((p) => ({
-          did: p.did,
-          status: p.status,
-          awayMessage: p.awayMessage,
-          addedAt: addedAtMap.get(p.did) ?? new Date().toISOString(),
-          isCloseFriend: cfDids.has(p.did),
+        allDids.map((did) => ({
+          did,
+          status: 'offline',
+          addedAt: addedAtMap.get(did) ?? new Date().toISOString(),
+          isCloseFriend: cfDids.has(did),
+          blockRkey: blockMap.get(did),
         })),
       );
       setLoading(false);
 
-      // Request WS-based buddy presence for live updates
+      // Request block-filtered presence via WS
       send({ type: 'request_buddy_presence', dids: allDids });
     }
 
@@ -262,17 +283,35 @@ export function useBuddyList() {
   );
 
   const blockBuddy = useCallback(
-    (did: string) => {
+    async (did: string, isCurrentlyBlocked: boolean) => {
       if (!agent) return;
 
-      const isCurrentlyBlocked = buddies.find((b) => b.did === did)?.isBlocked === true;
+      const buddy = buddies.find((b) => b.did === did);
+      if (!buddy) return;
 
-      // Toggle block state locally
-      setBuddies((prev) =>
-        prev.map((b) => (b.did === did ? { ...b, isBlocked: !isCurrentlyBlocked } : b)),
-      );
-
-      // TODO: write ATProto ban record when block system is implemented
+      if (isCurrentlyBlocked && buddy.blockRkey) {
+        // Delete the ATProto block record
+        await agent.com.atproto.repo.deleteRecord({
+          repo: agent.assertDid,
+          collection: 'app.bsky.graph.block',
+          rkey: buddy.blockRkey,
+        });
+        setBuddies((prev) => prev.map((b) => (b.did === did ? { ...b, blockRkey: undefined } : b)));
+      } else {
+        // Create an ATProto block record
+        const rkey = generateTid();
+        await agent.com.atproto.repo.createRecord({
+          repo: agent.assertDid,
+          collection: 'app.bsky.graph.block',
+          rkey,
+          record: {
+            $type: 'app.bsky.graph.block',
+            subject: did,
+            createdAt: new Date().toISOString(),
+          },
+        });
+        setBuddies((prev) => prev.map((b) => (b.did === did ? { ...b, blockRkey: rkey } : b)));
+      }
     },
     [agent, buddies],
   );

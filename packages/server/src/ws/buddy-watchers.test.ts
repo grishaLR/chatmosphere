@@ -33,13 +33,16 @@ function parseSentMessage(ws: WebSocket): {
 }
 
 const mockSql = {} as never;
+const mockBlockService = {
+  doesBlock: vi.fn().mockReturnValue(false),
+} as never;
 
 describe('BuddyWatchers', () => {
   let watchers: BuddyWatchers;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    watchers = new BuddyWatchers(mockSql);
+    watchers = new BuddyWatchers(mockSql, mockBlockService);
   });
 
   it('watch registers a socket to receive updates for DIDs', () => {

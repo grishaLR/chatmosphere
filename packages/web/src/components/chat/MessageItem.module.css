@@ -29,3 +29,23 @@
 .text {
   font-size: 0.875rem;
 }
+
+.blurredText {
+  font-size: 0.875rem;
+  color: #999;
+  font-style: italic;
+}
+
+.revealBtn {
+  background: none;
+  border: none;
+  color: #0066cc;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.revealBtn:hover {
+  color: #004499;
+}

@@ -1,6 +1,7 @@
 import type { WebSocket } from 'ws';
 import type { PresenceVisibility } from '@chatmosphere/shared';
 import type { Sql } from '../db/client.js';
+import type { BlockService } from '../moderation/block-service.js';
 import { isCloseFriend } from '../buddylist/queries.js';
 import { resolveVisibleStatus } from '../presence/visibility.js';
 
@@ -15,7 +16,10 @@ export class BuddyWatchers {
   /** socket → ownerDid (the DID that authenticated this socket) */
   private socketDids = new Map<WebSocket, string>();
 
-  constructor(private sql: Sql) {}
+  constructor(
+    private sql: Sql,
+    private blockService: BlockService,
+  ) {}
 
   /** Register a socket as watching a set of DIDs */
   watch(ws: WebSocket, ownerDid: string, dids: string[]): void {
@@ -48,15 +52,23 @@ export class BuddyWatchers {
 
     const visibility = visibleTo ?? 'everyone';
 
-    // Fast path: everyone can see — no per-watcher DB check needed
+    // Fast path: everyone can see — but still check blocks per-watcher
     if (visibility === 'everyone') {
-      const msg = JSON.stringify({
+      const realMsg = JSON.stringify({
         type: 'buddy_presence',
         data: [{ did, status, awayMessage }],
       });
+      const offlineMsg = JSON.stringify({
+        type: 'buddy_presence',
+        data: [{ did, status: 'offline' }],
+      });
       for (const ws of set) {
-        if (ws.readyState === ws.OPEN) {
-          ws.send(msg);
+        if (ws.readyState !== ws.OPEN) continue;
+        const watcherDid = this.socketDids.get(ws);
+        if (watcherDid && this.blockService.doesBlock(did, watcherDid)) {
+          ws.send(offlineMsg);
+        } else {
+          ws.send(realMsg);
         }
       }
       return;
@@ -78,6 +90,17 @@ export class BuddyWatchers {
 
       const watcherDid = this.socketDids.get(ws);
       if (!watcherDid) continue;
+
+      // If the buddy blocked this watcher, always show offline
+      if (this.blockService.doesBlock(did, watcherDid)) {
+        ws.send(
+          JSON.stringify({
+            type: 'buddy_presence',
+            data: [{ did, status: 'offline' }],
+          }),
+        );
+        continue;
+      }
 
       const isFriend =
         visibility === 'close-friends' ? await isCloseFriend(this.sql, did, watcherDid) : false;

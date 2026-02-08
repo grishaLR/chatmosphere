@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { MessageView } from '../../types';
+import { useModeration } from '../../hooks/useModeration';
 import { RichText } from './RichText';
 import { UserIdentity } from './UserIdentity';
 import styles from './MessageItem.module.css';
@@ -13,6 +15,13 @@ function formatTime(dateStr: string): string {
 }
 
 export function MessageItem({ message }: MessageItemProps) {
+  const moderation = useModeration(message.did);
+  const [revealed, setRevealed] = useState(false);
+
+  if (moderation.shouldFilter) return null;
+
+  const blurred = moderation.shouldBlur && !revealed;
+
   return (
     <div className={`${styles.item} ${message.pending ? styles.pending : ''}`}>
       <span className={styles.meta}>
@@ -21,9 +30,23 @@ export function MessageItem({ message }: MessageItemProps) {
         </span>
         <span className={styles.time}>{formatTime(message.created_at)}</span>
       </span>
-      <span className={styles.text}>
-        <RichText text={message.text} />
-      </span>
+      {blurred ? (
+        <span className={styles.blurredText}>
+          Content warning{' '}
+          <button
+            className={styles.revealBtn}
+            onClick={() => {
+              setRevealed(true);
+            }}
+          >
+            Click to reveal
+          </button>
+        </span>
+      ) : (
+        <span className={styles.text}>
+          <RichText text={message.text} />
+        </span>
+      )}
     </div>
   );
 }

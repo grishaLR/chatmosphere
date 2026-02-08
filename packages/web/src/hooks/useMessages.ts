@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchMessages } from '../lib/api';
 import { createMessageRecord, type CreateMessageInput } from '../lib/atproto';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from './useAuth';
 import type { MessageView } from '../types';
 
+const MAX_MESSAGES = 500;
+
 export function useMessages(roomId: string) {
   const [messages, setMessages] = useState<MessageView[]>([]);
   const [loading, setLoading] = useState(true);
-  const { subscribe } = useWebSocket();
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const { send, subscribe } = useWebSocket();
   const { agent, did } = useAuth();
+  const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const lastTypingSent = useRef(0);
 
   // Load message history
   useEffect(() => {
@@ -35,51 +40,82 @@ export function useMessages(roomId: string) {
     };
   }, [roomId]);
 
-  // Listen for real-time messages via WS
+  // Listen for real-time messages + typing via WS
   useEffect(() => {
     const unsub = subscribe((msg) => {
-      if (msg.type !== 'message') return;
-      const event = msg;
-      if (event.data.roomId !== roomId) return;
+      if (msg.type === 'message') {
+        const event = msg;
+        if (event.data.roomId !== roomId) return;
 
-      setMessages((prev) => {
-        // Dedup: if we have a pending message with same id (rkey), replace it
-        const existing = prev.findIndex((m) => m.id === event.data.id);
-        if (existing !== -1) {
-          const updated = [...prev];
-          updated[existing] = {
-            id: event.data.id,
-            uri: event.data.uri,
-            did: event.data.did,
-            room_id: event.data.roomId,
-            text: event.data.text,
-            reply_to: event.data.replyTo ?? null,
-            created_at: event.data.createdAt,
-            indexed_at: event.data.createdAt,
-            pending: false,
-          };
-          return updated;
+        // Clear typing indicator for the sender (they just sent a message)
+        setTypingUsers((prev) => prev.filter((d) => d !== event.data.did));
+        const senderTimer = typingTimers.current.get(event.data.did);
+        if (senderTimer) {
+          clearTimeout(senderTimer);
+          typingTimers.current.delete(event.data.did);
         }
 
-        // New message from another user or server
-        return [
-          ...prev,
-          {
-            id: event.data.id,
-            uri: event.data.uri,
-            did: event.data.did,
-            room_id: event.data.roomId,
-            text: event.data.text,
-            reply_to: event.data.replyTo ?? null,
-            created_at: event.data.createdAt,
-            indexed_at: event.data.createdAt,
-          },
-        ];
-      });
+        setMessages((prev) => {
+          // Dedup: if we have a pending message with same id (rkey), replace it
+          const existing = prev.findIndex((m) => m.id === event.data.id);
+          if (existing !== -1) {
+            const updated = [...prev];
+            updated[existing] = {
+              id: event.data.id,
+              uri: event.data.uri,
+              did: event.data.did,
+              room_id: event.data.roomId,
+              text: event.data.text,
+              reply_to: event.data.replyTo ?? null,
+              created_at: event.data.createdAt,
+              indexed_at: event.data.createdAt,
+              pending: false,
+            };
+            return updated;
+          }
+
+          // New message from another user or server — cap to prevent OOM
+          const next = [
+            ...prev,
+            {
+              id: event.data.id,
+              uri: event.data.uri,
+              did: event.data.did,
+              room_id: event.data.roomId,
+              text: event.data.text,
+              reply_to: event.data.replyTo ?? null,
+              created_at: event.data.createdAt,
+              indexed_at: event.data.createdAt,
+            },
+          ];
+          return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next;
+        });
+      } else if (msg.type === 'room_typing') {
+        const { roomId: typingRoomId, did: typingDid } = msg.data;
+        if (typingRoomId !== roomId || typingDid === did) return;
+
+        setTypingUsers((prev) => (prev.includes(typingDid) ? prev : [...prev, typingDid]));
+
+        // Clear existing timer for this user
+        const prevTimer = typingTimers.current.get(typingDid);
+        if (prevTimer) clearTimeout(prevTimer);
+
+        const timer = setTimeout(() => {
+          setTypingUsers((prev) => prev.filter((d) => d !== typingDid));
+          typingTimers.current.delete(typingDid);
+        }, 3000);
+        typingTimers.current.set(typingDid, timer);
+      }
     });
 
-    return unsub;
-  }, [roomId, subscribe]);
+    return () => {
+      unsub();
+      for (const timer of typingTimers.current.values()) {
+        clearTimeout(timer);
+      }
+      typingTimers.current.clear();
+    };
+  }, [roomId, subscribe, did]);
 
   // Send a message with optimistic update
   const sendMessage = useCallback(
@@ -114,5 +150,12 @@ export function useMessages(roomId: string) {
     [agent, did, roomId],
   );
 
-  return { messages, loading, sendMessage };
+  const sendTyping = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTypingSent.current < 3000) return;
+    lastTypingSent.current = now;
+    send({ type: 'room_typing', roomId });
+  }, [send, roomId]);
+
+  return { messages, loading, typingUsers, sendMessage, sendTyping };
 }

@@ -3,6 +3,7 @@ import type { Agent } from '@atproto/api';
 import { StatusIndicator } from './StatusIndicator';
 import { UserIdentity } from './UserIdentity';
 import { resolveDidOrHandle } from '../../lib/resolve-identity';
+import { useBlocks } from '../../contexts/BlockContext';
 import type { DoorEvent } from '../../hooks/useBuddyList';
 import type { BuddyWithPresence } from '../../types';
 import styles from './BuddyListPanel.module.css';
@@ -28,12 +29,14 @@ const STATUS_ORDER: Record<string, number> = {
 
 function BuddyMenu({
   buddy,
+  isBlocked,
   onRemove,
   onToggleCloseFriend,
   onBlock,
   onSendIm,
 }: {
   buddy: BuddyWithPresence;
+  isBlocked: boolean;
   onRemove: () => void;
   onToggleCloseFriend: () => void;
   onBlock: () => void;
@@ -95,7 +98,7 @@ function BuddyMenu({
               setOpen(false);
             }}
           >
-            {buddy.isBlocked ? 'Unblock' : 'Block'}
+            {isBlocked ? 'Unblock' : 'Block'}
           </button>
           <button
             className={`${styles.menuItem} ${styles.menuItemDanger}`}
@@ -123,6 +126,7 @@ export function BuddyListPanel({
   onBlockBuddy,
   onSendIm,
 }: BuddyListPanelProps) {
+  const { blockedDids } = useBlocks();
   const [addInput, setAddInput] = useState('');
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
@@ -233,6 +237,7 @@ export function BuddyListPanel({
                 </div>
                 <BuddyMenu
                   buddy={buddy}
+                  isBlocked={blockedDids.has(buddy.did)}
                   onRemove={() => void onRemoveBuddy(buddy.did)}
                   onToggleCloseFriend={() => void onToggleCloseFriend(buddy.did)}
                   onBlock={() => {

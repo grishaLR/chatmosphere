@@ -1,8 +1,11 @@
+import type { AppBskyActorDefs } from '@atproto/api';
+
 export interface ProfileInfo {
   did: string;
   handle: string;
   displayName?: string;
   avatarUrl?: string;
+  bskyProfile?: AppBskyActorDefs.ProfileViewBasic;
 }
 
 const BATCH_SIZE = 25;
@@ -22,12 +25,7 @@ export async function fetchProfiles(dids: string[]): Promise<ProfileInfo[]> {
     if (!res.ok) continue;
 
     const data = (await res.json()) as {
-      profiles: Array<{
-        did: string;
-        handle: string;
-        displayName?: string;
-        avatar?: string;
-      }>;
+      profiles: AppBskyActorDefs.ProfileViewBasic[];
     };
 
     for (const profile of data.profiles) {
@@ -36,6 +34,7 @@ export async function fetchProfiles(dids: string[]): Promise<ProfileInfo[]> {
         handle: profile.handle,
         displayName: profile.displayName || undefined,
         avatarUrl: profile.avatar || undefined,
+        bskyProfile: profile,
       });
     }
   }

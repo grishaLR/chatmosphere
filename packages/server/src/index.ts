@@ -9,6 +9,8 @@ import { createPresenceService } from './presence/service.js';
 import { SessionStore } from './auth/session.js';
 import { RateLimiter } from './moderation/rate-limiter.js';
 import { createDmService } from './dms/service.js';
+import { LIMITS } from '@chatmosphere/shared';
+import { pruneOldMessages } from './messages/queries.js';
 
 function main() {
   const config = loadConfig();
@@ -37,11 +39,14 @@ function main() {
   const firehose = createFirehoseConsumer(config.JETSTREAM_URL, db, wss);
   firehose.start();
 
-  // Periodic cleanup
+  // Periodic cleanup (every 60s for sessions/rate limiter, message retention checked each cycle)
   const pruneInterval = setInterval(() => {
     sessions.prune();
     rateLimiter.prune();
     void dmService.pruneExpired();
+    void pruneOldMessages(db, LIMITS.defaultRetentionDays).then((count) => {
+      if (count > 0) console.log(`Pruned ${String(count)} old room messages`);
+    });
   }, 60_000);
 
   httpServer.listen(config.PORT, config.HOST, () => {

@@ -36,11 +36,11 @@ export class RoomSubscriptions {
     return this.rooms.get(roomId) ?? new Set();
   }
 
-  broadcast(roomId: string, data: unknown): void {
+  broadcast(roomId: string, data: unknown, exclude?: WebSocket): void {
     const subscribers = this.getSubscribers(roomId);
     const message = JSON.stringify(data);
     for (const ws of subscribers) {
-      if (ws.readyState === ws.OPEN) {
+      if (ws !== exclude && ws.readyState === ws.OPEN) {
         ws.send(message);
       }
     }

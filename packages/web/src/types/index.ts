@@ -39,7 +39,8 @@ export interface BuddyWithPresence {
   awayMessage?: string;
   addedAt: string;
   isCloseFriend?: boolean;
-  isBlocked?: boolean;
+  /** ATProto block record key — needed for deletion on unblock */
+  blockRkey?: string;
 }
 
 export interface DmConversationView {

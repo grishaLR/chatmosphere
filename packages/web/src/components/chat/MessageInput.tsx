@@ -4,9 +4,10 @@ import styles from './MessageInput.module.css';
 
 interface MessageInputProps {
   onSend: (text: string) => void;
+  onTyping?: () => void;
 }
 
-export function MessageInput({ onSend }: MessageInputProps) {
+export function MessageInput({ onSend, onTyping }: MessageInputProps) {
   const [text, setText] = useState('');
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -23,13 +24,18 @@ export function MessageInput({ onSend }: MessageInputProps) {
     setText('');
   }
 
+  function handleChange(value: string) {
+    setText(value.slice(0, LIMITS.maxMessageLength));
+    if (value.length > 0) onTyping?.();
+  }
+
   return (
     <div className={styles.container}>
       <textarea
         className={styles.textarea}
         value={text}
         onChange={(e) => {
-          setText(e.target.value.slice(0, LIMITS.maxMessageLength));
+          handleChange(e.target.value);
         }}
         onKeyDown={handleKeyDown}
         placeholder="Type a message... (Enter to send, Shift+Enter for newline)"

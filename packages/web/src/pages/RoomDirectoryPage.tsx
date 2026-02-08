@@ -6,6 +6,7 @@ import { BuddyListPanel } from '../components/chat/BuddyListPanel';
 import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
 import { useDm } from '../contexts/DmContext';
+import { useBlocks } from '../contexts/BlockContext';
 import styles from './RoomDirectoryPage.module.css';
 
 export function RoomDirectoryPage() {
@@ -21,6 +22,7 @@ export function RoomDirectoryPage() {
     agent,
   } = useBuddyList();
   const { openDm } = useDm();
+  const { blockedDids, toggleBlock } = useBlocks();
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
@@ -64,7 +66,13 @@ export function RoomDirectoryPage() {
             onAddBuddy={addBuddy}
             onRemoveBuddy={removeBuddy}
             onToggleCloseFriend={toggleCloseFriend}
-            onBlockBuddy={blockBuddy}
+            onBlockBuddy={(did: string) => {
+              const isCurrentlyBlocked = blockedDids.has(did);
+              toggleBlock(did); // immediate server sync
+              blockBuddy(did, isCurrentlyBlocked).catch(() => {
+                toggleBlock(did); // rollback on ATProto failure
+              });
+            }}
             onSendIm={openDm}
           />
         </aside>

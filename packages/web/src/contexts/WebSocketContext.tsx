@@ -1,4 +1,13 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { createWsClient, type WsClient, type WsHandler } from '../lib/ws';
 import type { ClientMessage } from '@chatmosphere/shared';
 import { useAuth } from '../hooks/useAuth';
@@ -36,15 +45,29 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     };
   }, [did, serverToken]);
 
-  const value: WebSocketContextValue = {
-    send(msg) {
+  // Both `send` and `subscribe` depend on `connected` so that consumer effects
+  // re-run when the WS client connects. Without this, effects that fire before
+  // the client is ready get stale no-ops and never retry.
+  const send = useCallback(
+    (msg: ClientMessage) => {
+      if (!connected) return;
       clientRef.current?.send(msg);
     },
-    subscribe(handler) {
+    [connected],
+  );
+
+  const subscribe = useCallback(
+    (handler: WsHandler) => {
+      if (!connected) return () => {};
       return clientRef.current?.subscribe(handler) ?? (() => {});
     },
-    connected,
-  };
+    [connected],
+  );
+
+  const value = useMemo<WebSocketContextValue>(
+    () => ({ send, subscribe, connected }),
+    [send, subscribe, connected],
+  );
 
   return <WebSocketContext.Provider value={value}>{children}</WebSocketContext.Provider>;
 }
