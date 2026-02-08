@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useVirtualList } from 'virtualized-ui';
 import type { DmMessageView } from '../../types';
 import { RichText } from '../chat/RichText';
 import styles from './DmMessageList.module.css';
@@ -17,22 +18,34 @@ function formatTime(iso: string): string {
 const SCROLL_THRESHOLD = 60;
 
 export function DmMessageList({ messages, currentDid, typing }: DmMessageListProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
 
-  const checkIsNearBottom = useCallback(() => {
-    const el = listRef.current;
-    if (!el) return;
-    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
-  }, []);
+  const {
+    virtualItems,
+    totalSize,
+    containerRef,
+    measureElement,
+    handleScroll,
+    scrollToIndex,
+    data,
+  } = useVirtualList({
+    data: messages,
+    getItemId: (msg) => msg.id,
+    estimatedItemHeight: 40,
+    gap: 4,
+  });
 
-  // M2: Only auto-scroll when user is near the bottom
+  const onScroll = useCallback(() => {
+    handleScroll();
+    const el = containerRef.current;
+    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
+  }, [handleScroll, containerRef]);
+
   useEffect(() => {
-    if (isNearBottomRef.current) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isNearBottomRef.current && messages.length > 0) {
+      scrollToIndex(messages.length - 1);
     }
-  }, [messages.length, typing]);
+  }, [messages.length, scrollToIndex]);
 
   if (messages.length === 0 && !typing) {
     return (
@@ -43,27 +56,36 @@ export function DmMessageList({ messages, currentDid, typing }: DmMessageListPro
   }
 
   return (
-    <div className={styles.messageList} ref={listRef} onScroll={checkIsNearBottom}>
-      {messages.map((msg) => {
-        const isOwn = msg.senderDid === currentDid;
-        return (
-          <div
-            key={msg.id}
-            className={`${styles.message} ${isOwn ? styles.own : styles.other} ${msg.pending ? styles.pending : ''}`}
-          >
-            <div className={styles.bubble}>
-              <RichText text={msg.text} />
+    <div className={styles.messageList} ref={containerRef} onScroll={onScroll}>
+      <div className={styles.spacer} style={{ height: totalSize }}>
+        {virtualItems.map((vi) => {
+          const msg = data[vi.index] as DmMessageView;
+          const isOwn = msg.senderDid === currentDid;
+          return (
+            <div
+              key={vi.key}
+              ref={measureElement}
+              data-index={vi.index}
+              className={styles.virtualItem}
+              style={{ transform: `translateY(${vi.start}px)` }}
+            >
+              <div
+                className={`${styles.message} ${isOwn ? styles.own : styles.other} ${msg.pending ? styles.pending : ''}`}
+              >
+                <div className={styles.bubble}>
+                  <RichText text={msg.text} />
+                </div>
+                <span className={styles.time}>{formatTime(msg.createdAt)}</span>
+              </div>
             </div>
-            <span className={styles.time}>{formatTime(msg.createdAt)}</span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
       {typing && (
         <div className={styles.typingIndicator} role="status" aria-live="polite">
           typing...
         </div>
       )}
-      <div ref={bottomRef} />
     </div>
   );
 }

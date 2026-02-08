@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useVirtualList } from 'virtualized-ui';
 import { MessageItem } from './MessageItem';
 import { UserIdentity } from './UserIdentity';
 import type { MessageView } from '../../types';
@@ -13,31 +14,53 @@ interface MessageListProps {
 const SCROLL_THRESHOLD = 80;
 
 export function MessageList({ messages, loading, typingUsers = [] }: MessageListProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
 
-  const checkIsNearBottom = useCallback(() => {
+  const {
+    virtualItems,
+    totalSize,
+    containerRef,
+    measureElement,
+    handleScroll,
+    scrollToIndex,
+    data,
+  } = useVirtualList({
+    data: messages,
+    getItemId: (msg) => msg.id,
+    estimatedItemHeight: 40,
+  });
+
+  const onScroll = useCallback(() => {
+    handleScroll();
     const el = containerRef.current;
-    if (!el) return;
     isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
-  }, []);
+  }, [handleScroll, containerRef]);
 
   useEffect(() => {
-    if (isNearBottomRef.current) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isNearBottomRef.current && messages.length > 0) {
+      scrollToIndex(messages.length - 1);
     }
-  }, [messages.length, typingUsers.length]);
+  }, [messages.length, scrollToIndex]);
 
   return (
-    <div className={styles.container} ref={containerRef} onScroll={checkIsNearBottom}>
+    <div className={styles.container} ref={containerRef} onScroll={onScroll}>
       {loading && <p className={styles.loading}>Loading messages...</p>}
       {!loading && messages.length === 0 && (
         <p className={styles.empty}>No messages yet. Start the conversation!</p>
       )}
-      {messages.map((msg) => (
-        <MessageItem key={msg.id} message={msg} />
-      ))}
+      <div className={styles.spacer} style={{ height: totalSize }}>
+        {virtualItems.map((vi) => (
+          <div
+            key={vi.key}
+            ref={measureElement}
+            data-index={vi.index}
+            className={styles.virtualItem}
+            style={{ transform: `translateY(${vi.start}px)` }}
+          >
+            <MessageItem message={data[vi.index] as MessageView} />
+          </div>
+        ))}
+      </div>
       {typingUsers.length > 0 && (
         <div className={styles.typing} role="status" aria-live="polite">
           {typingUsers.length === 1 && typingUsers[0] ? (
@@ -54,7 +77,6 @@ export function MessageList({ messages, loading, typingUsers = [] }: MessageList
           )}
         </div>
       )}
-      <div ref={bottomRef} />
     </div>
   );
 }

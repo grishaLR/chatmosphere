@@ -11,6 +11,18 @@
   padding: 2rem;
 }
 
+.spacer {
+  position: relative;
+  width: 100%;
+}
+
+.virtualItem {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  left: 0;
+}
+
 .typing {
   padding: 0.25rem 1rem;
   font-size: 0.8125rem;

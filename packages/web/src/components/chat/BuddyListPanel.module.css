@@ -64,11 +64,22 @@
 }
 
 .list {
-  list-style: none;
   padding: 0;
   margin: 0;
   overflow-y: auto;
   flex: 1;
+}
+
+.spacer {
+  position: relative;
+  width: 100%;
+}
+
+.virtualItem {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  left: 0;
 }
 
 .buddy {

@@ -2,9 +2,18 @@
   flex: 1;
   overflow-y: auto;
   padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+}
+
+.spacer {
+  position: relative;
+  width: 100%;
+}
+
+.virtualItem {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  left: 0;
 }
 
 .message {
@@ -14,11 +23,17 @@
 }
 
 .own {
-  align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .other {
-  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-right: auto;
 }
 
 .bubble {

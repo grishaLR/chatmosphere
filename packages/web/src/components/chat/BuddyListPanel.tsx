@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useVirtualList } from 'virtualized-ui';
 import type { Agent } from '@atproto/api';
 import { StatusIndicator } from './StatusIndicator';
 import { UserIdentity } from './UserIdentity';
@@ -135,6 +136,12 @@ export function BuddyListPanel({
     (a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3),
   );
 
+  const { virtualItems, totalSize, containerRef, handleScroll, data } = useVirtualList({
+    data: sorted,
+    getItemId: (buddy) => buddy.did,
+    estimatedItemHeight: 36,
+  });
+
   const handleAdd = async () => {
     const input = addInput.trim();
     if (!input || !agent) return;
@@ -181,80 +188,88 @@ export function BuddyListPanel({
       ) : sorted.length === 0 ? (
         <p className={styles.empty}>No buddies yet</p>
       ) : (
-        <ul className={styles.list}>
-          {sorted.map((buddy) => {
-            const door = doorEvents[buddy.did];
-            const hasAwayMessage = buddy.awayMessage && buddy.status !== 'offline';
-            return (
-              <li key={buddy.did} className={styles.buddy}>
-                {door ? (
-                  <span className={styles.doorEmoji}>
-                    {door === 'join' ? '\u{1F6AA}\u{2728}' : '\u{1F6AA}\u{1F4A8}'}
-                  </span>
-                ) : hasAwayMessage ? (
-                  <span className={styles.awayBubble} data-tooltip={buddy.awayMessage}>
-                    <svg
-                      className={styles.awayBubbleSvg}
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+        <div className={styles.list} ref={containerRef} onScroll={handleScroll}>
+          <div className={styles.spacer} style={{ height: totalSize }}>
+            {virtualItems.map((vi) => {
+              const buddy = data[vi.index] as BuddyWithPresence;
+              const door = doorEvents[buddy.did];
+              const hasAwayMessage = buddy.awayMessage && buddy.status !== 'offline';
+              return (
+                <div
+                  key={vi.key}
+                  data-index={vi.index}
+                  className={`${styles.virtualItem} ${styles.buddy}`}
+                  style={{ transform: `translateY(${vi.start}px)` }}
+                >
+                  {door ? (
+                    <span className={styles.doorEmoji}>
+                      {door === 'join' ? '\u{1F6AA}\u{2728}' : '\u{1F6AA}\u{1F4A8}'}
+                    </span>
+                  ) : hasAwayMessage ? (
+                    <span className={styles.awayBubble} data-tooltip={buddy.awayMessage}>
+                      <svg
+                        className={styles.awayBubbleSvg}
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 3a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6l-3 2.5V11H2a1 1 0 0 1-1-1V3z"
+                          fill="#f59e0b"
+                        />
+                        <circle cx="5.5" cy="6" r="0.75" fill="#fff" />
+                        <circle cx="8" cy="6" r="0.75" fill="#fff" />
+                        <circle cx="10.5" cy="6" r="0.75" fill="#fff" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <StatusIndicator status={buddy.status} />
+                  )}
+                  <div className={styles.buddyInfo}>
+                    <span
+                      className={styles.buddyDid}
+                      role={onSendIm ? 'button' : undefined}
+                      tabIndex={onSendIm ? 0 : undefined}
+                      style={onSendIm ? { cursor: 'pointer' } : undefined}
+                      onClick={
+                        onSendIm
+                          ? () => {
+                              onSendIm(buddy.did);
+                            }
+                          : undefined
+                      }
+                      onKeyDown={
+                        onSendIm
+                          ? (e) => {
+                              if (e.key === 'Enter') onSendIm(buddy.did);
+                            }
+                          : undefined
+                      }
                     >
-                      <path
-                        d="M2 3a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6l-3 2.5V11H2a1 1 0 0 1-1-1V3z"
-                        fill="#f59e0b"
-                      />
-                      <circle cx="5.5" cy="6" r="0.75" fill="#fff" />
-                      <circle cx="8" cy="6" r="0.75" fill="#fff" />
-                      <circle cx="10.5" cy="6" r="0.75" fill="#fff" />
-                    </svg>
-                  </span>
-                ) : (
-                  <StatusIndicator status={buddy.status} />
-                )}
-                <div className={styles.buddyInfo}>
-                  <span
-                    className={styles.buddyDid}
-                    role={onSendIm ? 'button' : undefined}
-                    tabIndex={onSendIm ? 0 : undefined}
-                    style={onSendIm ? { cursor: 'pointer' } : undefined}
-                    onClick={
+                      <UserIdentity did={buddy.did} showAvatar />
+                    </span>
+                  </div>
+                  <BuddyMenu
+                    buddy={buddy}
+                    isBlocked={blockedDids.has(buddy.did)}
+                    onRemove={() => void onRemoveBuddy(buddy.did)}
+                    onToggleCloseFriend={() => void onToggleCloseFriend(buddy.did)}
+                    onBlock={() => {
+                      onBlockBuddy(buddy.did);
+                    }}
+                    onSendIm={
                       onSendIm
                         ? () => {
                             onSendIm(buddy.did);
                           }
                         : undefined
                     }
-                    onKeyDown={
-                      onSendIm
-                        ? (e) => {
-                            if (e.key === 'Enter') onSendIm(buddy.did);
-                          }
-                        : undefined
-                    }
-                  >
-                    <UserIdentity did={buddy.did} showAvatar />
-                  </span>
+                  />
                 </div>
-                <BuddyMenu
-                  buddy={buddy}
-                  isBlocked={blockedDids.has(buddy.did)}
-                  onRemove={() => void onRemoveBuddy(buddy.did)}
-                  onToggleCloseFriend={() => void onToggleCloseFriend(buddy.did)}
-                  onBlock={() => {
-                    onBlockBuddy(buddy.did);
-                  }}
-                  onSendIm={
-                    onSendIm
-                      ? () => {
-                          onSendIm(buddy.did);
-                        }
-                      : undefined
-                  }
-                />
-              </li>
-            );
-          })}
-        </ul>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );
