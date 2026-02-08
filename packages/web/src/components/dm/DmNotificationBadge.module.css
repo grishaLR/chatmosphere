@@ -1,0 +1,85 @@
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  max-width: 280px;
+  animation: slideUp 0.2s ease-out;
+}
+
+.notification:hover {
+  background: #f9f9f9;
+}
+
+.notification:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 1px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification {
+    animation: none;
+  }
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.sender {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.preview {
+  font-size: 0.75rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.125rem;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #888;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  background: #eee;
+  color: #333;
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 1px;
+}

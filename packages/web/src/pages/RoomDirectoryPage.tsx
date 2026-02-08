@@ -5,6 +5,7 @@ import { CreateRoomModal } from '../components/rooms/CreateRoomModal';
 import { BuddyListPanel } from '../components/chat/BuddyListPanel';
 import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
+import { useDm } from '../contexts/DmContext';
 import styles from './RoomDirectoryPage.module.css';
 
 export function RoomDirectoryPage() {
@@ -19,6 +20,7 @@ export function RoomDirectoryPage() {
     blockBuddy,
     agent,
   } = useBuddyList();
+  const { openDm } = useDm();
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
 
@@ -63,6 +65,7 @@ export function RoomDirectoryPage() {
             onRemoveBuddy={removeBuddy}
             onToggleCloseFriend={toggleCloseFriend}
             onBlockBuddy={blockBuddy}
+            onSendIm={openDm}
           />
         </aside>
       </div>

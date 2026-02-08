@@ -1,6 +1,7 @@
 let ctx: AudioContext | null = null;
 let doorOpenBuffer: AudioBuffer | null = null;
 let doorCloseBuffer: AudioBuffer | null = null;
+let imNotifyBuffer: AudioBuffer | null = null;
 
 function getContext(): AudioContext {
   if (!ctx) ctx = new AudioContext();
@@ -23,13 +24,22 @@ async function loadBuffer(src: string): Promise<AudioBuffer> {
   return getContext().decodeAudioData(arrayBuf);
 }
 
-// Preload both sounds
-void loadBuffer('/sounds/door_open.mp3').then((buf) => {
-  doorOpenBuffer = buf;
-});
-void loadBuffer('/sounds/door_closed.mp3').then((buf) => {
-  doorCloseBuffer = buf;
-});
+// Preload sounds (silently ignore failures — playBuffer handles null buffers gracefully)
+void loadBuffer('/sounds/door_open.mp3')
+  .then((buf) => {
+    doorOpenBuffer = buf;
+  })
+  .catch(() => {});
+void loadBuffer('/sounds/door_closed.mp3')
+  .then((buf) => {
+    doorCloseBuffer = buf;
+  })
+  .catch(() => {});
+void loadBuffer('/sounds/im_notify.wav')
+  .then((buf) => {
+    imNotifyBuffer = buf;
+  })
+  .catch(() => {});
 
 function playBuffer(buffer: AudioBuffer | null) {
   if (!buffer) return;
@@ -47,4 +57,8 @@ export function playDoorOpen() {
 
 export function playDoorClose() {
   playBuffer(doorCloseBuffer);
+}
+
+export function playImNotify() {
+  playBuffer(imNotifyBuffer);
 }

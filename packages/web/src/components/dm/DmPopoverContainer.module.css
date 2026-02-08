@@ -1,0 +1,17 @@
+.container {
+  position: fixed;
+  bottom: 0;
+  right: 16px;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 8px;
+  z-index: 1000;
+  pointer-events: none;
+  max-width: calc(100vw - 32px);
+  flex-wrap: wrap-reverse;
+}
+
+.container > * {
+  pointer-events: auto;
+}

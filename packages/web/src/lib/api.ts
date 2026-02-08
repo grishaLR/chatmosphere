@@ -1,4 +1,4 @@
-import type { RoomView, MessageView } from '../types';
+import type { RoomView, MessageView, DmConversationView, DmMessageView } from '../types';
 
 // -- Token management --
 
@@ -137,4 +137,40 @@ export async function fetchBuddyList(did: string): Promise<BuddyListResponse> {
   const res = await authFetch(`/api/buddylist/${encodeURIComponent(did)}`);
   if (!res.ok) throw new Error(`Failed to fetch buddy list: ${res.status}`);
   return (await res.json()) as BuddyListResponse;
+}
+
+// -- DMs --
+
+export async function fetchDmConversations(opts?: {
+  limit?: number;
+  offset?: number;
+}): Promise<DmConversationView[]> {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  if (opts?.offset) params.set('offset', String(opts.offset));
+
+  const qs = params.toString();
+  const res = await authFetch(`/api/dms${qs ? `?${qs}` : ''}`);
+  if (!res.ok) throw new Error(`Failed to fetch DM conversations: ${res.status}`);
+
+  const data = (await res.json()) as { conversations: DmConversationView[] };
+  return data.conversations;
+}
+
+export async function fetchDmMessages(
+  conversationId: string,
+  opts?: { limit?: number; before?: string },
+): Promise<DmMessageView[]> {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  if (opts?.before) params.set('before', opts.before);
+
+  const qs = params.toString();
+  const res = await authFetch(
+    `/api/dms/${encodeURIComponent(conversationId)}/messages${qs ? `?${qs}` : ''}`,
+  );
+  if (!res.ok) throw new Error(`Failed to fetch DM messages: ${res.status}`);
+
+  const data = (await res.json()) as { messages: DmMessageView[] };
+  return data.messages;
 }

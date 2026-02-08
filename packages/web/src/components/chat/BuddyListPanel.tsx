@@ -16,6 +16,7 @@ interface BuddyListPanelProps {
   onRemoveBuddy: (did: string) => Promise<void>;
   onToggleCloseFriend: (did: string) => Promise<void>;
   onBlockBuddy: (did: string) => void;
+  onSendIm?: (did: string) => void;
 }
 
 const STATUS_ORDER: Record<string, number> = {
@@ -30,11 +31,13 @@ function BuddyMenu({
   onRemove,
   onToggleCloseFriend,
   onBlock,
+  onSendIm,
 }: {
   buddy: BuddyWithPresence;
   onRemove: () => void;
   onToggleCloseFriend: () => void;
   onBlock: () => void;
+  onSendIm?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,6 +68,17 @@ function BuddyMenu({
       </button>
       {open && (
         <div className={styles.menuDropdown}>
+          {onSendIm && (
+            <button
+              className={styles.menuItem}
+              onClick={() => {
+                onSendIm();
+                setOpen(false);
+              }}
+            >
+              Send IM
+            </button>
+          )}
           <button
             className={styles.menuItem}
             onClick={() => {
@@ -107,6 +121,7 @@ export function BuddyListPanel({
   onRemoveBuddy,
   onToggleCloseFriend,
   onBlockBuddy,
+  onSendIm,
 }: BuddyListPanelProps) {
   const [addInput, setAddInput] = useState('');
   const [adding, setAdding] = useState(false);
@@ -193,7 +208,26 @@ export function BuddyListPanel({
                   <StatusIndicator status={buddy.status} />
                 )}
                 <div className={styles.buddyInfo}>
-                  <span className={styles.buddyDid}>
+                  <span
+                    className={styles.buddyDid}
+                    role={onSendIm ? 'button' : undefined}
+                    tabIndex={onSendIm ? 0 : undefined}
+                    style={onSendIm ? { cursor: 'pointer' } : undefined}
+                    onClick={
+                      onSendIm
+                        ? () => {
+                            onSendIm(buddy.did);
+                          }
+                        : undefined
+                    }
+                    onKeyDown={
+                      onSendIm
+                        ? (e) => {
+                            if (e.key === 'Enter') onSendIm(buddy.did);
+                          }
+                        : undefined
+                    }
+                  >
                     <UserIdentity did={buddy.did} showAvatar />
                   </span>
                 </div>
@@ -204,6 +238,13 @@ export function BuddyListPanel({
                   onBlock={() => {
                     onBlockBuddy(buddy.did);
                   }}
+                  onSendIm={
+                    onSendIm
+                      ? () => {
+                          onSendIm(buddy.did);
+                        }
+                      : undefined
+                  }
                 />
               </li>
             );

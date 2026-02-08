@@ -6,6 +6,8 @@ import { LoginPage } from './pages/LoginPage';
 import { RoomDirectoryPage } from './pages/RoomDirectoryPage';
 import { ChatRoomPage } from './pages/ChatRoomPage';
 import { WebSocketProvider } from './contexts/WebSocketContext';
+import { DmProvider } from './contexts/DmContext';
+import { DmPopoverContainer } from './components/dm/DmPopoverContainer';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { did, serverToken, isLoading, authError, logout } = useAuth();
@@ -59,7 +61,10 @@ export function App() {
       <AuthProvider>
         <ProfileProvider>
           <WebSocketProvider>
-            <AppRoutes />
+            <DmProvider>
+              <AppRoutes />
+              <DmPopoverContainer />
+            </DmProvider>
           </WebSocketProvider>
         </ProfileProvider>
       </AuthProvider>

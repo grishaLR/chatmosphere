@@ -41,3 +41,21 @@ export interface BuddyWithPresence {
   isCloseFriend?: boolean;
   isBlocked?: boolean;
 }
+
+export interface DmConversationView {
+  id: string;
+  did1: string;
+  did2: string;
+  persist: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DmMessageView {
+  id: string;
+  conversationId: string;
+  senderDid: string;
+  text: string;
+  createdAt: string;
+  pending?: boolean;
+}
