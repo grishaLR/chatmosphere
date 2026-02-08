@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "module": "ESNext"
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.stories.tsx", "src/stubs", "src/storybook.css"]
+}

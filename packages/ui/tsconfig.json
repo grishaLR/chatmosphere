@@ -1,11 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",
-    "module": "ESNext"
+    "module": "ESNext",
+    "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src", ".storybook", "vite.config.ts"]
 }

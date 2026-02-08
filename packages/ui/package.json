@@ -7,19 +7,66 @@
     "*.css"
   ],
   "exports": {
-    "./tokens": "./src/tokens/index.css"
+    "./tokens": "./src/tokens/index.css",
+    "./StatusDot": {
+      "types": "./dist/components/StatusDot.d.ts",
+      "default": "./dist/components/StatusDot.js"
+    },
+    "./UserChip": {
+      "types": "./dist/components/UserChip.d.ts",
+      "default": "./dist/components/UserChip.js"
+    },
+    "./ChatBubble": {
+      "types": "./dist/components/ChatBubble.d.ts",
+      "default": "./dist/components/ChatBubble.js"
+    },
+    "./WindowChrome": {
+      "types": "./dist/components/WindowChrome.d.ts",
+      "default": "./dist/components/WindowChrome.js"
+    },
+    "./BuddyGroup": {
+      "types": "./dist/components/BuddyGroup.d.ts",
+      "default": "./dist/components/BuddyGroup.js"
+    },
+    "./DropdownMenu": {
+      "types": "./dist/components/DropdownMenu.d.ts",
+      "default": "./dist/components/DropdownMenu.js"
+    },
+    "./InputField": {
+      "types": "./dist/components/InputField.d.ts",
+      "default": "./dist/components/InputField.js"
+    },
+    "./Modal": {
+      "types": "./dist/components/Modal.d.ts",
+      "default": "./dist/components/Modal.js"
+    },
+    "./Badge": {
+      "types": "./dist/components/Badge.d.ts",
+      "default": "./dist/components/Badge.js"
+    }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "lint": "eslint src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
-    "react": "^19.0.0"
+    "@chatmosphere/shared": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@storybook/react-vite": "^10.2.7",
+    "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.0.0",
-    "typescript": "^5.7.3"
+    "@vitejs/plugin-react": "^4.3.0",
+    "daisyui": "^5.5.18",
+    "storybook": "^10.2.7",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.0"
   }
 }
