@@ -34,3 +34,4 @@ storybook-static/
 
 # Docker
 pgdata/
+.vercel
