@@ -7,7 +7,7 @@
   background: var(--color-warning);
   color: var(--color-base-content);
   text-align: center;
-  padding: 2px 8px;
+  padding: var(--cm-space-1) var(--cm-space-4);
   font-size: var(--cm-text-base);
   font-weight: 700;
   box-shadow: var(--cm-raised);

@@ -28,13 +28,13 @@
 }
 
 .blurred {
-  filter: blur(4px);
+  filter: blur(var(--cm-blur-base));
   cursor: pointer;
   transition: filter 0.2s;
 }
 
 .blurred:hover {
-  filter: blur(2px);
+  filter: blur(var(--cm-blur-light));
 }
 
 .alertBadge {

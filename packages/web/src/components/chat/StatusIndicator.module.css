@@ -5,13 +5,13 @@
 }
 
 .sm {
-  width: 8px;
-  height: 8px;
+  width: var(--cm-dot-sm);
+  height: var(--cm-dot-sm);
 }
 
 .md {
-  width: 10px;
-  height: 10px;
+  width: var(--cm-dot-md);
+  height: var(--cm-dot-md);
 }
 
 .online {

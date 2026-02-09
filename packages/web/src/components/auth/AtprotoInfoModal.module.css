@@ -2,7 +2,7 @@
   border: none;
   border-radius: 0;
   padding: 0;
-  max-width: 460px;
+  max-width: var(--cm-modal-max-w-info);
   width: 90%;
   background: var(--color-base-100);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
@@ -123,7 +123,7 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: var(--cm-raised);
-  min-height: 23px;
+  min-height: var(--cm-button-min-h-md);
 }
 
 .closeButton:hover {
@@ -135,6 +135,6 @@
 }
 
 .closeButton:focus {
-  outline: 1px dotted var(--cm-focus);
-  outline-offset: -4px;
+  outline: var(--cm-space-0.5) dotted var(--cm-focus);
+  outline-offset: var(--cm-focus-inset-lg);
 }

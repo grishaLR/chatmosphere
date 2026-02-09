@@ -8,11 +8,11 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 4px 6px;
+  gap: var(--cm-space-6);
+  padding: var(--cm-space-2) var(--cm-space-3);
   background: var(--color-base-100);
-  border-bottom: 1px solid var(--cm-border-dark);
-  border-top: 1px solid var(--cm-border-light);
+  border-bottom: var(--cm-space-0.5) solid var(--cm-border-dark);
+  border-top: var(--cm-space-0.5) solid var(--cm-border-light);
 }
 
 .back {
@@ -52,7 +52,7 @@
 .sidebar {
   width: var(--cm-panel-width-sidebar);
   background: var(--color-base-100);
-  border-left: 1px solid var(--cm-border-dark);
+  border-left: var(--cm-space-0.5) solid var(--cm-border-dark);
   overflow-y: auto;
 }
 

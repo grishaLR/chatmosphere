@@ -1,14 +1,14 @@
 .notification {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 6px 8px;
+  gap: var(--cm-space-4);
+  padding: var(--cm-space-3) var(--cm-space-4);
   background: var(--color-base-100);
   border: none;
   border-radius: 0;
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
   cursor: pointer;
-  max-width: 280px;
+  max-width: var(--cm-notification-max-w);
   animation: slideUp 0.2s ease-out;
 }
 
@@ -17,14 +17,14 @@
 }
 
 .notification:focus-visible {
-  outline: 1px dotted var(--cm-focus);
-  outline-offset: -2px;
+  outline: var(--cm-space-0.5) dotted var(--cm-focus);
+  outline-offset: var(--cm-focus-inset);
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(var(--cm-space-4));
   }
   to {
     opacity: 1;
@@ -55,15 +55,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 1px;
+  margin-top: var(--cm-space-0.5);
 }
 
 .closeBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: var(--cm-icon-lg);
+  height: var(--cm-icon-lg);
   padding: 0;
   background: var(--cm-surface);
   border: none;
@@ -84,6 +84,6 @@
 }
 
 .closeBtn:focus-visible {
-  outline: 1px dotted var(--cm-focus);
-  outline-offset: -2px;
+  outline: var(--cm-space-0.5) dotted var(--cm-focus);
+  outline-offset: var(--cm-focus-inset);
 }

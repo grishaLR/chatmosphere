@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 6px;
-  height: 32px;
+  padding: 0 var(--cm-space-3);
+  height: var(--cm-header-h-app);
   background: var(--cm-titlebar);
   color: var(--cm-chrome-text);
 }
@@ -19,13 +19,13 @@
 .right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--cm-space-2);
 }
 
 .did {
   font-size: var(--cm-text-sm);
   color: var(--cm-chrome-text-muted);
-  max-width: 160px;
+  max-width: var(--cm-did-max-w);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -40,7 +40,7 @@
 }
 
 .settingsButton {
-  padding: 1px 6px;
+  padding: var(--cm-space-0.5) var(--cm-space-3);
   background: var(--cm-surface);
   border: none;
   border-radius: 0;
@@ -48,7 +48,7 @@
   font-size: var(--cm-text-md);
   color: var(--cm-chrome-text);
   box-shadow: var(--cm-raised);
-  min-height: 21px;
+  min-height: var(--cm-button-min-h);
 }
 
 .settingsButton:hover {
@@ -61,7 +61,7 @@
 }
 
 .logoutButton {
-  padding: 1px 6px;
+  padding: var(--cm-space-0.5) var(--cm-space-3);
   background: var(--cm-surface);
   border: none;
   border-radius: 0;
@@ -69,7 +69,7 @@
   font-size: var(--cm-text-sm);
   color: var(--color-base-content);
   box-shadow: var(--cm-raised);
-  min-height: 21px;
+  min-height: var(--cm-button-min-h);
 }
 
 .logoutButton:hover {

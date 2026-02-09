@@ -1,18 +1,18 @@
 .container {
-  padding: 4px;
+  padding: var(--cm-space-2);
 }
 
 .heading {
   font-size: var(--cm-text-base);
   font-weight: 700;
   color: var(--color-base-content);
-  margin: 0 0 4px;
-  padding: 2px 4px;
+  margin: 0 0 var(--cm-space-2);
+  padding: var(--cm-space-1) var(--cm-space-2);
 }
 
 .list {
   list-style: none;
-  padding: 2px;
+  padding: var(--cm-space-1);
   margin: 0;
   background: var(--cm-surface-content);
   box-shadow: var(--cm-sunken);
@@ -21,8 +21,8 @@
 .member {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 2px 4px;
+  gap: var(--cm-space-3);
+  padding: var(--cm-space-1) var(--cm-space-2);
 }
 
 .member:hover {

@@ -7,7 +7,7 @@
 }
 
 .window {
-  width: 360px;
+  width: var(--cm-connecting-w);
   background: var(--cm-surface);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
   display: flex;
@@ -107,7 +107,7 @@
 }
 
 .cancelButton {
-  min-width: 80px;
+  min-width: var(--cm-button-min-w);
   padding: var(--cm-space-2) var(--cm-space-8);
   background: var(--cm-surface-button);
   box-shadow: var(--cm-raised);

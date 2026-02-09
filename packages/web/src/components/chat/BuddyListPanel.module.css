@@ -9,7 +9,7 @@
 
 .title {
   margin: 0;
-  padding: 4px 6px;
+  padding: var(--cm-space-2) var(--cm-space-3);
   font-size: var(--cm-text-base);
   font-weight: 700;
   color: var(--cm-chrome-text);
@@ -18,14 +18,14 @@
 
 .addSection {
   display: flex;
-  gap: 2px;
-  padding: 4px;
+  gap: var(--cm-space-1);
+  padding: var(--cm-space-2);
   background: var(--color-base-100);
 }
 
 .addInput {
   flex: 1;
-  padding: 2px 4px;
+  padding: var(--cm-space-1) var(--cm-space-2);
   border: none;
   border-radius: 0;
   font-size: var(--cm-text-base);
@@ -39,7 +39,7 @@
 }
 
 .addBtn {
-  padding: 2px 8px;
+  padding: var(--cm-space-1) var(--cm-space-4);
   background: var(--color-base-200);
   color: var(--color-base-content);
   border: none;
@@ -65,14 +65,14 @@
 
 .addError {
   margin: 0;
-  padding: 2px 4px;
+  padding: var(--cm-space-1) var(--cm-space-2);
   font-size: var(--cm-text-sm);
   color: var(--color-error);
 }
 
 .list {
-  padding: 2px;
-  margin: 4px;
+  padding: var(--cm-space-1);
+  margin: var(--cm-space-2);
   overflow-y: auto;
   flex: 1;
   background: var(--cm-surface-content);
@@ -98,8 +98,8 @@
 .buddy {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 2px 4px;
+  gap: var(--cm-space-3);
+  padding: var(--cm-space-1) var(--cm-space-2);
 }
 
 .buddy:hover {
@@ -160,16 +160,16 @@
   content: attr(data-tooltip);
   position: absolute;
   left: 0;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + var(--cm-space-3));
   background: var(--color-base-100);
   color: var(--color-base-content);
   font-size: var(--cm-text-sm);
   line-height: 1.4;
-  padding: 4px 6px;
+  padding: var(--cm-space-2) var(--cm-space-3);
   border-radius: 0;
   white-space: normal;
   width: max-content;
-  max-width: 200px;
+  max-width: var(--cm-tooltip-max-w);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.1s;
@@ -182,8 +182,8 @@
 }
 
 .awayBubbleSvg {
-  width: 14px;
-  height: 14px;
+  width: var(--cm-avatar-xs);
+  height: var(--cm-avatar-xs);
 }
 
 .buddy:hover .awayBubbleSvg {
@@ -201,8 +201,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: var(--cm-icon-lg);
+  height: var(--cm-icon-lg);
   padding: 0;
   background: none;
   border: none;
@@ -223,8 +223,8 @@
 
 .menuIcon {
   display: block;
-  width: 12px;
-  height: 2px;
+  width: var(--cm-icon-sm);
+  height: var(--cm-space-1);
   background: var(--color-base-content);
   position: relative;
 }
@@ -239,39 +239,39 @@
 .menuIcon::after {
   content: '';
   display: block;
-  width: 12px;
-  height: 2px;
+  width: var(--cm-icon-sm);
+  height: var(--cm-space-1);
   background: var(--color-base-content);
   position: absolute;
   left: 0;
 }
 
 .menuIcon::before {
-  top: -4px;
+  top: calc(-1 * var(--cm-space-2));
 }
 
 .menuIcon::after {
-  top: 4px;
+  top: var(--cm-space-2);
 }
 
 .menuDropdown {
   position: absolute;
   right: 0;
   top: 100%;
-  margin-top: 2px;
+  margin-top: var(--cm-space-1);
   background: var(--color-base-100);
   border: none;
   border-radius: 0;
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
-  min-width: 160px;
+  min-width: var(--cm-dropdown-min-w-sm);
   z-index: 100;
-  padding: 2px;
+  padding: var(--cm-space-1);
 }
 
 .menuItem {
   display: block;
   width: 100%;
-  padding: 4px 6px;
+  padding: var(--cm-space-2) var(--cm-space-3);
   background: none;
   border: none;
   cursor: pointer;
@@ -300,8 +300,8 @@
 .groupHeader {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
+  gap: var(--cm-space-1);
+  padding: var(--cm-space-1) var(--cm-space-2);
   font-size: var(--cm-text-base);
   font-weight: 700;
   color: var(--color-base-content);
@@ -318,8 +318,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--cm-icon-md);
+  height: var(--cm-icon-md);
   padding: 0;
   background: none;
   border: none;
@@ -351,7 +351,7 @@
 
 .groupHeaderActions {
   display: flex;
-  gap: 2px;
+  gap: var(--cm-space-1);
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.15s;
@@ -365,8 +365,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--cm-icon-md);
+  height: var(--cm-icon-md);
   padding: 0;
   background: none;
   border: none;
@@ -381,13 +381,13 @@
 }
 
 .buddyIndented {
-  padding-left: 20px;
+  padding-left: var(--cm-space-10);
 }
 
 .createGroupBtn {
   display: block;
   width: 100%;
-  padding: 2px 4px;
+  padding: var(--cm-space-1) var(--cm-space-2);
   background: none;
   border: none;
   border-radius: 0;
@@ -405,7 +405,7 @@
 
 .createGroupInput {
   width: 100%;
-  padding: 2px 4px;
+  padding: var(--cm-space-1) var(--cm-space-2);
   border: none;
   border-radius: 0;
   font-size: var(--cm-text-sm);
@@ -437,7 +437,7 @@
 .moveTarget {
   display: block;
   width: 100%;
-  padding: 4px 6px 4px 16px;
+  padding: var(--cm-space-2) var(--cm-space-3) var(--cm-space-2) var(--cm-space-8);
   background: none;
   border: none;
   cursor: pointer;
@@ -453,7 +453,7 @@
 }
 
 .empty {
-  padding: 0.75rem;
+  padding: var(--cm-space-6);
   text-align: center;
   color: var(--cm-border-dark);
   font-size: var(--cm-text-base);

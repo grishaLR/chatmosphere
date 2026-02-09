@@ -18,7 +18,7 @@
   min-height: 0;
   max-width: var(--cm-content-wide-max-w);
   margin: 0 auto;
-  padding: 1rem;
+  padding: var(--cm-space-8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -31,13 +31,13 @@
 
 .toolbar {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: var(--cm-space-4);
+  margin-bottom: var(--cm-space-8);
 }
 
 .search {
   flex: 1;
-  padding: 3px 4px;
+  padding: var(--cm-space-1.5) var(--cm-space-2);
   border: none;
   border-radius: 0;
   font-size: var(--cm-text-md);
@@ -50,7 +50,7 @@
 }
 
 .createButton {
-  padding: 2px 12px;
+  padding: var(--cm-space-1) var(--cm-space-6);
   background: var(--color-base-200);
   color: var(--color-base-content);
   border: none;
@@ -71,7 +71,7 @@
 
 .error {
   color: var(--color-error);
-  margin-bottom: 1rem;
+  margin-bottom: var(--cm-space-8);
 }
 
 .viewToggle {

@@ -1,8 +1,8 @@
 .messageList {
   flex: 1;
   overflow-y: auto;
-  padding: 4px;
-  margin: 4px;
+  padding: var(--cm-space-2);
+  margin: var(--cm-space-2);
   background: var(--cm-surface-content);
   box-shadow: var(--cm-sunken);
 }
@@ -40,7 +40,7 @@
 }
 
 .bubble {
-  padding: 3px 6px;
+  padding: var(--cm-space-3, 6px) var(--cm-space-3, 6px) var(--cm-space-3, 6px) var(--cm-space-4, 10px);
   border-radius: 0;
   font-size: var(--cm-text-md);
   line-height: 1.4;
@@ -65,7 +65,7 @@
 .time {
   font-size: var(--cm-text-2xs);
   color: var(--cm-border-dark);
-  margin-top: 1px;
+  margin-top: var(--cm-space-0.5);
 }
 
 .own .time {
@@ -76,7 +76,7 @@
   font-size: var(--cm-text-sm);
   color: var(--cm-border-dark);
   font-style: italic;
-  padding: 2px 0;
+  padding: var(--cm-space-1) 0;
 }
 
 .empty {

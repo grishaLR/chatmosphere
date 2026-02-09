@@ -1,14 +1,14 @@
 .container {
   position: fixed;
   bottom: 0;
-  right: 16px;
+  right: var(--cm-space-8);
   display: flex;
   flex-direction: row-reverse;
   align-items: flex-start;
-  gap: 4px;
+  gap: var(--cm-space-2);
   z-index: 1000;
   pointer-events: none;
-  max-width: calc(100vw - 32px);
+  max-width: calc(100vw - var(--cm-space-16));
   flex-wrap: wrap-reverse;
 }
 

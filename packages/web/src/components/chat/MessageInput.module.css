@@ -1,14 +1,14 @@
 .container {
   display: flex;
-  gap: 4px;
-  padding: 4px;
+  gap: var(--cm-space-2);
+  padding: var(--cm-space-2);
   background: var(--color-base-100);
 }
 
 .textarea {
   flex: 1;
   resize: none;
-  padding: 3px 4px;
+  padding: var(--cm-space-1.5) var(--cm-space-2);
   border: none;
   border-radius: 0;
   font-family: inherit;
@@ -22,7 +22,7 @@
 }
 
 .sendButton {
-  padding: 2px 12px;
+  padding: var(--cm-space-1) var(--cm-space-6);
   background: var(--cm-surface-button);
   color: var(--color-base-content);
   border: none;
@@ -32,7 +32,7 @@
   font-weight: 700;
   align-self: flex-end;
   box-shadow: var(--cm-raised);
-  min-height: 23px;
+  min-height: var(--cm-button-min-h-md);
 }
 
 .sendButton:hover:not(:disabled) {
