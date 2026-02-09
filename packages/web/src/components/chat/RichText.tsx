@@ -1,6 +1,7 @@
 import type { RichTextFacet, MentionFeature, LinkFeature } from '@chatmosphere/lexicon';
 import type { ReactNode } from 'react';
 import { isSafeUrl } from '../../lib/sanitize';
+import styles from './RichText.module.css';
 
 /** Bluesky facet feature types */
 interface BskyMentionFeature {
@@ -53,7 +54,7 @@ function renderFeature(
             key={key}
             role="button"
             tabIndex={0}
-            style={{ color: 'var(--color-primary)', fontWeight: 600, cursor: 'pointer' }}
+            className={styles.mentionButton}
             onClick={(e) => {
               e.stopPropagation();
               onMentionClick(did);
@@ -70,7 +71,7 @@ function renderFeature(
         );
       }
       return (
-        <span key={key} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+        <span key={key} className={styles.mention}>
           {text}
         </span>
       );
@@ -86,7 +87,7 @@ function renderFeature(
           href={feature.uri}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: 'var(--color-primary)' }}
+          className={styles.link}
           onClick={(e) => {
             e.stopPropagation();
           }}
@@ -96,7 +97,7 @@ function renderFeature(
       );
     case 'app.bsky.richtext.facet#tag':
       return (
-        <span key={key} style={{ color: 'var(--color-primary)' }}>
+        <span key={key} className={styles.tag}>
           {text}
         </span>
       );

@@ -1,8 +1,8 @@
 .popover {
   width: var(--cm-panel-width-dm);
-  max-width: calc(100vw - 32px);
-  height: 400px;
-  max-height: calc(100vh - 60px);
+  max-width: calc(100vw - var(--cm-space-16));
+  height: var(--cm-dm-popover-h);
+  max-height: calc(100vh - var(--cm-dm-popover-offset-v));
   display: flex;
   flex-direction: column;
   background: var(--color-base-100);
@@ -20,9 +20,9 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0 6px;
-  height: 28px;
+  gap: var(--cm-space-3);
+  padding: 0 var(--cm-space-3);
+  height: var(--cm-header-h);
   background: var(--cm-titlebar);
   color: var(--cm-chrome-text);
   cursor: pointer;
@@ -42,7 +42,7 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--cm-space-1);
   flex-shrink: 0;
 }
 
@@ -50,8 +50,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: var(--cm-icon-lg);
+  height: var(--cm-icon-lg);
   padding: 0;
   background: var(--cm-surface);
   border: none;
@@ -72,8 +72,8 @@
 }
 
 .headerBtn:focus-visible {
-  outline: 1px dotted var(--cm-focus);
-  outline-offset: -2px;
+  outline: var(--cm-space-0.5) dotted var(--cm-focus);
+  outline-offset: var(--cm-focus-inset);
 }
 
 .persistBtn {
@@ -93,14 +93,18 @@
   min-height: 0;
 }
 
+.bodyHidden {
+  display: none;
+}
+
 .unreadBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 16px;
-  max-width: 32px;
-  height: 16px;
-  padding: 0 4px;
+  min-width: var(--cm-unread-badge-size);
+  max-width: var(--cm-space-16);
+  height: var(--cm-unread-badge-size);
+  padding: 0 var(--cm-space-2);
   background: var(--color-error);
   color: var(--color-error-content);
   border-radius: 0;

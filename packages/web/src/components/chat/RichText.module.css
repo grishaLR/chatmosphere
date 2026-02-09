@@ -1,0 +1,17 @@
+.mention,
+.mentionButton {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.mentionButton {
+  cursor: pointer;
+}
+
+.link {
+  color: var(--color-primary);
+}
+
+.tag {
+  color: var(--color-primary);
+}

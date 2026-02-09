@@ -111,8 +111,8 @@ export function DmPopover({
         </div>
       </div>
 
-      {/* L4/M3: Use CSS visibility instead of unmounting to preserve draft text and scroll */}
-      <div className={styles.body} style={{ display: minimized ? 'none' : undefined }}>
+      {/* L4/M3: Use CSS class instead of unmounting to preserve draft text and scroll */}
+      <div className={minimized ? `${styles.body} ${styles.bodyHidden}` : styles.body}>
         <DmMessageList messages={messages} currentDid={currentDid} typing={typing} />
         <DmInput onSend={onSend} onTyping={onTyping} ref={inputRef} />
       </div>

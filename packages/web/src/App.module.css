@@ -1,0 +1,14 @@
+/* Layout for ProtectedRoute and fallbacks — tokens only */
+.screenFill {
+  min-height: 100vh;
+  background: var(--cm-desktop);
+}
+
+.authErrorBox {
+  padding: var(--cm-space-8);
+  text-align: center;
+}
+
+.authErrorButton {
+  margin-top: var(--cm-space-4);
+}

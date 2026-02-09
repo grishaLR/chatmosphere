@@ -6,6 +6,7 @@ import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
 import { ConnectingScreen } from './components/auth/ConnectingScreen';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import styles from './App.module.css';
 
 // Set by login() before redirect, cleared by init() after processing.
 // On a hard refresh this flag is absent → skip ConnectingScreen.
@@ -44,15 +45,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     // OAuth callback → full AIM "Sign On" experience
     if (isOAuthCallback) return <ConnectingScreen />;
     // Session restore (hard refresh) → just hold on teal background while init() runs
-    return <div style={{ minHeight: '100vh', background: 'var(--cm-desktop)' }} />;
+    return <div className={styles.screenFill} />;
   }
 
   // Error state
   if (authError) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <div className={styles.authErrorBox}>
         <p>{authError}</p>
-        <button onClick={logout} style={{ marginTop: '1rem' }}>
+        <button type="button" onClick={logout} className={styles.authErrorButton}>
           Back to login
         </button>
       </div>
@@ -63,7 +64,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const suspenseFallback = isOAuthCallback ? (
     <ConnectingScreen />
   ) : (
-    <div style={{ minHeight: '100vh', background: 'var(--cm-desktop)' }} />
+    <div className={styles.screenFill} />
   );
   return (
     <Suspense fallback={suspenseFallback}>
