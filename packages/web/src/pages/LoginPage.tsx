@@ -5,19 +5,22 @@ import { LoginForm } from '../components/auth/LoginForm';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
-  const { did, isLoading } = useAuth();
+  const { did, authPhase } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (did) void navigate('/', { replace: true });
   }, [did, navigate]);
 
-  if (isLoading) return <div className={styles.loading}>Loading...</div>;
+  // init() is checking for existing session — typically <100ms.
+  // Show the login form immediately (disabled state handled by LoginForm).
+  // Don't show ConnectingScreen here — it's only for post-OAuth redirect.
+  if (authPhase === 'initializing') {
+    return <div className={styles.container} />;
+  }
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Chatmosphere</h1>
-      <p className={styles.subtitle}>AIM-inspired chat on the AT Protocol</p>
       <LoginForm />
     </div>
   );

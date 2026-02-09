@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { AtprotoInfoModal } from './AtprotoInfoModal';
 import styles from './LoginForm.module.css';
 
 export function LoginForm() {
@@ -7,6 +8,7 @@ export function LoginForm() {
   const [handle, setHandle] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -22,26 +24,46 @@ export function LoginForm() {
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <label className={styles.label} htmlFor="handle">
-        Bluesky Handle
-      </label>
-      <input
-        id="handle"
-        className={styles.input}
-        type="text"
-        placeholder="you.bsky.social"
-        value={handle}
-        onChange={(e) => {
-          setHandle(e.target.value);
-        }}
-        disabled={loading}
-        autoFocus
-      />
-      {error && <p className={styles.error}>{error}</p>}
-      <button className={styles.button} type="submit" disabled={loading || !handle.trim()}>
-        {loading ? 'Signing in...' : 'Sign In'}
-      </button>
-    </form>
+    <>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <h1 className={styles.title}>Chatmosphere</h1>
+        <p className={styles.subtitle}>AIM-inspired chat on the AT Protocol</p>
+        <label className={styles.label} htmlFor="handle">
+          ATProto Handle
+        </label>
+        <input
+          id="handle"
+          className={styles.input}
+          type="text"
+          placeholder="you.your-server.com"
+          value={handle}
+          onChange={(e) => {
+            setHandle(e.target.value);
+          }}
+          disabled={loading}
+          autoFocus
+        />
+        {error && <p className={styles.error}>{error}</p>}
+        <button className={styles.button} type="submit" disabled={loading || !handle.trim()}>
+          {loading ? 'Signing in...' : 'Sign In'}
+        </button>
+        <button
+          className={styles.infoLink}
+          type="button"
+          onClick={() => {
+            setShowInfo(true);
+          }}
+        >
+          New to ATProto? Learn more
+        </button>
+      </form>
+      {showInfo && (
+        <AtprotoInfoModal
+          onClose={() => {
+            setShowInfo(false);
+          }}
+        />
+      )}
+    </>
   );
 }

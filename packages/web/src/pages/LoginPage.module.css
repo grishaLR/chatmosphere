@@ -8,17 +8,6 @@
   background: var(--cm-desktop);
 }
 
-.title {
-  font-size: var(--cm-text-2xl);
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  color: var(--cm-chrome-text);
-}
-
-.subtitle {
-  color: var(--cm-chrome-text-muted);
-  margin-bottom: 1.5rem;
-}
 
 .loading {
   display: flex;

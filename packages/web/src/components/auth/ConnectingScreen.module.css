@@ -1,0 +1,126 @@
+.backdrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--cm-desktop);
+}
+
+.window {
+  width: 360px;
+  background: var(--cm-surface);
+  box-shadow: var(--cm-raised), var(--cm-window-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cm-titlebar);
+  padding: var(--cm-space-1) var(--cm-space-2);
+  user-select: none;
+}
+
+.titleText {
+  color: var(--cm-chrome-text);
+  font-size: var(--cm-text-md);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.body {
+  padding: var(--cm-space-8) var(--cm-space-12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cm-space-8);
+}
+
+.logo {
+  font-size: var(--cm-text-2xl);
+  font-weight: 700;
+  color: var(--color-accent);
+  text-align: center;
+  margin-bottom: var(--cm-space-4);
+}
+
+.steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-3);
+  font-size: var(--cm-text-md);
+  color: var(--color-base-content);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-3);
+}
+
+.stepDone {
+  composes: step;
+  color: var(--color-success);
+}
+
+.stepActive {
+  composes: step;
+  font-weight: 700;
+}
+
+.stepPending {
+  composes: step;
+  color: var(--color-base-300);
+}
+
+.progressTrack {
+  width: 100%;
+  height: var(--cm-space-8);
+  background: var(--color-base-200);
+  box-shadow: var(--cm-sunken);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    var(--color-accent),
+    var(--color-primary)
+  );
+  animation: fillProgress 2.5s ease-in-out infinite;
+}
+
+@keyframes fillProgress {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 85%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.cancelButton {
+  min-width: 80px;
+  padding: var(--cm-space-2) var(--cm-space-8);
+  background: var(--cm-surface-button);
+  box-shadow: var(--cm-raised);
+  border: none;
+  font-size: var(--cm-text-md);
+  color: var(--color-base-content);
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background: var(--cm-button-hover);
+}
+
+.cancelButton:active {
+  box-shadow: var(--cm-pressed);
+}

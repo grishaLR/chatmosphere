@@ -1,0 +1,135 @@
+.dialog {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  max-width: 460px;
+  width: 90%;
+  background: var(--color-base-100);
+  box-shadow: var(--cm-raised), var(--cm-window-shadow);
+  margin: auto;
+}
+
+.dialog::backdrop {
+  background: var(--cm-overlay);
+}
+
+.titleBar {
+  padding: var(--cm-space-1) var(--cm-space-3);
+  font-size: var(--cm-text-md);
+  font-weight: 700;
+  color: var(--cm-chrome-text);
+  background: var(--cm-titlebar);
+}
+
+.content {
+  padding: var(--cm-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-4);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-2);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--cm-text-md);
+  font-weight: 700;
+  color: var(--color-base-content);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--cm-text-sm);
+  line-height: 1.5;
+  color: var(--color-base-content);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--cm-space-6);
+  font-size: var(--cm-text-sm);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-2);
+}
+
+.warning {
+  margin: 0;
+  font-size: var(--cm-text-xs);
+  line-height: 1.5;
+  color: var(--color-error);
+  padding: var(--cm-space-2) var(--cm-space-3);
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
+}
+
+.providers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-2);
+}
+
+.providerCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-1);
+  padding: var(--cm-space-3) var(--cm-space-4);
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-raised);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.providerCard:hover {
+  background: var(--cm-selection);
+}
+
+.providerCard:active {
+  box-shadow: var(--cm-pressed);
+}
+
+.providerName {
+  font-size: var(--cm-text-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.providerDesc {
+  font-size: var(--cm-text-xs);
+  color: var(--cm-border-dark);
+}
+
+.closeButton {
+  align-self: center;
+  padding: var(--cm-space-1) var(--cm-space-8);
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+  border: none;
+  border-radius: 0;
+  font-size: var(--cm-text-md);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--cm-raised);
+  min-height: 23px;
+}
+
+.closeButton:hover {
+  background: var(--cm-button-hover);
+}
+
+.closeButton:active {
+  box-shadow: var(--cm-pressed);
+}
+
+.closeButton:focus {
+  outline: 1px dotted var(--cm-focus);
+  outline-offset: -4px;
+}

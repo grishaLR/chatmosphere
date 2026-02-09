@@ -1,18 +1,26 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
-import { ModerationProvider } from './contexts/ModerationContext';
-import { ProfileProvider } from './contexts/ProfileContext';
 import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
-import { RoomDirectoryPage } from './pages/RoomDirectoryPage';
-import { ChatRoomPage } from './pages/ChatRoomPage';
+import { ConnectingScreen } from './components/auth/ConnectingScreen';
 
-import { WebSocketProvider } from './contexts/WebSocketContext';
-import { DmProvider } from './contexts/DmContext';
-import { DmPopoverContainer } from './components/dm/DmPopoverContainer';
-import { BlockProvider } from './contexts/BlockContext';
-import { ConnectionBanner } from './components/ConnectionBanner';
+// Set by login() before redirect, cleared by init() after processing.
+// On a hard refresh this flag is absent → skip ConnectingScreen.
+const isOAuthCallback = sessionStorage.getItem('chatmosphere:oauth_pending') === '1';
+
+// Lazy-loaded — these pull in the heavy provider + page dependency graphs.
+// They stay out of the main bundle; ConnectingScreen triggers preloading via lib/preload.ts.
+const AuthenticatedApp = lazy(() =>
+  import('./AuthenticatedApp').then((m) => ({ default: m.AuthenticatedApp })),
+);
+const RoomDirectoryPage = lazy(() =>
+  import('./pages/RoomDirectoryPage').then((m) => ({ default: m.RoomDirectoryPage })),
+);
+const ChatRoomPage = lazy(() =>
+  import('./pages/ChatRoomPage').then((m) => ({ default: m.ChatRoomPage })),
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,11 +33,20 @@ const queryClient = new QueryClient({
 });
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { did, serverToken, isLoading, authError, logout } = useAuth();
+  const { did, authPhase, authError, logout } = useAuth();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!did) return <Navigate to="/login" replace />;
+  // No session, not loading — go to login
+  if (authPhase === 'idle' && !did) return <Navigate to="/login" replace />;
 
+  // Auth in progress
+  if (authPhase !== 'ready' && authPhase !== 'idle') {
+    // OAuth callback → full AIM "Sign On" experience
+    if (isOAuthCallback) return <ConnectingScreen />;
+    // Session restore (hard refresh) → just hold on teal background while init() runs
+    return <div style={{ minHeight: '100vh', background: 'var(--cm-desktop)' }} />;
+  }
+
+  // Error state
   if (authError) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
@@ -41,9 +58,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!serverToken) return <div>Connecting to server...</div>;
-
-  return <>{children}</>;
+  // Ready — render app with lazy providers
+  const suspenseFallback = isOAuthCallback ? (
+    <ConnectingScreen />
+  ) : (
+    <div style={{ minHeight: '100vh', background: 'var(--cm-desktop)' }} />
+  );
+  return (
+    <Suspense fallback={suspenseFallback}>
+      <AuthenticatedApp>{children}</AuthenticatedApp>
+    </Suspense>
+  );
 }
 
 function AppRoutes() {
@@ -75,19 +100,7 @@ export function App() {
     <BrowserRouter>
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
-          <ModerationProvider>
-            <ProfileProvider>
-              <WebSocketProvider>
-                <ConnectionBanner />
-                <BlockProvider>
-                  <DmProvider>
-                    <AppRoutes />
-                    <DmPopoverContainer />
-                  </DmProvider>
-                </BlockProvider>
-              </WebSocketProvider>
-            </ProfileProvider>
-          </ModerationProvider>
+          <AppRoutes />
         </QueryClientProvider>
       </AuthProvider>
     </BrowserRouter>
