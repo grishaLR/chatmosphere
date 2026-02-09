@@ -57,7 +57,11 @@ export function createWsServer(
   rateLimiter: RateLimiter,
   dmService: DmService,
 ): WsServer {
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws',
+    maxPayload: 100_000, // 100KB — prevent OOM from single malicious message
+  });
   const roomSubs = new RoomSubscriptions();
   const dmSubs = new DmSubscriptions();
   const userSockets = new UserSockets();

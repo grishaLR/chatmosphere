@@ -20,14 +20,15 @@ function main() {
   const tracker = new PresenceTracker();
   const presenceService = createPresenceService(tracker);
 
-  // Auth sessions + rate limiter
+  // Auth sessions + rate limiters (stricter for auth by IP)
   const sessions = new SessionStore(config.SESSION_TTL_MS);
   const rateLimiter = new RateLimiter();
+  const authRateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 10 });
 
   // DM service
   const dmService = createDmService(db);
 
-  const app = createApp(config, db, presenceService, sessions, rateLimiter);
+  const app = createApp(config, db, presenceService, sessions, rateLimiter, authRateLimiter);
   const httpServer = createServer(app);
 
   // WebSocket server (shares the HTTP server)

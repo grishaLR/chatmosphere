@@ -1,4 +1,5 @@
 import express, { type Express } from 'express';
+import helmet from 'helmet';
 import { corsMiddleware } from './middleware/cors.js';
 import { createErrorHandler } from './middleware/error.js';
 import { requestLogger } from './middleware/logger.js';
@@ -23,11 +24,13 @@ export function createApp(
   presenceService: PresenceService,
   sessions: SessionStore,
   rateLimiter: RateLimiter,
+  authRateLimiter: RateLimiter,
 ): Express {
   const app = express();
   const requireAuth = createRequireAuth(sessions);
 
   // Middleware
+  app.use(helmet());
   app.use(express.json());
   app.use(corsMiddleware(config));
   app.use(requestLogger);
@@ -37,8 +40,8 @@ export function createApp(
     res.json({ status: 'ok' });
   });
 
-  // Auth routes (unprotected — login creates sessions)
-  app.use('/api/auth', authRouter(sessions, config));
+  // Auth routes (unprotected — login creates sessions; rate-limited by IP)
+  app.use('/api/auth', createRateLimitMiddleware(authRateLimiter), authRouter(sessions, config));
 
   // Protected API routes
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), roomsRouter(sql));
