@@ -1,8 +1,9 @@
 .page {
-  min-height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--color-base-100);
+  overflow: hidden;
 }
 
 .body {

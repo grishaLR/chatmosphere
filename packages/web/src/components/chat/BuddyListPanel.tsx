@@ -29,6 +29,7 @@ interface BuddyListPanelProps {
 }
 
 const OFFLINE_GROUP = 'Offline';
+const BLOCKED_GROUP = 'Blocked';
 const PROTECTED_GROUPS = new Set(['Buddies', 'Close Friends']);
 
 const STATUS_ORDER: Record<string, number> = {
@@ -76,7 +77,9 @@ function BuddyMenu({
     };
   }, [open]);
 
-  const moveTargets = allGroups.filter((g) => g.name !== groupName && g.name !== OFFLINE_GROUP);
+  const moveTargets = allGroups.filter(
+    (g) => g.name !== groupName && g.name !== OFFLINE_GROUP && g.name !== BLOCKED_GROUP,
+  );
 
   return (
     <div className={styles.menuWrap} ref={menuRef}>
@@ -189,9 +192,6 @@ function GroupHeaderRow({
         {isCollapsed ? '\u25B6' : '\u25BC'}
       </button>
       <span className={styles.groupName}>{groupName}</span>
-      <span className={styles.groupCount}>
-        ({onlineCount}/{totalCount})
-      </span>
       {!isSynthetic && !isProtected && (
         <span
           className={styles.groupHeaderActions}
@@ -211,6 +211,9 @@ function GroupHeaderRow({
           )}
         </span>
       )}
+      <span className={styles.groupCount}>
+        ({onlineCount}/{totalCount})
+      </span>
     </div>
   );
 }
@@ -268,6 +271,8 @@ export function BuddyListPanel({
       for (const member of group.members) {
         const buddy = presenceMap.get(member.did);
         if (!buddy) continue;
+        // Skip blocked — they go in the synthetic Blocked group
+        if (blockedDids.has(buddy.did)) continue;
         totalInGroup++;
 
         if (buddy.status === 'offline') {
@@ -324,8 +329,30 @@ export function BuddyListPanel({
       }
     }
 
+    // Synthetic "Blocked" group at the very bottom
+    if (blockedDids.size > 0) {
+      const blockedArray: BuddyWithPresence[] = [...blockedDids].map(
+        (did) => presenceMap.get(did) ?? { did, status: 'offline', addedAt: '' },
+      );
+      const isBlockedCollapsed = collapsed.has(BLOCKED_GROUP);
+
+      result.push({
+        type: 'group-header',
+        groupName: BLOCKED_GROUP,
+        onlineCount: 0,
+        totalCount: blockedArray.length,
+        isCollapsed: isBlockedCollapsed,
+      });
+
+      if (!isBlockedCollapsed) {
+        for (const buddy of blockedArray) {
+          result.push({ type: 'buddy', buddy, groupName: BLOCKED_GROUP });
+        }
+      }
+    }
+
     return result;
-  }, [groups, presenceMap, collapsed]);
+  }, [groups, presenceMap, collapsed, blockedDids]);
 
   const { virtualItems, totalSize, containerRef, handleScroll, measureElement, data } =
     useVirtualList({
@@ -372,7 +399,7 @@ export function BuddyListPanel({
     setRenameValue('');
   }, [renamingGroup, renameValue, onRenameGroup]);
 
-  const hasAnyBuddies = buddies.length > 0;
+  const hasAnyRows = rows.length > 0;
 
   return (
     <div className={styles.panel}>
@@ -401,7 +428,7 @@ export function BuddyListPanel({
 
       {loading ? (
         <p className={styles.empty}>Loading...</p>
-      ) : !hasAnyBuddies ? (
+      ) : !hasAnyRows ? (
         <p className={styles.empty}>No buddies yet</p>
       ) : (
         <div className={styles.list} ref={containerRef} onScroll={handleScroll}>
@@ -411,7 +438,8 @@ export function BuddyListPanel({
 
               if (row.type === 'group-header') {
                 const isProtected = PROTECTED_GROUPS.has(row.groupName);
-                const isSynthetic = row.groupName === OFFLINE_GROUP;
+                const isSynthetic =
+                  row.groupName === OFFLINE_GROUP || row.groupName === BLOCKED_GROUP;
                 const isEmpty = row.totalCount === 0;
 
                 return (
