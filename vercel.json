@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @chatmosphere/web build",
+  "buildCommand": "pnpm turbo build --filter=@chatmosphere/web",
   "outputDirectory": "packages/web/dist",
   "installCommand": "pnpm install",
   "framework": "vite"
