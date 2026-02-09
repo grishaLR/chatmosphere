@@ -1,5 +1,11 @@
 import type { PresenceStatus, PresenceVisibility } from '@chatmosphere/shared';
 
+/**
+ * MVP limitation: Presence is stored in a single process Map. Horizontal scaling
+ * would give split-brain presence (each instance has its own view). For v1, plan
+ * a shared store (e.g. Redis) so presence is consistent across instances.
+ */
+
 export interface UserPresence {
   did: string;
   status: PresenceStatus;

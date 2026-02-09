@@ -1,5 +1,11 @@
 import { randomUUID } from 'crypto';
 
+/**
+ * MVP limitation: Sessions are in-memory only. They are lost on server restart
+ * and cannot be shared across multiple instances. For production, persist
+ * sessions to Redis or Postgres.
+ */
+
 export interface Session {
   did: string;
   handle: string;
