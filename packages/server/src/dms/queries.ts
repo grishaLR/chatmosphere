@@ -124,13 +124,11 @@ export async function deleteConversation(sql: Sql, conversationId: string): Prom
   await sql`DELETE FROM dm_conversations WHERE id = ${conversationId}`;
 }
 
+/** Prune DM messages older than the retention window regardless of persist flag. */
 export async function pruneExpiredDmMessages(sql: Sql, retentionDays: number): Promise<number> {
   const result = await sql`
     DELETE FROM dm_messages
     WHERE created_at < NOW() - ${`${String(retentionDays)} days`}::interval
-    AND conversation_id IN (
-      SELECT id FROM dm_conversations WHERE persist = TRUE
-    )
   `;
   return result.count;
 }
