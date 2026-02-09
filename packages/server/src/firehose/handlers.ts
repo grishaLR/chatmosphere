@@ -1,11 +1,4 @@
 import { NSID } from '@chatmosphere/shared';
-import type {
-  RoomRecord,
-  MessageRecord,
-  BanRecord,
-  BuddyListRecord,
-  RoleRecord,
-} from '@chatmosphere/lexicon';
 import type { Sql } from '../db/client.js';
 import { createRoom } from '../rooms/queries.js';
 import { insertMessage } from '../messages/queries.js';
@@ -13,6 +6,13 @@ import { recordModAction, isUserBanned, upsertRoomRole } from '../moderation/que
 import { upsertBuddyList, syncBuddyMembers } from '../buddylist/queries.js';
 import { checkMessageContent } from '../moderation/service.js';
 import type { WsServer } from '../ws/server.js';
+import {
+  roomRecordSchema,
+  messageRecordSchema,
+  banRecordSchema,
+  roleRecordSchema,
+  buddyListRecordSchema,
+} from './record-schemas.js';
 
 export interface FirehoseEvent {
   did: string;
@@ -25,7 +25,15 @@ export interface FirehoseEvent {
 export function createHandlers(db: Sql, wss: WsServer) {
   const handlers: Record<string, (event: FirehoseEvent) => Promise<void>> = {
     [NSID.Room]: async (event) => {
-      const record = event.record as RoomRecord;
+      const parsed = roomRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        console.warn(
+          `Invalid room record from ${event.did} (${event.rkey}):`,
+          parsed.error.message,
+        );
+        return;
+      }
+      const record = parsed.data;
       await createRoom(db, {
         id: event.rkey,
         uri: event.uri,
@@ -42,7 +50,15 @@ export function createHandlers(db: Sql, wss: WsServer) {
     },
 
     [NSID.Message]: async (event) => {
-      const record = event.record as MessageRecord;
+      const parsed = messageRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        console.warn(
+          `Invalid message record from ${event.did} (${event.rkey}):`,
+          parsed.error.message,
+        );
+        return;
+      }
+      const record = parsed.data;
       const roomId = extractRkey(record.room);
 
       // Content filter — skip indexing if blocked
@@ -82,7 +98,12 @@ export function createHandlers(db: Sql, wss: WsServer) {
     },
 
     [NSID.Ban]: async (event) => {
-      const record = event.record as BanRecord;
+      const parsed = banRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        console.warn(`Invalid ban record from ${event.did} (${event.rkey}):`, parsed.error.message);
+        return;
+      }
+      const record = parsed.data;
       await recordModAction(db, {
         roomId: extractRkey(record.room),
         actorDid: event.did,
@@ -94,7 +115,15 @@ export function createHandlers(db: Sql, wss: WsServer) {
     },
 
     [NSID.Role]: async (event) => {
-      const record = event.record as RoleRecord;
+      const parsed = roleRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        console.warn(
+          `Invalid role record from ${event.did} (${event.rkey}):`,
+          parsed.error.message,
+        );
+        return;
+      }
+      const record = parsed.data;
       await upsertRoomRole(db, {
         roomId: extractRkey(record.room),
         subjectDid: record.subject,
@@ -109,7 +138,12 @@ export function createHandlers(db: Sql, wss: WsServer) {
     },
 
     [NSID.BuddyList]: async (event) => {
-      const record = event.record as BuddyListRecord;
+      const parsed = buddyListRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        console.warn(`Invalid buddylist record from ${event.did}:`, parsed.error.message);
+        return;
+      }
+      const record = parsed.data;
       await upsertBuddyList(db, { did: event.did, groups: record.groups });
 
       // Flatten all members across groups for denormalized lookup table
