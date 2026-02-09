@@ -2,5 +2,8 @@
   "buildCommand": "pnpm turbo build --filter=@chatmosphere/web",
   "outputDirectory": "packages/web/dist",
   "installCommand": "pnpm install",
-  "framework": "vite"
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/((?!assets/|client-metadata.json).*)", "destination": "/index.html" }
+  ]
 }
