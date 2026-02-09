@@ -1,25 +1,33 @@
 .container {
-  padding: 0.75rem;
+  padding: 4px;
 }
 
 .heading {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: color-mix(in oklch, var(--color-base-content) 70%, var(--color-base-300));
-  margin: 0 0 0.5rem;
+  font-size: var(--cm-text-base);
+  font-weight: 700;
+  color: var(--color-base-content);
+  margin: 0 0 4px;
+  padding: 2px 4px;
 }
 
 .list {
   list-style: none;
-  padding: 0;
+  padding: 2px;
   margin: 0;
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
 }
 
 .member {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0;
+  padding: 2px 4px;
+}
+
+.member:hover {
+  background: var(--cm-selection);
+  color: var(--cm-chrome-text);
 }
 
 .memberInfo {
@@ -29,13 +37,17 @@
 }
 
 .memberDid {
-  font-size: 0.75rem;
+  font-size: var(--cm-text-base);
   color: var(--color-base-content);
   word-break: break-all;
 }
 
+.member:hover .memberDid {
+  color: var(--cm-chrome-text);
+}
+
 .doorEmoji {
-  font-size: 0.75rem;
+  font-size: var(--cm-text-base);
   line-height: 1;
   flex-shrink: 0;
   animation: doorPop 0.3s ease-out;
@@ -60,10 +72,14 @@
 }
 
 .awayMsg {
-  font-size: 0.6875rem;
-  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
+  font-size: var(--cm-text-sm);
+  color: var(--cm-border-dark);
   font-style: italic;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.member:hover .awayMsg {
+  color: var(--cm-chrome-text-muted);
 }

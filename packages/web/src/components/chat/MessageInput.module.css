@@ -1,38 +1,46 @@
 .container {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--color-base-300);
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-base-100);
 }
 
 .textarea {
   flex: 1;
   resize: none;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-base-300);
-  border-radius: 4px;
+  padding: 3px 4px;
+  border: none;
+  border-radius: 0;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: var(--cm-text-lg);
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
 }
 
 .textarea:focus {
   outline: none;
-  border-color: var(--color-primary);
 }
 
 .sendButton {
-  padding: 0.5rem 1rem;
-  background: var(--color-primary);
-  color: var(--color-primary-content);
+  padding: 2px 12px;
+  background: var(--cm-surface-button);
+  color: var(--color-base-content);
   border: none;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: var(--cm-text-md);
+  font-weight: 700;
   align-self: flex-end;
+  box-shadow: var(--cm-raised);
+  min-height: 23px;
 }
 
 .sendButton:hover:not(:disabled) {
-  background: color-mix(in oklch, var(--color-primary) 85%, black);
+  background: var(--cm-button-hover);
+}
+
+.sendButton:active:not(:disabled) {
+  box-shadow: var(--cm-pressed);
 }
 
 .sendButton:disabled {

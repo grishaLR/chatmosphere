@@ -1,11 +1,11 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 4px;
 }
 
 .empty {
   text-align: center;
-  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
+  color: var(--cm-border-dark);
   padding: 2rem;
 }

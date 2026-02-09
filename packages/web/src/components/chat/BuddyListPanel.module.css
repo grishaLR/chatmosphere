@@ -1,54 +1,61 @@
 .panel {
-  width: 240px;
+  width: var(--cm-panel-width-buddy);
   height: 100%;
-  border-left: 1px solid var(--color-base-300);
+  background: var(--color-base-100);
   display: flex;
   flex-direction: column;
+  box-shadow: var(--cm-raised);
 }
 
 .title {
   margin: 0;
-  padding: 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: color-mix(in oklch, var(--color-base-content) 70%, var(--color-base-300));
-  border-bottom: 1px solid var(--color-base-200);
+  padding: 4px 6px;
+  font-size: var(--cm-text-base);
+  font-weight: 700;
+  color: var(--cm-chrome-text);
+  background: var(--cm-titlebar);
 }
 
 .addSection {
   display: flex;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--color-base-200);
+  gap: 2px;
+  padding: 4px;
+  background: var(--color-base-100);
 }
 
 .addInput {
   flex: 1;
-  padding: 0.25rem 0.375rem;
-  border: 1px solid var(--color-base-300);
-  border-radius: 3px;
-  font-size: 0.75rem;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 0;
+  font-size: var(--cm-text-base);
   min-width: 0;
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
 }
 
 .addInput:focus {
   outline: none;
-  border-color: color-mix(in oklch, var(--color-base-content) 35%, var(--color-base-300));
 }
 
 .addBtn {
-  padding: 0.25rem 0.5rem;
-  background: var(--color-base-content);
-  color: var(--color-neutral-content);
+  padding: 2px 8px;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
   border: none;
-  border-radius: 3px;
-  font-size: 0.75rem;
+  border-radius: 0;
+  font-size: var(--cm-text-base);
   cursor: pointer;
   flex-shrink: 0;
+  box-shadow: var(--cm-raised);
 }
 
 .addBtn:hover {
-  background: color-mix(in oklch, var(--color-base-content) 70%, var(--color-base-300));
+  background: var(--cm-button-hover);
+}
+
+.addBtn:active {
+  box-shadow: var(--cm-pressed);
 }
 
 .addBtn:disabled {
@@ -58,16 +65,18 @@
 
 .addError {
   margin: 0;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.6875rem;
+  padding: 2px 4px;
+  font-size: var(--cm-text-sm);
   color: var(--color-error);
 }
 
 .list {
-  padding: 0;
-  margin: 0;
+  padding: 2px;
+  margin: 4px;
   overflow-y: auto;
   flex: 1;
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
 }
 
 .spacer {
@@ -85,12 +94,13 @@
 .buddy {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
+  gap: 0.375rem;
+  padding: 2px 4px;
 }
 
 .buddy:hover {
-  background: var(--color-base-100);
+  background: var(--cm-selection);
+  color: var(--cm-chrome-text);
 }
 
 .buddyInfo {
@@ -101,15 +111,19 @@
 }
 
 .buddyDid {
-  font-size: 0.75rem;
+  font-size: var(--cm-text-base);
   color: var(--color-base-content);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.buddy:hover .buddyDid {
+  color: var(--cm-chrome-text);
+}
+
 .doorEmoji {
-  font-size: 0.75rem;
+  font-size: var(--cm-text-base);
   line-height: 1;
   flex-shrink: 0;
   animation: doorPop 0.3s ease-out;
@@ -129,7 +143,7 @@
   }
 }
 
-/* Away message chat bubble */
+/* Away message tooltip */
 
 .awayBubble {
   flex-shrink: 0;
@@ -142,13 +156,13 @@
   content: attr(data-tooltip);
   position: absolute;
   left: 0;
-  bottom: calc(100% + 8px);
-  background: var(--color-neutral);
-  color: var(--color-neutral-content);
-  font-size: 0.75rem;
+  bottom: calc(100% + 6px);
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  font-size: var(--cm-text-sm);
   line-height: 1.4;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  padding: 4px 6px;
+  border-radius: 0;
   white-space: normal;
   width: max-content;
   max-width: 200px;
@@ -156,7 +170,7 @@
   opacity: 0;
   transition: opacity 0.1s;
   z-index: 200;
-  box-shadow: var(--cm-shadow-md);
+  box-shadow: var(--cm-raised), var(--cm-window-shadow);
 }
 
 .awayBubble:hover::after {
@@ -166,6 +180,10 @@
 .awayBubbleSvg {
   width: 14px;
   height: 14px;
+}
+
+.buddy:hover .awayBubbleSvg {
+  filter: brightness(0) invert(1);
 }
 
 /* Hamburger menu */
@@ -184,7 +202,7 @@
   padding: 0;
   background: none;
   border: none;
-  border-radius: 3px;
+  border-radius: 0;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s;
@@ -196,15 +214,21 @@
 }
 
 .menuBtn:hover {
-  background: var(--color-base-200);
+  background: var(--cm-chrome-hover);
 }
 
 .menuIcon {
   display: block;
   width: 12px;
   height: 2px;
-  background: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
+  background: var(--color-base-content);
   position: relative;
+}
+
+.buddy:hover .menuIcon,
+.buddy:hover .menuIcon::before,
+.buddy:hover .menuIcon::after {
+  background: var(--cm-chrome-text);
 }
 
 .menuIcon::before,
@@ -213,7 +237,7 @@
   display: block;
   width: 12px;
   height: 2px;
-  background: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
+  background: var(--color-base-content);
   position: absolute;
   left: 0;
 }
@@ -232,29 +256,30 @@
   top: 100%;
   margin-top: 2px;
   background: var(--color-base-100);
-  border: 1px solid var(--color-base-300);
-  border-radius: 6px;
-  box-shadow: var(--cm-shadow-md);
-  min-width: 170px;
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--cm-raised), var(--cm-window-shadow);
+  min-width: 160px;
   z-index: 100;
-  padding: 0.25rem 0;
+  padding: 2px;
 }
 
 .menuItem {
   display: block;
   width: 100%;
-  padding: 0.4rem 0.75rem;
+  padding: 4px 6px;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: var(--cm-text-base);
   color: var(--color-base-content);
   text-align: left;
   white-space: nowrap;
 }
 
 .menuItem:hover {
-  background: var(--color-base-100);
+  background: var(--cm-selection);
+  color: var(--cm-chrome-text);
 }
 
 .menuItemDanger {
@@ -262,13 +287,14 @@
 }
 
 .menuItemDanger:hover {
-  background: oklch(from var(--color-error) 0.97 0.01 h);
+  background: var(--color-error);
+  color: var(--cm-chrome-text);
 }
 
 .empty {
-  padding: 1rem;
+  padding: 0.75rem;
   text-align: center;
-  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
-  font-size: 0.8125rem;
+  color: var(--cm-border-dark);
+  font-size: var(--cm-text-base);
   margin: 0;
 }

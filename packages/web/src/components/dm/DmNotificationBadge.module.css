@@ -2,23 +2,23 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 0.75rem;
+  padding: 6px 8px;
   background: var(--color-base-100);
-  border: 1px solid var(--color-base-300);
-  border-radius: 8px;
-  box-shadow: var(--cm-shadow-md);
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--cm-raised), var(--cm-window-shadow);
   cursor: pointer;
   max-width: 280px;
   animation: slideUp 0.2s ease-out;
 }
 
 .notification:hover {
-  background: var(--color-base-100);
+  background: var(--cm-button-hover);
 }
 
 .notification:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+  outline: 1px dotted var(--cm-focus);
+  outline-offset: -2px;
 }
 
 @keyframes slideUp {
@@ -44,42 +44,46 @@
 }
 
 .sender {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--cm-text-sm);
+  font-weight: 700;
   color: var(--color-base-content);
 }
 
 .preview {
-  font-size: 0.75rem;
-  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
+  font-size: var(--cm-text-sm);
+  color: var(--cm-border-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 0.125rem;
+  margin-top: 1px;
 }
 
 .closeBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  background: none;
+  background: var(--cm-surface);
   border: none;
-  border-radius: 3px;
+  border-radius: 0;
   cursor: pointer;
-  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
-  font-size: 0.875rem;
+  color: var(--color-base-content);
+  font-size: var(--cm-text-base);
   flex-shrink: 0;
+  box-shadow: var(--cm-raised);
 }
 
 .closeBtn:hover {
-  background: var(--color-base-200);
-  color: var(--color-base-content);
+  background: var(--cm-button-hover);
+}
+
+.closeBtn:active {
+  box-shadow: var(--cm-pressed);
 }
 
 .closeBtn:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
+  outline: 1px dotted var(--cm-focus);
+  outline-offset: -2px;
 }

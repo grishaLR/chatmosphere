@@ -6,7 +6,7 @@
 }
 
 .avatar {
-  border-radius: 50%;
+  border-radius: 0;
   flex-shrink: 0;
   object-fit: cover;
 }
@@ -39,12 +39,12 @@
 
 .alertBadge {
   color: var(--color-warning);
-  font-size: 0.75rem;
+  font-size: var(--cm-text-base);
   flex-shrink: 0;
 }
 
 .infoBadge {
-  color: color-mix(in oklch, var(--color-base-content) 45%, var(--color-base-300));
-  font-size: 0.75rem;
+  color: var(--cm-border-dark);
+  font-size: var(--cm-text-base);
   flex-shrink: 0;
 }

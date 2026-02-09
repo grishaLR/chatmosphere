@@ -3,3 +3,30 @@
   themes: aim --default;
 }
 @import "@chatmosphere/ui/tokens";
+
+/* AIM Global Styles */
+
+::selection {
+  background: var(--cm-selection);
+  color: var(--cm-chrome-text);
+}
+
+/* Win98-style Scrollbars (WebKit/Blink) */
+
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-base-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cm-button-hover);
+  box-shadow: var(--cm-raised);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--cm-button-hover);
+}

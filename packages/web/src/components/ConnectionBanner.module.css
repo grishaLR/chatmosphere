@@ -4,10 +4,11 @@
   left: 0;
   right: 0;
   z-index: 2000;
-  background: color-mix(in oklch, var(--color-warning) 85%, black);
-  color: var(--color-primary-content);
+  background: var(--color-warning);
+  color: var(--color-base-content);
   text-align: center;
-  padding: 0.375rem 1rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  padding: 2px 8px;
+  font-size: var(--cm-text-base);
+  font-weight: 700;
+  box-shadow: var(--cm-raised);
 }

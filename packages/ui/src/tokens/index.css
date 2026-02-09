@@ -1,56 +1,106 @@
 /*
  * Chatmosphere AIM Theme Tokens
  *
- * Modern retro AIM aesthetic: light gray panels, primary blue accents,
- * status colors for presence indicators.
+ * Authentic AIM/Windows 98 aesthetic: 3D beveled borders,
+ * blue gradient title bars, silver chrome surfaces.
  *
- * daisyUI provides: --color-base-100/200/300, --color-base-content,
- * --color-primary, --color-secondary, --color-success/warning/error, etc.
- *
- * Custom --cm-* tokens extend for app-specific needs.
+ * Box-shadow recipes from 98.css — the 4-layer inset pattern
+ * simulates light hitting a raised or sunken surface.
  */
 
 @theme {
-  /* AIM theme definition for daisyUI */
-  --color-base-100: oklch(0.97 0 0);        /* #f5f5f5 - main background */
-  --color-base-200: oklch(0.93 0 0);        /* #e8e8e8 - panel backgrounds */
-  --color-base-300: oklch(0.87 0 0);        /* #d4d4d4 - borders, dividers */
-  --color-base-content: oklch(0.28 0 0);    /* #333333 - primary text */
+  /* AIM Surface Colors */
+  --color-base-100: #d6d6ce;        /* warm silver — main window surface */
+  --color-base-200: #c0c0c0;        /* silver — button face, panels */
+  --color-base-300: #a0a0a0;        /* medium gray — borders, dividers */
+  --color-base-content: #0c0c0c;    /* near-black — primary text */
 
-  --color-primary: oklch(0.49 0.16 250);    /* #0066cc - AIM blue */
-  --color-primary-content: oklch(1 0 0);    /* white text on primary */
+  /* AIM Blue Accent */
+  --color-primary: #0066cc;          /* AIM blue — links, own screenname */
+  --color-primary-content: #ffffff;
 
-  --color-secondary: oklch(0.75 0.16 75);   /* #f59e0b - amber accent */
-  --color-secondary-content: oklch(0.28 0 0);
+  /* Secondary (amber — away status) */
+  --color-secondary: #f59e0b;
+  --color-secondary-content: #0c0c0c;
 
-  --color-accent: oklch(0.49 0.16 250);     /* alias of primary for now */
-  --color-accent-content: oklch(1 0 0);
+  /* Accent (navy — title bars) */
+  --color-accent: #08216b;
+  --color-accent-content: #ffffff;
 
-  --color-neutral: oklch(0.28 0 0);         /* #333333 - dark elements */
-  --color-neutral-content: oklch(0.97 0 0);
+  /* Neutral */
+  --color-neutral: #333333;
+  --color-neutral-content: #d6d6ce;
 
-  --color-success: oklch(0.65 0.2 145);     /* #22c55e - online */
-  --color-warning: oklch(0.75 0.16 75);     /* #f59e0b - away */
-  --color-error: oklch(0.55 0.2 25);        /* #cc0000 - error/danger */
+  /* Status Colors */
+  --color-success: #22c55e;           /* online */
+  --color-warning: #f59e0b;           /* away */
+  --color-error: #cc0000;             /* error/danger */
+  --color-success-content: #ffffff;
+  --color-warning-content: #0c0c0c;
+  --color-error-content: #ffffff;
 
-  --color-success-content: oklch(1 0 0);
-  --color-warning-content: oklch(0.28 0 0);
-  --color-error-content: oklch(1 0 0);
+  /* Custom status tokens */
+  --cm-status-idle: #9ca3af;
+  --cm-status-offline: #d1d5db;
 
-  /* Custom Chatmosphere tokens */
-  --cm-status-idle: oklch(0.7 0.02 250);    /* #9ca3af - idle gray */
-  --cm-status-offline: oklch(0.85 0.01 250); /* #d1d5db - offline light gray */
-
-  --cm-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.08);
-  --cm-shadow-md: 0 4px 12px oklch(0 0 0 / 0.1);
-  --cm-shadow-lg: 0 8px 24px oklch(0 0 0 / 0.12);
-
+  /* Panel widths */
   --cm-panel-width-buddy: 240px;
   --cm-panel-width-sidebar: 200px;
   --cm-panel-width-dm: 320px;
+}
 
-  --cm-radius-sm: 3px;
-  --cm-radius-md: 6px;
-  --cm-radius-lg: 8px;
-  --cm-radius-pill: 12px;
+:root {
+  /*
+   * AIM 3D Border Recipes (4-layer inset box-shadows)
+   * Light source: top-left. Raised = highlight TL, shadow BR.
+   */
+  --cm-raised: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+  --cm-sunken: inset -1px -1px #fff, inset 1px 1px grey, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+  --cm-pressed: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+
+  /* AIM Window Chrome */
+  --cm-window-shadow: 2px 2px 2px #424242;
+  --cm-titlebar: linear-gradient(to right, #08216b, #a5c6ef);
+  --cm-titlebar-inactive: linear-gradient(90deg, grey, #b5b5b5);
+
+  /* AIM Border Colors (for simpler beveled borders) */
+  --cm-border-light: #f4f4f4;
+  --cm-border-dark: #848484;
+
+  /* ── Surface & Chrome Colors ─────────────────────── */
+  --cm-surface: #d6d6ce;
+  --cm-surface-content: #fff;
+  --cm-surface-button: silver;
+  --cm-button-hover: #dfdfdf;
+  --cm-chrome-text: #fff;
+  --cm-chrome-text-muted: rgba(255, 255, 255, 0.7);
+  --cm-chrome-hover: rgba(255, 255, 255, 0.3);
+  --cm-desktop: #008080;
+  --cm-primary-dark: #004499;
+  --cm-overlay: oklch(0 0 0 / 0.4);
+  --cm-focus: #000;
+
+  /* Selection */
+  --cm-selection: #0000a2;
+
+  /* Drop shadows — AIM-style hard offset shadows */
+  --cm-shadow-sm: 1px 1px 1px #424242;
+  --cm-shadow-md: 2px 2px 2px #424242;
+  --cm-shadow-lg: 3px 3px 3px #424242;
+
+  /* ── Font Sizes ──────────────────────────────────── */
+  --cm-text-2xs: 0.5625rem;   /* 9px — tiny timestamps */
+  --cm-text-xs: 0.625rem;     /* 10px — micro labels */
+  --cm-text-sm: 0.6875rem;    /* 11px — small labels, badges */
+  --cm-text-base: 0.75rem;    /* 12px — UI chrome, lists */
+  --cm-text-md: 0.8125rem;    /* 13px — body text, inputs, buttons */
+  --cm-text-lg: 0.875rem;     /* 14px — messages, form inputs */
+  --cm-text-xl: 1rem;         /* 16px — section titles */
+  --cm-text-2xl: 1.5rem;      /* 24px — page titles */
+
+  /* Border radii — AIM uses sharp corners */
+  --cm-radius-sm: 0px;
+  --cm-radius-md: 0px;
+  --cm-radius-lg: 0px;
+  --cm-radius-pill: 0px;
 }

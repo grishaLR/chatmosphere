@@ -2,20 +2,23 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: var(--color-base-100);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--color-base-300);
+  gap: 0.75rem;
+  padding: 4px 6px;
+  background: var(--color-base-100);
+  border-bottom: 1px solid var(--cm-border-dark);
+  border-top: 1px solid var(--cm-border-light);
 }
 
 .back {
   color: var(--color-primary);
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: var(--cm-text-md);
 }
 
 .back:hover {
@@ -24,12 +27,13 @@
 
 .roomName {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: var(--cm-text-lg);
+  font-weight: 700;
 }
 
 .description {
-  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
-  font-size: 0.8125rem;
+  color: var(--cm-border-dark);
+  font-size: var(--cm-text-base);
 }
 
 .content {
@@ -46,8 +50,9 @@
 }
 
 .sidebar {
-  width: 200px;
-  border-left: 1px solid var(--color-base-300);
+  width: var(--cm-panel-width-sidebar);
+  background: var(--color-base-100);
+  border-left: 1px solid var(--cm-border-dark);
   overflow-y: auto;
 }
 
@@ -56,7 +61,7 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  color: color-mix(in oklch, var(--color-base-content) 60%, var(--color-base-300));
+  color: var(--cm-border-dark);
 }
 
 .error {
