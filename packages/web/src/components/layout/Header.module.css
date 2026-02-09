@@ -79,3 +79,19 @@
 .logoutButton:active {
   box-shadow: var(--cm-pressed);
 }
+
+@media (max-width: 767px) {
+  .did {
+    display: none;
+  }
+
+  .logoutButton {
+    font-size: 0;
+    padding: var(--cm-space-0.5) var(--cm-space-2);
+  }
+
+  .logoutButton::before {
+    content: '\00D7';
+    font-size: var(--cm-text-md);
+  }
+}

@@ -103,3 +103,22 @@
 .viewTabActive:hover {
   background: var(--cm-surface-content);
 }
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    max-width: none;
+    padding: var(--cm-space-4);
+  }
+
+  .body {
+    padding-bottom: var(--cm-tab-bar-h);
+  }
+
+  .viewToggle {
+    display: none;
+  }
+}

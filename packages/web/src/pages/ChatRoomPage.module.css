@@ -1,7 +1,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   background: var(--color-base-100);
 }
 
@@ -60,7 +60,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 100dvh;
   color: var(--cm-border-dark);
 }
 
@@ -68,6 +68,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  height: 100dvh;
   color: var(--color-error);
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+
+  .header {
+    gap: var(--cm-space-3);
+    padding: var(--cm-space-1) var(--cm-space-2);
+  }
+
+  .description {
+    display: none;
+  }
 }

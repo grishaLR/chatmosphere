@@ -167,6 +167,10 @@
   --cm-blur-light: 2px;
   --cm-focus-offset: 2px;
 
+  /* Mobile tab bar */
+  --cm-tab-bar-h: 44px;
+  --cm-breakpoint-mobile: 768px; /* documentation only — CSS vars can't be used in @media */
+
   /* Border radii — AIM uses sharp corners */
   --cm-radius-sm: 0px;
   --cm-radius-md: 0px;

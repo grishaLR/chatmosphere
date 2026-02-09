@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import { Header } from '../components/layout/Header';
+import { MobileTabBar } from '../components/layout/MobileTabBar';
+import type { MobileTab } from '../components/layout/MobileTabBar';
 import { RoomList } from '../components/rooms/RoomList';
 import { CreateRoomModal } from '../components/rooms/CreateRoomModal';
 import { BuddyListPanel } from '../components/chat/BuddyListPanel';
@@ -10,11 +12,12 @@ import { ThreadView } from '../components/feed/ThreadView';
 import { SettingsView } from '../components/settings/SettingsView';
 import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useDm } from '../contexts/DmContext';
 import { useBlocks } from '../contexts/BlockContext';
 import styles from './RoomDirectoryPage.module.css';
 
-type View = 'rooms' | 'feed' | 'profile' | 'thread' | 'settings';
+type View = 'rooms' | 'feed' | 'buddies' | 'profile' | 'thread' | 'settings';
 
 export function RoomDirectoryPage() {
   const { rooms, loading, error, refresh } = useRooms();
@@ -35,12 +38,15 @@ export function RoomDirectoryPage() {
   } = useBuddyList();
   const { openDm, openDmMinimized } = useDm();
   const { blockedDids, toggleBlock } = useBlocks();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [view, setView] = useState<View>('rooms');
+  const [view, setView] = useState<View>(() =>
+    window.matchMedia('(max-width: 767px)').matches ? 'buddies' : 'rooms',
+  );
   const [profileTarget, setProfileTarget] = useState<string | null>(null);
   const [threadStack, setThreadStack] = useState<string[]>([]);
-  const [prevView, setPrevView] = useState<'rooms' | 'feed'>('feed');
+  const [prevView, setPrevView] = useState<'rooms' | 'feed' | 'buddies'>('feed');
   const [replyTo, setReplyTo] = useState<AppBskyFeedDefs.PostView | null>(null);
 
   const threadUri = threadStack.length > 0 ? (threadStack[threadStack.length - 1] ?? null) : null;
@@ -109,6 +115,39 @@ export function RoomDirectoryPage() {
 
   const showTabs = view === 'rooms' || view === 'feed';
 
+  const buddyListProps = {
+    buddies,
+    groups,
+    doorEvents,
+    loading: buddiesLoading,
+    agent,
+    onAddBuddy: addBuddy,
+    onRemoveBuddy: removeBuddy,
+    onToggleCloseFriend: toggleCloseFriend,
+    onBlockBuddy: (did: string) => {
+      const isCurrentlyBlocked = blockedDids.has(did);
+      toggleBlock(did);
+      blockBuddy(did, isCurrentlyBlocked).catch(() => {
+        toggleBlock(did);
+      });
+    },
+    onSendIm: openDm,
+    onBuddyClick: (did: string) => {
+      navigateToProfile(did);
+      openDmMinimized(did);
+    },
+    onCreateGroup: createGroup,
+    onRenameGroup: renameGroup,
+    onDeleteGroup: deleteGroup,
+    onMoveBuddy: moveBuddy,
+  };
+
+  const mobileTab: MobileTab = view === 'buddies' ? 'buddies' : view === 'rooms' ? 'rooms' : 'feed';
+
+  const handleMobileTabChange = (tab: MobileTab) => {
+    setView(tab);
+  };
+
   return (
     <div className={styles.page}>
       <Header onOpenSettings={navigateToSettings} onOpenProfile={navigateToProfile} />
@@ -134,6 +173,8 @@ export function RoomDirectoryPage() {
               </button>
             </div>
           )}
+
+          {view === 'buddies' && isMobile && <BuddyListPanel {...buddyListProps} />}
 
           {view === 'rooms' && (
             <>
@@ -193,35 +234,13 @@ export function RoomDirectoryPage() {
 
           {view === 'settings' && <SettingsView onBack={backFromSettings} />}
         </main>
-        <aside className={styles.sidebar}>
-          <BuddyListPanel
-            buddies={buddies}
-            groups={groups}
-            doorEvents={doorEvents}
-            loading={buddiesLoading}
-            agent={agent}
-            onAddBuddy={addBuddy}
-            onRemoveBuddy={removeBuddy}
-            onToggleCloseFriend={toggleCloseFriend}
-            onBlockBuddy={(did: string) => {
-              const isCurrentlyBlocked = blockedDids.has(did);
-              toggleBlock(did); // immediate server sync
-              blockBuddy(did, isCurrentlyBlocked).catch(() => {
-                toggleBlock(did); // rollback on atproto failure
-              });
-            }}
-            onSendIm={openDm}
-            onBuddyClick={(did: string) => {
-              navigateToProfile(did);
-              openDmMinimized(did); // always opens DM minimized
-            }}
-            onCreateGroup={createGroup}
-            onRenameGroup={renameGroup}
-            onDeleteGroup={deleteGroup}
-            onMoveBuddy={moveBuddy}
-          />
-        </aside>
+        {!isMobile && (
+          <aside className={styles.sidebar}>
+            <BuddyListPanel {...buddyListProps} />
+          </aside>
+        )}
       </div>
+      {isMobile && <MobileTabBar activeTab={mobileTab} onTabChange={handleMobileTabChange} />}
       {showCreate && (
         <CreateRoomModal
           onClose={() => {
