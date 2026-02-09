@@ -11,6 +11,7 @@ import {
 import { createWsClient, type WsClient, type WsHandler } from '../lib/ws';
 import type { ClientMessage } from '@chatmosphere/shared';
 import { useAuth } from '../hooks/useAuth';
+import { API_URL } from '../lib/config';
 
 interface WebSocketContextValue {
   send: (msg: ClientMessage) => void;
@@ -28,7 +29,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!did || !serverToken) return;
 
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+    const wsUrl = API_URL
+      ? `${API_URL.replace(/^http/, 'ws')}/ws`
+      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
     const client = createWsClient(wsUrl, serverToken);
     clientRef.current = client;
 

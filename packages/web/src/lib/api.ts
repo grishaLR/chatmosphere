@@ -1,4 +1,5 @@
 import type { RoomView, MessageView, DmConversationView, DmMessageView } from '../types';
+import { API_URL } from './config.js';
 
 // -- Token management --
 
@@ -24,7 +25,7 @@ export async function createServerSession(
   did: string,
   handle: string,
 ): Promise<ServerSessionResponse> {
-  const res = await fetch('/api/auth/session', {
+  const res = await fetch(`${API_URL}/api/auth/session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ did, handle }),
@@ -35,7 +36,7 @@ export async function createServerSession(
 
 export async function deleteServerSession(): Promise<void> {
   if (!serverToken) return;
-  await fetch('/api/auth/session', {
+  await fetch(`${API_URL}/api/auth/session`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${serverToken}` },
   });
@@ -48,7 +49,7 @@ async function authFetch(url: string, init?: RequestInit): Promise<Response> {
   if (serverToken) {
     headers.set('Authorization', `Bearer ${serverToken}`);
   }
-  return fetch(url, { ...init, headers });
+  return fetch(`${API_URL}${url}`, { ...init, headers });
 }
 
 // -- Rooms --
