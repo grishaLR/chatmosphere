@@ -29,6 +29,7 @@ export function UserChip({
         <img
           src={avatarUrl}
           alt=""
+          aria-hidden="true"
           className={`${styles.avatar} ${
             size === 'md' ? styles.avatarMd : styles.avatarSm
           } ${blurred ? styles.avatarBlurred : ''}`.trim()}

@@ -17,9 +17,10 @@ export interface MenuItemProps {
 export function MenuItem({ label, danger = false, onClick }: MenuItemProps) {
   return (
     <button
+      type="button"
+      role="menuitem"
       className={`${styles.menuItem} ${danger ? styles.menuItemDanger : ''}`.trim()}
       onClick={onClick}
-      type="button"
     >
       {label}
     </button>
@@ -43,9 +44,14 @@ export function DropdownMenu({
         setOpen(false);
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
     document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open]);
 
@@ -60,6 +66,7 @@ export function DropdownMenu({
       </div>
       {open && (
         <div
+          role="menu"
           className={`${styles.panel} ${align === 'right' ? styles.panelRight : styles.panelLeft}`}
           onClick={() => {
             setOpen(false);
