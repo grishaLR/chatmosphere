@@ -36,7 +36,7 @@ type JetstreamEvent = JetstreamCommitEvent | JetstreamIdentityEvent | JetstreamA
 
 export interface FirehoseConsumer {
   start: () => void;
-  stop: () => void;
+  stop: () => Promise<void>;
 }
 
 const RECONNECT_DELAY_MS = 3000;
@@ -129,10 +129,10 @@ export function createFirehoseConsumer(
       });
     },
 
-    stop: () => {
+    async stop(): Promise<void> {
       shouldReconnect = false;
       if (lastCursor !== undefined) {
-        void saveCursor(db, lastCursor);
+        await saveCursor(db, lastCursor);
       }
       if (ws) {
         ws.close();

@@ -8,6 +8,7 @@ import { PresenceTracker } from './presence/tracker.js';
 import { createPresenceService } from './presence/service.js';
 import { SessionStore } from './auth/session.js';
 import { RateLimiter } from './moderation/rate-limiter.js';
+import { BlockService } from './moderation/block-service.js';
 import { createDmService } from './dms/service.js';
 import { LIMITS } from '@chatmosphere/shared';
 import { pruneOldMessages } from './messages/queries.js';
@@ -25,14 +26,31 @@ function main() {
   const rateLimiter = new RateLimiter();
   const authRateLimiter = new RateLimiter({ windowMs: 60_000, maxRequests: 10 });
 
-  // DM service
+  // DM service + block service (shared by HTTP presence route and WS)
   const dmService = createDmService(db);
+  const blockService = new BlockService();
 
-  const app = createApp(config, db, presenceService, sessions, rateLimiter, authRateLimiter);
+  const app = createApp(
+    config,
+    db,
+    presenceService,
+    sessions,
+    rateLimiter,
+    authRateLimiter,
+    blockService,
+  );
   const httpServer = createServer(app);
 
-  // WebSocket server (shares the HTTP server)
-  const wss = createWsServer(httpServer, db, presenceService, sessions, rateLimiter, dmService);
+  // WebSocket server (shares the HTTP server and block service)
+  const wss = createWsServer(
+    httpServer,
+    db,
+    presenceService,
+    sessions,
+    rateLimiter,
+    dmService,
+    blockService,
+  );
   console.log('WebSocket server attached');
 
   // Firehose consumer
@@ -56,10 +74,10 @@ function main() {
   });
 
   // Graceful shutdown
-  const shutdown = () => {
+  const shutdown = async () => {
     console.log('Shutting down...');
     clearInterval(pruneInterval);
-    firehose.stop();
+    await firehose.stop();
     wss.close();
     httpServer.close(() => {
       void db.end().then(() => {
@@ -69,8 +87,8 @@ function main() {
     });
   };
 
-  process.on('SIGTERM', shutdown);
-  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', () => void shutdown());
+  process.on('SIGINT', () => void shutdown());
 }
 
 main();
