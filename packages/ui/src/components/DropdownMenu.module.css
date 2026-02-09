@@ -1,0 +1,49 @@
+.root {
+  position: relative;
+}
+
+.panel {
+  position: absolute;
+  top: 100%;
+  margin-top: var(--cm-space-1);
+  background: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--cm-radius-md);
+  box-shadow: var(--cm-shadow-md);
+  min-width: var(--cm-dropdown-min-w);
+  z-index: 50;
+  padding: var(--cm-space-2) 0;
+}
+
+.panelRight {
+  right: 0;
+}
+
+.panelLeft {
+  left: 0;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: var(--cm-space-3) var(--cm-space-6);
+  text-align: left;
+  font-size: var(--cm-text-xs);
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-base-content);
+}
+
+.menuItem:hover {
+  background: var(--color-base-100);
+}
+
+.menuItemDanger {
+  color: var(--color-error);
+}
+
+.menuItemDanger:hover {
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
+}

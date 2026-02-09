@@ -1,0 +1,20 @@
+.input {
+  width: 100%;
+  padding: var(--cm-space-2) var(--cm-space-4);
+  font-size: var(--cm-text-md);
+  line-height: 1.5;
+  color: var(--color-base-content);
+  background: var(--color-base-100);
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--cm-radius-md);
+}
+
+.input:focus {
+  outline: 2px solid var(--cm-focus);
+  outline-offset: var(--cm-focus-offset);
+}
+
+.compact {
+  padding: var(--cm-space-1) var(--cm-space-3);
+  font-size: var(--cm-text-xs);
+}

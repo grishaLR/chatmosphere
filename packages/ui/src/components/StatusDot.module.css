@@ -1,0 +1,32 @@
+.dot {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.dotSm {
+  width: var(--cm-space-4);
+  height: var(--cm-space-4);
+}
+
+.dotMd {
+  width: var(--cm-space-5);
+  height: var(--cm-space-5);
+}
+
+.statusOnline {
+  background: var(--color-success);
+}
+
+.statusAway {
+  background: var(--color-warning);
+}
+
+.statusIdle {
+  background: var(--cm-status-idle);
+}
+
+.statusOffline,
+.statusInvisible {
+  background: var(--cm-status-offline);
+}

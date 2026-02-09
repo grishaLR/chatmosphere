@@ -1,0 +1,51 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cm-space-2);
+  min-width: 0;
+}
+
+.avatar {
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatarSm {
+  width: var(--cm-avatar-sm);
+  height: var(--cm-avatar-sm);
+}
+
+.avatarMd {
+  width: var(--cm-avatar-md);
+  height: var(--cm-avatar-md);
+}
+
+.avatarBlurred {
+  filter: blur(var(--cm-blur-base));
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.avatarBlurred:hover {
+  filter: blur(var(--cm-blur-light));
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alertBadge {
+  color: var(--color-warning);
+  font-size: var(--cm-text-xs);
+  flex-shrink: 0;
+}
+
+.infoBadge {
+  color: var(--color-base-content);
+  opacity: 0.45;
+  font-size: var(--cm-text-xs);
+  flex-shrink: 0;
+}

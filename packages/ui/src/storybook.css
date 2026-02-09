@@ -1,5 +1,2 @@
-@import "tailwindcss";
-@plugin "daisyui" {
-  themes: aim --default;
-}
+/* Design tokens only — UI components use CSS Modules + tokens, no Tailwind */
 @import "./tokens/index.css";

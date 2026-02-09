@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import styles from './ChatBubble.module.css';
 
 interface ChatBubbleProps {
   position: 'start' | 'end';
@@ -11,20 +12,16 @@ export function ChatBubble({ position, pending = false, timestamp, children }: C
   const isOwn = position === 'end';
 
   return (
-    <div className={`flex flex-col max-w-[85%] ${isOwn ? 'self-end' : 'self-start'}`}>
+    <div className={`${styles.wrapper} ${isOwn ? styles.wrapperOwn : styles.wrapperOther}`.trim()}>
       <div
-        className={`chat-bubble text-[0.8125rem] leading-[1.4] break-words ${
-          isOwn
-            ? 'bg-primary text-primary-content rounded-br-sm'
-            : 'bg-base-200 text-base-content rounded-bl-sm'
-        } ${pending ? 'opacity-60' : ''}`}
+        className={`${styles.bubble} ${
+          isOwn ? styles.bubbleOwn : styles.bubbleOther
+        } ${pending ? styles.pending : ''}`.trim()}
       >
         {children}
       </div>
       {timestamp && (
-        <time
-          className={`text-[0.625rem] text-base-content/35 mt-0.5 ${isOwn ? 'text-right' : ''}`}
-        >
+        <time className={`${styles.timestamp} ${isOwn ? styles.timestampOwn : ''}`.trim()}>
           {timestamp}
         </time>
       )}

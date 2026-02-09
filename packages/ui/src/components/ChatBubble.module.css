@@ -1,0 +1,46 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.wrapperOwn {
+  align-self: flex-end;
+}
+
+.wrapperOther {
+  align-self: flex-start;
+}
+
+.bubble {
+  font-size: var(--cm-text-md);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.bubbleOwn {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+  border-bottom-right-radius: var(--cm-radius-sm);
+}
+
+.bubbleOther {
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+  border-bottom-left-radius: var(--cm-radius-sm);
+}
+
+.pending {
+  opacity: 0.6;
+}
+
+.timestamp {
+  font-size: var(--cm-text-xs);
+  color: var(--color-base-content);
+  opacity: 0.35;
+  margin-top: var(--cm-space-1);
+}
+
+.timestampOwn {
+  text-align: right;
+}

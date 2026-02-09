@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import styles from './BuddyGroup.module.css';
 
 interface BuddyGroupProps {
   label: string;
@@ -13,7 +14,7 @@ export function BuddyGroup({ label, count, defaultOpen = true, children }: Buddy
   return (
     <div>
       <button
-        className="flex items-center gap-1 w-full px-3 py-1.5 text-xs font-semibold text-base-content/70 hover:bg-base-200 transition-colors"
+        className={styles.trigger}
         onClick={() => {
           setOpen(!open);
         }}
@@ -21,14 +22,15 @@ export function BuddyGroup({ label, count, defaultOpen = true, children }: Buddy
         aria-expanded={open}
       >
         <svg
-          className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`}
+          className={`${styles.chevron} ${open ? styles.chevronOpen : ''}`.trim()}
           viewBox="0 0 12 12"
           fill="currentColor"
+          aria-hidden
         >
           <path d="M4.5 2l4 4-4 4" />
         </svg>
         <span>{label}</span>
-        <span className="text-base-content/35 ml-auto">{count}</span>
+        <span className={styles.count}>{count}</span>
       </button>
       {open && children}
     </div>

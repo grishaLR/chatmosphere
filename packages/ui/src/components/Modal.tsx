@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import styles from './Modal.module.css';
 
 interface ModalProps {
   open: boolean;
@@ -24,10 +25,9 @@ export function Modal({ open, onClose, children, className = '' }: ModalProps) {
   return (
     <dialog
       ref={dialogRef}
-      className={`modal-box border border-base-300 rounded-lg p-0 max-w-md w-[90%] backdrop:bg-black/40 ${className}`}
+      className={`${styles.dialog} ${className}`.trim()}
       onClose={onClose}
       onClick={(e) => {
-        // Close on backdrop click
         if (e.target === dialogRef.current) {
           onClose();
         }

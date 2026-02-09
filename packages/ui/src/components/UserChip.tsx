@@ -1,3 +1,5 @@
+import styles from './UserChip.module.css';
+
 interface UserChipProps {
   handle?: string;
   did: string;
@@ -8,11 +10,6 @@ interface UserChipProps {
   infoBadge?: string;
   className?: string;
 }
-
-const avatarSizes = {
-  sm: 'w-5 h-5',
-  md: 'w-6 h-6',
-} as const;
 
 export function UserChip({
   handle,
@@ -27,17 +24,19 @@ export function UserChip({
   const displayName = handle ?? `${did.slice(0, 16)}…`;
 
   return (
-    <span className={`inline-flex items-center gap-1 min-w-0 ${className}`}>
+    <span className={`${styles.chip} ${className}`.trim()}>
       {avatarUrl && (
         <img
           src={avatarUrl}
           alt=""
-          className={`rounded-full shrink-0 object-cover ${avatarSizes[size]} ${blurred ? 'blur-[4px] hover:blur-[2px] cursor-pointer transition-[filter]' : ''}`}
+          className={`${styles.avatar} ${
+            size === 'md' ? styles.avatarMd : styles.avatarSm
+          } ${blurred ? styles.avatarBlurred : ''}`.trim()}
         />
       )}
-      <span className="overflow-hidden text-ellipsis whitespace-nowrap">{displayName}</span>
-      {alertBadge && <span className="text-warning text-xs shrink-0">{alertBadge}</span>}
-      {infoBadge && <span className="text-base-content/45 text-xs shrink-0">{infoBadge}</span>}
+      <span className={styles.name}>{displayName}</span>
+      {alertBadge && <span className={styles.alertBadge}>{alertBadge}</span>}
+      {infoBadge && <span className={styles.infoBadge}>{infoBadge}</span>}
     </span>
   );
 }

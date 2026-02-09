@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import styles from './Badge.module.css';
 
 interface BadgeProps {
   variant?: 'default' | 'error' | 'neutral';
@@ -6,12 +7,16 @@ interface BadgeProps {
   className?: string;
 }
 
-const variantClasses = {
-  default: 'badge',
-  error: 'badge badge-error text-error-content',
-  neutral: 'badge badge-ghost',
+const variantClass = {
+  default: styles.default,
+  error: styles.error,
+  neutral: styles.neutral,
 } as const;
 
 export function Badge({ variant = 'default', children, className = '' }: BadgeProps) {
-  return <span className={`${variantClasses[variant]} ${className}`}>{children}</span>;
+  return (
+    <span className={`${styles.badge} ${variantClass[variant]} ${className}`.trim()}>
+      {children}
+    </span>
+  );
 }

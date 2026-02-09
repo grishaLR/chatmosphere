@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import styles from './DropdownMenu.module.css';
 
 interface DropdownMenuProps {
   trigger: ReactNode;
@@ -16,9 +17,7 @@ export interface MenuItemProps {
 export function MenuItem({ label, danger = false, onClick }: MenuItemProps) {
   return (
     <button
-      className={`block w-full px-3 py-1.5 text-left text-xs whitespace-nowrap bg-transparent border-none cursor-pointer ${
-        danger ? 'text-error hover:bg-error/5' : 'text-base-content hover:bg-base-100'
-      }`}
+      className={`${styles.menuItem} ${danger ? styles.menuItemDanger : ''}`.trim()}
       onClick={onClick}
       type="button"
     >
@@ -51,7 +50,7 @@ export function DropdownMenu({
   }, [open]);
 
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div ref={ref} className={`${styles.root} ${className}`.trim()}>
       <div
         onClick={() => {
           setOpen(!open);
@@ -61,9 +60,7 @@ export function DropdownMenu({
       </div>
       {open && (
         <div
-          className={`absolute top-full mt-0.5 bg-base-100 border border-base-300 rounded-md shadow-[var(--cm-shadow-md)] min-w-[170px] z-50 py-1 ${
-            align === 'right' ? 'right-0' : 'left-0'
-          }`}
+          className={`${styles.panel} ${align === 'right' ? styles.panelRight : styles.panelLeft}`}
           onClick={() => {
             setOpen(false);
           }}

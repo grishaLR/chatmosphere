@@ -1,14 +1,15 @@
 import type { InputHTMLAttributes } from 'react';
+import styles from './InputField.module.css';
 
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   variant?: 'default' | 'compact';
 }
 
-const variantClasses = {
-  default: 'input input-bordered w-full text-sm',
-  compact: 'input input-bordered input-sm w-full text-xs',
-} as const;
-
 export function InputField({ variant = 'default', className = '', ...props }: InputFieldProps) {
-  return <input className={`${variantClasses[variant]} ${className}`} {...props} />;
+  return (
+    <input
+      className={`${styles.input} ${variant === 'compact' ? styles.compact : ''} ${className}`.trim()}
+      {...props}
+    />
+  );
 }

@@ -4,11 +4,14 @@
  * Authentic AIM/Windows 98 aesthetic: 3D beveled borders,
  * blue gradient title bars, silver chrome surfaces.
  *
+ * All variables are in :root so this file works standalone
+ * (e.g. Storybook, consumers without Tailwind).
+ *
  * Box-shadow recipes from 98.css — the 4-layer inset pattern
  * simulates light hitting a raised or sunken surface.
  */
 
-@theme {
+:root {
   /* AIM Surface Colors */
   --color-base-100: #d6d6ce; /* warm silver — main window surface */
   --color-base-200: #c0c0c0; /* silver — button face, panels */
@@ -47,9 +50,7 @@
   --cm-panel-width-buddy: 240px;
   --cm-panel-width-sidebar: 200px;
   --cm-panel-width-dm: 320px;
-}
 
-:root {
   /*
    * AIM 3D Border Recipes (4-layer inset box-shadows)
    * Light source: top-left. Raised = highlight TL, shadow BR.
@@ -63,6 +64,7 @@
 
   /* AIM Window Chrome */
   --cm-window-shadow: 2px 2px 2px #424242;
+  --cm-window-header-shadow: 0 -2px 12px oklch(0 0 0 / 0.12);
   --cm-titlebar: linear-gradient(to right, #08216b, #a5c6ef);
   --cm-titlebar-inactive: linear-gradient(90deg, grey, #b5b5b5);
 
@@ -103,7 +105,9 @@
 
   /* ── Spacing ─────────────────────────────────────── */
   --cm-space-0: 0px;
+  --cm-space-0.5: 1px;
   --cm-space-1: 2px;
+  --cm-space-1.5: 3px;
   --cm-space-2: 4px;
   --cm-space-3: 6px;
   --cm-space-4: 8px;
@@ -114,7 +118,12 @@
   --cm-space-12: 24px;
   --cm-space-16: 32px;
 
-  /* ── Icon / Avatar Sizes ───────────────────────────── */
+  /* ── Icon / Avatar / Dot Sizes ────────────────────── */
+  --cm-icon-sm: 12px;
+  --cm-icon-md: 16px;
+  --cm-icon-lg: 20px;
+  --cm-dot-sm: 8px;
+  --cm-dot-md: 10px;
   --cm-avatar-xs: 14px;
   --cm-avatar-sm: 20px;
   --cm-avatar-md: 24px;
@@ -128,6 +137,35 @@
   --cm-content-max-w: 600px;
   --cm-content-wide-max-w: 800px;
   --cm-banner-h: 120px;
+  --cm-titlebar-min-h: 36px;
+  --cm-modal-max-w: 28rem;
+  --cm-modal-max-w-sm: 420px;
+  --cm-modal-max-w-info: 460px;
+  --cm-connecting-w: 360px;
+  --cm-button-min-w: 80px;
+  --cm-dropdown-min-w: 170px;
+  --cm-dropdown-min-w-sm: 160px;
+  --cm-dropdown-min-w-md: 180px;
+  --cm-header-h: 28px;
+  --cm-header-h-app: 32px;
+  --cm-dm-popover-h: 400px;
+  --cm-dm-popover-offset-v: 60px;
+  --cm-tooltip-max-w: 200px;
+  --cm-form-max-w: 340px;
+  --cm-notification-max-w: 280px;
+  --cm-did-max-w: 160px;
+  --cm-button-min-h: 21px;
+  --cm-button-min-h-md: 23px;
+  --cm-unread-badge-size: 16px;
+  --cm-focus-outset: 2px;
+  --cm-focus-outset-lg: 4px;
+  --cm-focus-inset: -2px;
+  --cm-focus-inset-lg: -4px;
+
+  /* ── Filters ────────────────────────────────────────── */
+  --cm-blur-base: 4px;
+  --cm-blur-light: 2px;
+  --cm-focus-offset: 2px;
 
   /* Border radii — AIM uses sharp corners */
   --cm-radius-sm: 0px;
