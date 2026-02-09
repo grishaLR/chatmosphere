@@ -21,6 +21,14 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['**/dist/**', '**/generated/**', '**/node_modules/**', 'vitest.workspace.ts', '**/vitest.config.ts', '**/.storybook/**'],
+    ignores: [
+      '**/dist/**',
+      '**/generated/**',
+      '**/node_modules/**',
+      'vitest.workspace.ts',
+      '**/vitest.config.ts',
+      '**/.storybook/**',
+      '**/*.stories.tsx',
+    ],
   },
 );
