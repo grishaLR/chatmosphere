@@ -24,5 +24,8 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
+# Storybook
+storybook-static/
+
 # Docker
 pgdata/
