@@ -35,3 +35,6 @@ storybook-static/
 # Docker
 pgdata/
 .vercel
+
+# Tauri / Rust
+target/
