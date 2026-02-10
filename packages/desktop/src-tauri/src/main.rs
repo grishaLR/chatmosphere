@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    chatmosphere_desktop_lib::run()
+    protoimsg_desktop_lib::run()
 }

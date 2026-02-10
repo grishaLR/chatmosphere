@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LIMITS } from '@chatmosphere/shared';
-import type { RoomPurpose, RoomVisibility } from '@chatmosphere/shared';
+import { LIMITS } from '@protoimsg/shared';
+import type { RoomPurpose, RoomVisibility } from '@protoimsg/shared';
 import { createRoomRecord } from '../../lib/atproto';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './CreateRoomModal.module.css';
@@ -18,6 +18,7 @@ export function CreateRoomModal({ onClose, onCreated }: CreateRoomModalProps) {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [topic, setTopic] = useState('');
   const [purpose, setPurpose] = useState<RoomPurpose>('discussion');
   const [visibility, setVisibility] = useState<RoomVisibility>('public');
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export function CreateRoomModal({ onClose, onCreated }: CreateRoomModalProps) {
     void createRoomRecord(agent, {
       name: name.trim(),
       description: description.trim() || undefined,
+      topic: topic.trim(),
       purpose,
       visibility,
     })
@@ -80,6 +82,19 @@ export function CreateRoomModal({ onClose, onCreated }: CreateRoomModalProps) {
             }}
             placeholder="What's this room about?"
             rows={3}
+          />
+        </label>
+
+        <label className={styles.label}>
+          Topic
+          <input
+            className={styles.input}
+            type="text"
+            value={topic}
+            onChange={(e) => {
+              setTopic(e.target.value.slice(0, LIMITS.maxRoomTopicLength));
+            }}
+            placeholder="Current topic of discussion"
           />
         </label>
 

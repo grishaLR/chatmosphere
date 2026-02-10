@@ -10,7 +10,7 @@ import styles from './App.module.css';
 
 // Set by login() before redirect, cleared by init() after processing.
 // On a hard refresh this flag is absent → skip ConnectingScreen.
-const isOAuthCallback = sessionStorage.getItem('chatmosphere:oauth_pending') === '1';
+const isOAuthCallback = sessionStorage.getItem('protoimsg:oauth_pending') === '1';
 
 // Lazy-loaded — these pull in the heavy provider + page dependency graphs.
 // They stay out of the main bundle; ConnectingScreen triggers preloading via lib/preload.ts.

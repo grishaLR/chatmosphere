@@ -1,7 +1,7 @@
 /**
- * @chatmosphere/lexicon
+ * @protoimsg/lexicon
  *
- * atproto Lexicon schemas and generated types for chatmosphere chat protocol.
+ * atproto Lexicon schemas and generated types for protoimsg chat protocol.
  *
  * The Lexicon JSON schemas live in ./schemas/ and define the protocol.
  * Generated TypeScript types will be placed in ./generated/ via the codegen script.
@@ -10,10 +10,11 @@
  * Once lex-cli codegen is run, these will be replaced by generated exports.
  */
 
-/** app.chatmosphere.chat.room record */
+/** app.protoimsg.chat.room record */
 export interface RoomRecord {
-  $type: 'app.chatmosphere.chat.room';
+  $type: 'app.protoimsg.chat.room';
   name: string;
+  topic: string;
   description?: string;
   purpose: 'discussion' | 'event' | 'community' | 'support';
   createdAt: string;
@@ -24,16 +25,63 @@ export interface RoomSettings {
   visibility?: 'public' | 'unlisted' | 'private';
   minAccountAgeDays?: number;
   slowModeSeconds?: number;
+  allowlistEnabled?: boolean;
 }
 
-/** app.chatmosphere.chat.message record */
+/** app.protoimsg.chat.message record */
 export interface MessageRecord {
-  $type: 'app.chatmosphere.chat.message';
+  $type: 'app.protoimsg.chat.message';
   room: string;
   text: string;
   facets?: RichTextFacet[];
-  replyTo?: string;
+  reply?: ReplyRef;
+  embed?: ImageEmbed | VideoEmbed | ExternalEmbed;
   createdAt: string;
+}
+
+export interface ReplyRef {
+  root: string;
+  parent: string;
+}
+
+export interface ImageEmbed {
+  $type: 'app.protoimsg.chat.message#imageEmbed';
+  images: ImageItem[];
+}
+
+export interface ImageItem {
+  image: BlobRef;
+  alt: string;
+  aspectRatio?: AspectRatio;
+}
+
+export interface VideoEmbed {
+  $type: 'app.protoimsg.chat.message#videoEmbed';
+  video: BlobRef;
+  alt?: string;
+  thumbnail?: BlobRef;
+  aspectRatio?: AspectRatio;
+}
+
+export interface ExternalEmbed {
+  $type: 'app.protoimsg.chat.message#externalEmbed';
+  uri: string;
+  title: string;
+  description?: string;
+  thumb?: BlobRef;
+}
+
+export interface AspectRatio {
+  width: number;
+  height: number;
+}
+
+/** ATProto blob reference */
+export interface BlobRef {
+  $type: 'blob';
+  ref: { $link: string };
+  mimeType: string;
+  size: number;
 }
 
 export interface RichTextFacet {
@@ -47,44 +95,44 @@ export interface ByteSlice {
 }
 
 export interface MentionFeature {
-  $type: 'app.chatmosphere.chat.message#mention';
+  $type: 'app.protoimsg.chat.message#mention';
   did: string;
 }
 
 export interface LinkFeature {
-  $type: 'app.chatmosphere.chat.message#link';
+  $type: 'app.protoimsg.chat.message#link';
   uri: string;
 }
 
-/** app.chatmosphere.chat.buddylist record */
-export interface BuddyListRecord {
-  $type: 'app.chatmosphere.chat.buddylist';
-  groups: BuddyGroup[];
+/** app.protoimsg.chat.community record */
+export interface CommunityRecord {
+  $type: 'app.protoimsg.chat.community';
+  groups: CommunityGroup[];
 }
 
-export interface BuddyGroup {
+export interface CommunityGroup {
   name: string;
-  isCloseFriends?: boolean;
-  members: BuddyMember[];
+  isInnerCircle?: boolean;
+  members: CommunityMember[];
 }
 
-export interface BuddyMember {
+export interface CommunityMember {
   did: string;
   addedAt: string;
 }
 
-/** app.chatmosphere.chat.presence record */
+/** app.protoimsg.chat.presence record */
 export interface PresenceRecord {
-  $type: 'app.chatmosphere.chat.presence';
+  $type: 'app.protoimsg.chat.presence';
   status: 'online' | 'away' | 'idle' | 'offline' | 'invisible';
-  visibleTo: 'everyone' | 'close-friends' | 'nobody';
+  visibleTo: 'everyone' | 'community' | 'inner-circle' | 'no-one';
   awayMessage?: string;
   updatedAt: string;
 }
 
-/** app.chatmosphere.chat.poll record */
+/** app.protoimsg.chat.poll record */
 export interface PollRecord {
-  $type: 'app.chatmosphere.chat.poll';
+  $type: 'app.protoimsg.chat.poll';
   room: string;
   question: string;
   options: string[];
@@ -93,39 +141,48 @@ export interface PollRecord {
   createdAt: string;
 }
 
-/** app.chatmosphere.chat.vote record */
+/** app.protoimsg.chat.vote record */
 export interface VoteRecord {
-  $type: 'app.chatmosphere.chat.vote';
+  $type: 'app.protoimsg.chat.vote';
   poll: string;
   selectedOptions: number[];
   createdAt: string;
 }
 
-/** app.chatmosphere.chat.ban record */
+/** app.protoimsg.chat.ban record */
 export interface BanRecord {
-  $type: 'app.chatmosphere.chat.ban';
+  $type: 'app.protoimsg.chat.ban';
   room: string;
   subject: string;
   reason?: string;
   createdAt: string;
 }
 
-/** app.chatmosphere.chat.role record */
+/** app.protoimsg.chat.role record */
 export interface RoleRecord {
-  $type: 'app.chatmosphere.chat.role';
+  $type: 'app.protoimsg.chat.role';
   room: string;
   subject: string;
   role: 'moderator' | 'owner';
   createdAt: string;
 }
 
-/** Union of all chatmosphere chat records */
+/** app.protoimsg.chat.allowlist record */
+export interface AllowlistRecord {
+  $type: 'app.protoimsg.chat.allowlist';
+  room: string;
+  subject: string;
+  createdAt: string;
+}
+
+/** Union of all protoimsg chat records */
 export type ChatRecord =
   | RoomRecord
   | MessageRecord
-  | BuddyListRecord
+  | CommunityRecord
   | PresenceRecord
   | PollRecord
   | VoteRecord
   | BanRecord
-  | RoleRecord;
+  | RoleRecord
+  | AllowlistRecord;

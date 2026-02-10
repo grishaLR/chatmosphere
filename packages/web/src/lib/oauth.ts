@@ -19,7 +19,7 @@ export function getOAuthClient(): BrowserOAuthClient {
       handleResolver: 'https://bsky.social',
       clientMetadata: {
         client_id: `http://localhost?redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`,
-        client_name: 'chatmosphere (dev)',
+        client_name: 'protoimsg (dev)',
         client_uri: 'http://127.0.0.1:5173',
         redirect_uris: [redirectUri],
         scope,

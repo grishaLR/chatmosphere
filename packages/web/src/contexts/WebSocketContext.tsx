@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createWsClient, type WsClient, type WsHandler } from '../lib/ws';
-import type { ClientMessage } from '@chatmosphere/shared';
+import type { ClientMessage } from '@protoimsg/shared';
 import { useAuth } from '../hooks/useAuth';
 import { API_URL, IS_TAURI } from '../lib/config';
 

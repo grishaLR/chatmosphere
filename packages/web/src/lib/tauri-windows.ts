@@ -31,7 +31,7 @@ export async function openRoomWindow(roomId: string, roomName: string): Promise<
   await openOrFocusWindow({
     label,
     url: `/rooms/${roomId}`,
-    title: `#${roomName} — Chatmosphere`,
+    title: `#${roomName} — protoimsg`,
     width: 520,
     height: 620,
     minWidth: 360,
@@ -58,7 +58,7 @@ export async function openRoomDirectoryWindow(): Promise<void> {
   await openOrFocusWindow({
     label: 'rooms-directory',
     url: '/rooms-directory',
-    title: 'Chat Rooms — Chatmosphere',
+    title: 'Chat Rooms — protoimsg',
     width: 520,
     height: 620,
     minWidth: 360,
@@ -71,7 +71,7 @@ export async function openFeedWindow(): Promise<void> {
   await openOrFocusWindow({
     label: 'feed',
     url: '/feed',
-    title: 'Feed — Chatmosphere',
+    title: 'Feed — protoimsg',
     width: 560,
     height: 700,
     minWidth: 400,

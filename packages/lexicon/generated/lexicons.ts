@@ -4,9 +4,42 @@
 import { LexiconDoc, Lexicons } from '@atproto/lexicon';
 
 export const schemaDict = {
-  AppChatmosphereChatBan: {
+  AppProtoimsgChatAllowlist: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.ban',
+    id: 'app.protoimsg.chat.allowlist',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          "An allowlist entry for a room. When the room has allowlistEnabled, only allowlisted users can send messages. Lives in the room owner/mod's repo.",
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['room', 'subject', 'createdAt'],
+          properties: {
+            room: {
+              type: 'string',
+              format: 'at-uri',
+              description: 'AT-URI of the room the allowlist entry applies to.',
+            },
+            subject: {
+              type: 'string',
+              format: 'did',
+              description: 'DID of the allowlisted user.',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp of allowlist entry creation.',
+            },
+          },
+        },
+      },
+    },
+  },
+  AppProtoimsgChatBan: {
+    lexicon: 1,
+    id: 'app.protoimsg.chat.ban',
     defs: {
       main: {
         type: 'record',
@@ -41,13 +74,13 @@ export const schemaDict = {
       },
     },
   },
-  AppChatmosphereChatBuddylist: {
+  AppProtoimsgChatCommunity: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.buddylist',
+    id: 'app.protoimsg.chat.community',
     defs: {
       main: {
         type: 'record',
-        description: "The user's buddy list. Portable across any app implementing the Lexicon.",
+        description: "The user's community list. Portable across any app implementing the Lexicon.",
         key: 'literal:self',
         record: {
           type: 'object',
@@ -55,19 +88,19 @@ export const schemaDict = {
           properties: {
             groups: {
               type: 'array',
-              description: "Named groups of buddies, like AIM's buddy list categories.",
+              description: "Named groups of community members, like AIM's buddy list categories.",
               maxLength: 50,
               items: {
                 type: 'ref',
-                ref: 'lex:app.chatmosphere.chat.buddylist#buddyGroup',
+                ref: 'lex:app.protoimsg.chat.community#communityGroup',
               },
             },
           },
         },
       },
-      buddyGroup: {
+      communityGroup: {
         type: 'object',
-        description: 'A named group of buddies.',
+        description: 'A named group of community members.',
         required: ['name', 'members'],
         properties: {
           name: {
@@ -75,10 +108,10 @@ export const schemaDict = {
             maxLength: 100,
             description: 'Group label.',
           },
-          isCloseFriends: {
+          isInnerCircle: {
             type: 'boolean',
             default: false,
-            description: 'Whether this is a close friends group for presence visibility.',
+            description: 'Whether this is an inner circle group for presence visibility.',
           },
           members: {
             type: 'array',
@@ -86,33 +119,33 @@ export const schemaDict = {
             description: 'DIDs of group members.',
             items: {
               type: 'ref',
-              ref: 'lex:app.chatmosphere.chat.buddylist#buddyMember',
+              ref: 'lex:app.protoimsg.chat.community#communityMember',
             },
           },
         },
       },
-      buddyMember: {
+      communityMember: {
         type: 'object',
-        description: 'A buddy in a group.',
+        description: 'A member in a community group.',
         required: ['did', 'addedAt'],
         properties: {
           did: {
             type: 'string',
             format: 'did',
-            description: "The buddy's DID.",
+            description: "The member's DID.",
           },
           addedAt: {
             type: 'string',
             format: 'datetime',
-            description: 'When this buddy was added.',
+            description: 'When this member was added.',
           },
         },
       },
     },
   },
-  AppChatmosphereChatMessage: {
+  AppProtoimsgChatMessage: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.message',
+    id: 'app.protoimsg.chat.message',
     defs: {
       main: {
         type: 'record',
@@ -139,19 +172,154 @@ export const schemaDict = {
                 'Rich text annotations (mentions, links). Same format as Bluesky post facets.',
               items: {
                 type: 'ref',
-                ref: 'lex:app.chatmosphere.chat.message#richTextFacet',
+                ref: 'lex:app.protoimsg.chat.message#richTextFacet',
               },
             },
-            replyTo: {
-              type: 'string',
-              format: 'at-uri',
-              description: 'AT-URI of the parent message for threading.',
+            reply: {
+              type: 'ref',
+              ref: 'lex:app.protoimsg.chat.message#replyRef',
+              description: 'Structured reply reference for threading.',
+            },
+            embed: {
+              type: 'union',
+              refs: [
+                'lex:app.protoimsg.chat.message#imageEmbed',
+                'lex:app.protoimsg.chat.message#videoEmbed',
+                'lex:app.protoimsg.chat.message#externalEmbed',
+              ],
+              description: 'Embedded media or link card.',
             },
             createdAt: {
               type: 'string',
               format: 'datetime',
               description: 'Timestamp of message creation.',
             },
+          },
+        },
+      },
+      replyRef: {
+        type: 'object',
+        description:
+          'Thread reply reference with root and parent for efficient deep thread traversal.',
+        required: ['root', 'parent'],
+        properties: {
+          root: {
+            type: 'string',
+            format: 'at-uri',
+            description: 'AT-URI of the root message in the thread.',
+          },
+          parent: {
+            type: 'string',
+            format: 'at-uri',
+            description: 'AT-URI of the direct parent message being replied to.',
+          },
+        },
+      },
+      imageEmbed: {
+        type: 'object',
+        description: 'Embedded images.',
+        required: ['images'],
+        properties: {
+          images: {
+            type: 'array',
+            maxLength: 4,
+            items: {
+              type: 'ref',
+              ref: 'lex:app.protoimsg.chat.message#imageItem',
+            },
+          },
+        },
+      },
+      imageItem: {
+        type: 'object',
+        description: 'A single embedded image.',
+        required: ['image', 'alt'],
+        properties: {
+          image: {
+            type: 'blob',
+            accept: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+            maxSize: 1000000,
+            description: 'Image blob reference.',
+          },
+          alt: {
+            type: 'string',
+            maxLength: 2000,
+            description: 'Alt text for accessibility.',
+          },
+          aspectRatio: {
+            type: 'ref',
+            ref: 'lex:app.protoimsg.chat.message#aspectRatio',
+          },
+        },
+      },
+      videoEmbed: {
+        type: 'object',
+        description: 'Embedded video.',
+        required: ['video'],
+        properties: {
+          video: {
+            type: 'blob',
+            accept: ['video/mp4', 'video/webm'],
+            maxSize: 50000000,
+            description: 'Video blob reference.',
+          },
+          alt: {
+            type: 'string',
+            maxLength: 2000,
+            description: 'Alt text for accessibility.',
+          },
+          thumbnail: {
+            type: 'blob',
+            accept: ['image/png', 'image/jpeg'],
+            maxSize: 1000000,
+            description: 'Video thumbnail image.',
+          },
+          aspectRatio: {
+            type: 'ref',
+            ref: 'lex:app.protoimsg.chat.message#aspectRatio',
+          },
+        },
+      },
+      externalEmbed: {
+        type: 'object',
+        description: 'External link card.',
+        required: ['uri', 'title'],
+        properties: {
+          uri: {
+            type: 'string',
+            format: 'uri',
+            description: 'URL of the external content.',
+          },
+          title: {
+            type: 'string',
+            maxLength: 300,
+            description: 'Title of the external content.',
+          },
+          description: {
+            type: 'string',
+            maxLength: 1000,
+            description: 'Description or summary.',
+          },
+          thumb: {
+            type: 'blob',
+            accept: ['image/png', 'image/jpeg'],
+            maxSize: 1000000,
+            description: 'Thumbnail image for the link card.',
+          },
+        },
+      },
+      aspectRatio: {
+        type: 'object',
+        description: 'Width and height for layout before media loads.',
+        required: ['width', 'height'],
+        properties: {
+          width: {
+            type: 'integer',
+            minimum: 1,
+          },
+          height: {
+            type: 'integer',
+            minimum: 1,
           },
         },
       },
@@ -162,15 +330,15 @@ export const schemaDict = {
         properties: {
           index: {
             type: 'ref',
-            ref: 'lex:app.chatmosphere.chat.message#byteSlice',
+            ref: 'lex:app.protoimsg.chat.message#byteSlice',
           },
           features: {
             type: 'array',
             items: {
               type: 'union',
               refs: [
-                'lex:app.chatmosphere.chat.message#mention',
-                'lex:app.chatmosphere.chat.message#link',
+                'lex:app.protoimsg.chat.message#mention',
+                'lex:app.protoimsg.chat.message#link',
               ],
             },
           },
@@ -215,9 +383,9 @@ export const schemaDict = {
       },
     },
   },
-  AppChatmosphereChatPoll: {
+  AppProtoimsgChatPoll: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.poll',
+    id: 'app.protoimsg.chat.poll',
     defs: {
       main: {
         type: 'record',
@@ -267,9 +435,9 @@ export const schemaDict = {
       },
     },
   },
-  AppChatmosphereChatPresence: {
+  AppProtoimsgChatPresence: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.presence',
+    id: 'app.protoimsg.chat.presence',
     defs: {
       main: {
         type: 'record',
@@ -286,7 +454,7 @@ export const schemaDict = {
             },
             visibleTo: {
               type: 'string',
-              knownValues: ['everyone', 'close-friends', 'nobody'],
+              knownValues: ['everyone', 'community', 'inner-circle', 'no-one'],
               description: 'Who can see your real presence status.',
             },
             awayMessage: {
@@ -304,9 +472,9 @@ export const schemaDict = {
       },
     },
   },
-  AppChatmosphereChatRole: {
+  AppProtoimsgChatRole: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.role',
+    id: 'app.protoimsg.chat.role',
     defs: {
       main: {
         type: 'record',
@@ -341,9 +509,9 @@ export const schemaDict = {
       },
     },
   },
-  AppChatmosphereChatRoom: {
+  AppProtoimsgChatRoom: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.room',
+    id: 'app.protoimsg.chat.room',
     defs: {
       main: {
         type: 'record',
@@ -351,12 +519,17 @@ export const schemaDict = {
         key: 'tid',
         record: {
           type: 'object',
-          required: ['name', 'purpose', 'createdAt'],
+          required: ['name', 'topic', 'purpose', 'createdAt'],
           properties: {
             name: {
               type: 'string',
               maxLength: 100,
               description: 'Display name for the room.',
+            },
+            topic: {
+              type: 'string',
+              maxLength: 200,
+              description: 'Room topic for sorting, filtering, and discovery.',
             },
             description: {
               type: 'string',
@@ -375,7 +548,7 @@ export const schemaDict = {
             },
             settings: {
               type: 'ref',
-              ref: 'lex:app.chatmosphere.chat.room#roomSettings',
+              ref: 'lex:app.protoimsg.chat.room#roomSettings',
             },
           },
         },
@@ -403,13 +576,18 @@ export const schemaDict = {
             default: 0,
             description: 'Minimum seconds between messages per user. 0 = disabled.',
           },
+          allowlistEnabled: {
+            type: 'boolean',
+            default: false,
+            description: 'When true, only users on the room allowlist can send messages.',
+          },
         },
       },
     },
   },
-  AppChatmosphereChatVote: {
+  AppProtoimsgChatVote: {
     lexicon: 1,
-    id: 'app.chatmosphere.chat.vote',
+    id: 'app.protoimsg.chat.vote',
     defs: {
       main: {
         type: 'record',
@@ -447,12 +625,13 @@ export const schemaDict = {
 export const schemas = Object.values(schemaDict);
 export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
-  AppChatmosphereChatBan: 'app.chatmosphere.chat.ban',
-  AppChatmosphereChatBuddylist: 'app.chatmosphere.chat.buddylist',
-  AppChatmosphereChatMessage: 'app.chatmosphere.chat.message',
-  AppChatmosphereChatPoll: 'app.chatmosphere.chat.poll',
-  AppChatmosphereChatPresence: 'app.chatmosphere.chat.presence',
-  AppChatmosphereChatRole: 'app.chatmosphere.chat.role',
-  AppChatmosphereChatRoom: 'app.chatmosphere.chat.room',
-  AppChatmosphereChatVote: 'app.chatmosphere.chat.vote',
+  AppProtoimsgChatAllowlist: 'app.protoimsg.chat.allowlist',
+  AppProtoimsgChatBan: 'app.protoimsg.chat.ban',
+  AppProtoimsgChatCommunity: 'app.protoimsg.chat.community',
+  AppProtoimsgChatMessage: 'app.protoimsg.chat.message',
+  AppProtoimsgChatPoll: 'app.protoimsg.chat.poll',
+  AppProtoimsgChatPresence: 'app.protoimsg.chat.presence',
+  AppProtoimsgChatRole: 'app.protoimsg.chat.role',
+  AppProtoimsgChatRoom: 'app.protoimsg.chat.room',
+  AppProtoimsgChatVote: 'app.protoimsg.chat.vote',
 };

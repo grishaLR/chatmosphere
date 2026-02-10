@@ -39,6 +39,13 @@
   color: var(--color-base-content);
 }
 
+.topic {
+  margin: var(--cm-space-1) 0 0;
+  font-size: var(--cm-text-sm);
+  font-style: italic;
+  color: var(--cm-border-dark);
+}
+
 .description {
   margin: var(--cm-space-1) 0 var(--cm-space-2);
   font-size: var(--cm-text-md);

@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.chatmosphere.chat.room",
+  "id": "app.protoimsg.chat.room",
   "defs": {
     "main": {
       "type": "record",
@@ -8,12 +8,17 @@
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["name", "purpose", "createdAt"],
+        "required": ["name", "topic", "purpose", "createdAt"],
         "properties": {
           "name": {
             "type": "string",
             "maxLength": 100,
             "description": "Display name for the room."
+          },
+          "topic": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Room topic for sorting, filtering, and discovery."
           },
           "description": {
             "type": "string",
@@ -58,6 +63,11 @@
           "minimum": 0,
           "default": 0,
           "description": "Minimum seconds between messages per user. 0 = disabled."
+        },
+        "allowlistEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, only users on the room allowlist can send messages."
         }
       }
     }

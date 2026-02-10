@@ -4,23 +4,25 @@
 import { XrpcClient, FetchHandler, FetchHandlerOptions } from '@atproto/xrpc';
 import { schemas } from './lexicons';
 import { CID } from 'multiformats/cid';
-import * as AppChatmosphereChatBan from './types/app/chatmosphere/chat/ban';
-import * as AppChatmosphereChatBuddylist from './types/app/chatmosphere/chat/buddylist';
-import * as AppChatmosphereChatMessage from './types/app/chatmosphere/chat/message';
-import * as AppChatmosphereChatPoll from './types/app/chatmosphere/chat/poll';
-import * as AppChatmosphereChatPresence from './types/app/chatmosphere/chat/presence';
-import * as AppChatmosphereChatRole from './types/app/chatmosphere/chat/role';
-import * as AppChatmosphereChatRoom from './types/app/chatmosphere/chat/room';
-import * as AppChatmosphereChatVote from './types/app/chatmosphere/chat/vote';
+import * as AppProtoimsgChatAllowlist from './types/app/protoimsg/chat/allowlist';
+import * as AppProtoimsgChatBan from './types/app/protoimsg/chat/ban';
+import * as AppProtoimsgChatCommunity from './types/app/protoimsg/chat/community';
+import * as AppProtoimsgChatMessage from './types/app/protoimsg/chat/message';
+import * as AppProtoimsgChatPoll from './types/app/protoimsg/chat/poll';
+import * as AppProtoimsgChatPresence from './types/app/protoimsg/chat/presence';
+import * as AppProtoimsgChatRole from './types/app/protoimsg/chat/role';
+import * as AppProtoimsgChatRoom from './types/app/protoimsg/chat/room';
+import * as AppProtoimsgChatVote from './types/app/protoimsg/chat/vote';
 
-export * as AppChatmosphereChatBan from './types/app/chatmosphere/chat/ban';
-export * as AppChatmosphereChatBuddylist from './types/app/chatmosphere/chat/buddylist';
-export * as AppChatmosphereChatMessage from './types/app/chatmosphere/chat/message';
-export * as AppChatmosphereChatPoll from './types/app/chatmosphere/chat/poll';
-export * as AppChatmosphereChatPresence from './types/app/chatmosphere/chat/presence';
-export * as AppChatmosphereChatRole from './types/app/chatmosphere/chat/role';
-export * as AppChatmosphereChatRoom from './types/app/chatmosphere/chat/room';
-export * as AppChatmosphereChatVote from './types/app/chatmosphere/chat/vote';
+export * as AppProtoimsgChatAllowlist from './types/app/protoimsg/chat/allowlist';
+export * as AppProtoimsgChatBan from './types/app/protoimsg/chat/ban';
+export * as AppProtoimsgChatCommunity from './types/app/protoimsg/chat/community';
+export * as AppProtoimsgChatMessage from './types/app/protoimsg/chat/message';
+export * as AppProtoimsgChatPoll from './types/app/protoimsg/chat/poll';
+export * as AppProtoimsgChatPresence from './types/app/protoimsg/chat/presence';
+export * as AppProtoimsgChatRole from './types/app/protoimsg/chat/role';
+export * as AppProtoimsgChatRoom from './types/app/protoimsg/chat/room';
+export * as AppProtoimsgChatVote from './types/app/protoimsg/chat/vote';
 
 export class AtpBaseClient extends XrpcClient {
   app: AppNS;
@@ -38,28 +40,29 @@ export class AtpBaseClient extends XrpcClient {
 
 export class AppNS {
   _client: XrpcClient;
-  chatmosphere: AppChatmosphereNS;
+  protoimsg: AppProtoimsgNS;
 
   constructor(client: XrpcClient) {
     this._client = client;
-    this.chatmosphere = new AppChatmosphereNS(client);
+    this.protoimsg = new AppProtoimsgNS(client);
   }
 }
 
-export class AppChatmosphereNS {
+export class AppProtoimsgNS {
   _client: XrpcClient;
-  chat: AppChatmosphereChatNS;
+  chat: AppProtoimsgChatNS;
 
   constructor(client: XrpcClient) {
     this._client = client;
-    this.chat = new AppChatmosphereChatNS(client);
+    this.chat = new AppProtoimsgChatNS(client);
   }
 }
 
-export class AppChatmosphereChatNS {
+export class AppProtoimsgChatNS {
   _client: XrpcClient;
+  allowlist: AllowlistRecord;
   ban: BanRecord;
-  buddylist: BuddylistRecord;
+  community: CommunityRecord;
   message: MessageRecord;
   poll: PollRecord;
   presence: PresenceRecord;
@@ -69,8 +72,9 @@ export class AppChatmosphereChatNS {
 
   constructor(client: XrpcClient) {
     this._client = client;
+    this.allowlist = new AllowlistRecord(client);
     this.ban = new BanRecord(client);
-    this.buddylist = new BuddylistRecord(client);
+    this.community = new CommunityRecord(client);
     this.message = new MessageRecord(client);
     this.poll = new PollRecord(client);
     this.presence = new PresenceRecord(client);
@@ -80,7 +84,7 @@ export class AppChatmosphereChatNS {
   }
 }
 
-export class BanRecord {
+export class AllowlistRecord {
   _client: XrpcClient;
 
   constructor(client: XrpcClient) {
@@ -89,10 +93,10 @@ export class BanRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatBan.Record }[];
+    records: { uri: string; value: AppProtoimsgChatAllowlist.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.ban',
+      collection: 'app.protoimsg.chat.allowlist',
       ...params,
     });
     return res.data;
@@ -101,10 +105,10 @@ export class BanRecord {
   async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
     uri: string;
     cid: string;
-    value: AppChatmosphereChatBan.Record;
+    value: AppProtoimsgChatAllowlist.Record;
   }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.ban',
+      collection: 'app.protoimsg.chat.allowlist',
       ...params,
     });
     return res.data;
@@ -112,14 +116,14 @@ export class BanRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatBan.Record,
+    record: AppProtoimsgChatAllowlist.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.ban';
+    record.$type = 'app.protoimsg.chat.allowlist';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.ban', ...params, record },
+      { collection: 'app.protoimsg.chat.allowlist', ...params, record },
       { encoding: 'application/json', headers },
     );
     return res.data;
@@ -132,13 +136,13 @@ export class BanRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.ban', ...params },
+      { collection: 'app.protoimsg.chat.allowlist', ...params },
       { headers },
     );
   }
 }
 
-export class BuddylistRecord {
+export class BanRecord {
   _client: XrpcClient;
 
   constructor(client: XrpcClient) {
@@ -147,10 +151,66 @@ export class BuddylistRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatBuddylist.Record }[];
+    records: { uri: string; value: AppProtoimsgChatBan.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.buddylist',
+      collection: 'app.protoimsg.chat.ban',
+      ...params,
+    });
+    return res.data;
+  }
+
+  async get(
+    params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
+  ): Promise<{ uri: string; cid: string; value: AppProtoimsgChatBan.Record }> {
+    const res = await this._client.call('com.atproto.repo.getRecord', {
+      collection: 'app.protoimsg.chat.ban',
+      ...params,
+    });
+    return res.data;
+  }
+
+  async create(
+    params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
+    record: AppProtoimsgChatBan.Record,
+    headers?: Record<string, string>,
+  ): Promise<{ uri: string; cid: string }> {
+    record.$type = 'app.protoimsg.chat.ban';
+    const res = await this._client.call(
+      'com.atproto.repo.createRecord',
+      undefined,
+      { collection: 'app.protoimsg.chat.ban', ...params, record },
+      { encoding: 'application/json', headers },
+    );
+    return res.data;
+  }
+
+  async delete(
+    params: Omit<ComAtprotoRepoDeleteRecord.InputSchema, 'collection'>,
+    headers?: Record<string, string>,
+  ): Promise<void> {
+    await this._client.call(
+      'com.atproto.repo.deleteRecord',
+      undefined,
+      { collection: 'app.protoimsg.chat.ban', ...params },
+      { headers },
+    );
+  }
+}
+
+export class CommunityRecord {
+  _client: XrpcClient;
+
+  constructor(client: XrpcClient) {
+    this._client = client;
+  }
+
+  async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
+    cursor?: string;
+    records: { uri: string; value: AppProtoimsgChatCommunity.Record }[];
+  }> {
+    const res = await this._client.call('com.atproto.repo.listRecords', {
+      collection: 'app.protoimsg.chat.community',
       ...params,
     });
     return res.data;
@@ -159,10 +219,10 @@ export class BuddylistRecord {
   async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
     uri: string;
     cid: string;
-    value: AppChatmosphereChatBuddylist.Record;
+    value: AppProtoimsgChatCommunity.Record;
   }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.buddylist',
+      collection: 'app.protoimsg.chat.community',
       ...params,
     });
     return res.data;
@@ -170,15 +230,15 @@ export class BuddylistRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatBuddylist.Record,
+    record: AppProtoimsgChatCommunity.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.buddylist';
+    record.$type = 'app.protoimsg.chat.community';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
       {
-        collection: 'app.chatmosphere.chat.buddylist',
+        collection: 'app.protoimsg.chat.community',
         rkey: 'self',
         ...params,
         record,
@@ -195,7 +255,7 @@ export class BuddylistRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.buddylist', ...params },
+      { collection: 'app.protoimsg.chat.community', ...params },
       { headers },
     );
   }
@@ -210,10 +270,10 @@ export class MessageRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatMessage.Record }[];
+    records: { uri: string; value: AppProtoimsgChatMessage.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.message',
+      collection: 'app.protoimsg.chat.message',
       ...params,
     });
     return res.data;
@@ -222,10 +282,10 @@ export class MessageRecord {
   async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
     uri: string;
     cid: string;
-    value: AppChatmosphereChatMessage.Record;
+    value: AppProtoimsgChatMessage.Record;
   }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.message',
+      collection: 'app.protoimsg.chat.message',
       ...params,
     });
     return res.data;
@@ -233,14 +293,14 @@ export class MessageRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatMessage.Record,
+    record: AppProtoimsgChatMessage.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.message';
+    record.$type = 'app.protoimsg.chat.message';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.message', ...params, record },
+      { collection: 'app.protoimsg.chat.message', ...params, record },
       { encoding: 'application/json', headers },
     );
     return res.data;
@@ -253,7 +313,7 @@ export class MessageRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.message', ...params },
+      { collection: 'app.protoimsg.chat.message', ...params },
       { headers },
     );
   }
@@ -268,22 +328,20 @@ export class PollRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatPoll.Record }[];
+    records: { uri: string; value: AppProtoimsgChatPoll.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.poll',
+      collection: 'app.protoimsg.chat.poll',
       ...params,
     });
     return res.data;
   }
 
-  async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
-    uri: string;
-    cid: string;
-    value: AppChatmosphereChatPoll.Record;
-  }> {
+  async get(
+    params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
+  ): Promise<{ uri: string; cid: string; value: AppProtoimsgChatPoll.Record }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.poll',
+      collection: 'app.protoimsg.chat.poll',
       ...params,
     });
     return res.data;
@@ -291,14 +349,14 @@ export class PollRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatPoll.Record,
+    record: AppProtoimsgChatPoll.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.poll';
+    record.$type = 'app.protoimsg.chat.poll';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.poll', ...params, record },
+      { collection: 'app.protoimsg.chat.poll', ...params, record },
       { encoding: 'application/json', headers },
     );
     return res.data;
@@ -311,7 +369,7 @@ export class PollRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.poll', ...params },
+      { collection: 'app.protoimsg.chat.poll', ...params },
       { headers },
     );
   }
@@ -326,10 +384,10 @@ export class PresenceRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatPresence.Record }[];
+    records: { uri: string; value: AppProtoimsgChatPresence.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.presence',
+      collection: 'app.protoimsg.chat.presence',
       ...params,
     });
     return res.data;
@@ -338,10 +396,10 @@ export class PresenceRecord {
   async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
     uri: string;
     cid: string;
-    value: AppChatmosphereChatPresence.Record;
+    value: AppProtoimsgChatPresence.Record;
   }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.presence',
+      collection: 'app.protoimsg.chat.presence',
       ...params,
     });
     return res.data;
@@ -349,15 +407,15 @@ export class PresenceRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatPresence.Record,
+    record: AppProtoimsgChatPresence.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.presence';
+    record.$type = 'app.protoimsg.chat.presence';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
       {
-        collection: 'app.chatmosphere.chat.presence',
+        collection: 'app.protoimsg.chat.presence',
         rkey: 'self',
         ...params,
         record,
@@ -374,7 +432,7 @@ export class PresenceRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.presence', ...params },
+      { collection: 'app.protoimsg.chat.presence', ...params },
       { headers },
     );
   }
@@ -389,22 +447,20 @@ export class RoleRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatRole.Record }[];
+    records: { uri: string; value: AppProtoimsgChatRole.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.role',
+      collection: 'app.protoimsg.chat.role',
       ...params,
     });
     return res.data;
   }
 
-  async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
-    uri: string;
-    cid: string;
-    value: AppChatmosphereChatRole.Record;
-  }> {
+  async get(
+    params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
+  ): Promise<{ uri: string; cid: string; value: AppProtoimsgChatRole.Record }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.role',
+      collection: 'app.protoimsg.chat.role',
       ...params,
     });
     return res.data;
@@ -412,14 +468,14 @@ export class RoleRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatRole.Record,
+    record: AppProtoimsgChatRole.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.role';
+    record.$type = 'app.protoimsg.chat.role';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.role', ...params, record },
+      { collection: 'app.protoimsg.chat.role', ...params, record },
       { encoding: 'application/json', headers },
     );
     return res.data;
@@ -432,7 +488,7 @@ export class RoleRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.role', ...params },
+      { collection: 'app.protoimsg.chat.role', ...params },
       { headers },
     );
   }
@@ -447,22 +503,20 @@ export class RoomRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatRoom.Record }[];
+    records: { uri: string; value: AppProtoimsgChatRoom.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.room',
+      collection: 'app.protoimsg.chat.room',
       ...params,
     });
     return res.data;
   }
 
-  async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
-    uri: string;
-    cid: string;
-    value: AppChatmosphereChatRoom.Record;
-  }> {
+  async get(
+    params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
+  ): Promise<{ uri: string; cid: string; value: AppProtoimsgChatRoom.Record }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.room',
+      collection: 'app.protoimsg.chat.room',
       ...params,
     });
     return res.data;
@@ -470,14 +524,14 @@ export class RoomRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatRoom.Record,
+    record: AppProtoimsgChatRoom.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.room';
+    record.$type = 'app.protoimsg.chat.room';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.room', ...params, record },
+      { collection: 'app.protoimsg.chat.room', ...params, record },
       { encoding: 'application/json', headers },
     );
     return res.data;
@@ -490,7 +544,7 @@ export class RoomRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.room', ...params },
+      { collection: 'app.protoimsg.chat.room', ...params },
       { headers },
     );
   }
@@ -505,22 +559,20 @@ export class VoteRecord {
 
   async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
     cursor?: string;
-    records: { uri: string; value: AppChatmosphereChatVote.Record }[];
+    records: { uri: string; value: AppProtoimsgChatVote.Record }[];
   }> {
     const res = await this._client.call('com.atproto.repo.listRecords', {
-      collection: 'app.chatmosphere.chat.vote',
+      collection: 'app.protoimsg.chat.vote',
       ...params,
     });
     return res.data;
   }
 
-  async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
-    uri: string;
-    cid: string;
-    value: AppChatmosphereChatVote.Record;
-  }> {
+  async get(
+    params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>,
+  ): Promise<{ uri: string; cid: string; value: AppProtoimsgChatVote.Record }> {
     const res = await this._client.call('com.atproto.repo.getRecord', {
-      collection: 'app.chatmosphere.chat.vote',
+      collection: 'app.protoimsg.chat.vote',
       ...params,
     });
     return res.data;
@@ -528,14 +580,14 @@ export class VoteRecord {
 
   async create(
     params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
-    record: AppChatmosphereChatVote.Record,
+    record: AppProtoimsgChatVote.Record,
     headers?: Record<string, string>,
   ): Promise<{ uri: string; cid: string }> {
-    record.$type = 'app.chatmosphere.chat.vote';
+    record.$type = 'app.protoimsg.chat.vote';
     const res = await this._client.call(
       'com.atproto.repo.createRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.vote', ...params, record },
+      { collection: 'app.protoimsg.chat.vote', ...params, record },
       { encoding: 'application/json', headers },
     );
     return res.data;
@@ -548,7 +600,7 @@ export class VoteRecord {
     await this._client.call(
       'com.atproto.repo.deleteRecord',
       undefined,
-      { collection: 'app.chatmosphere.chat.vote', ...params },
+      { collection: 'app.protoimsg.chat.vote', ...params },
       { headers },
     );
   }

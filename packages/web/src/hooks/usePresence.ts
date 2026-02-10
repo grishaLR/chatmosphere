@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from './useAuth';
 import { putPresenceRecord } from '../lib/atproto';
-import type { PresenceStatus, PresenceVisibility } from '@chatmosphere/shared';
+import type { PresenceStatus, PresenceVisibility } from '@protoimsg/shared';
 
 export function usePresence() {
   const [status, setStatus] = useState<PresenceStatus>('online');

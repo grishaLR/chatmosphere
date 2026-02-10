@@ -1,5 +1,5 @@
 {
-  "name": "@chatmosphere/server",
+  "name": "@protoimsg/server",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -16,8 +16,8 @@
   "dependencies": {
     "@atproto/api": "^0.13.0",
     "@atproto/oauth-client-node": "^0.2.0",
-    "@chatmosphere/lexicon": "workspace:*",
-    "@chatmosphere/shared": "workspace:*",
+    "@protoimsg/lexicon": "workspace:*",
+    "@protoimsg/shared": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "postgres": "^3.4.5",

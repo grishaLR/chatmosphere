@@ -1,10 +1,10 @@
 [package]
-name = "chatmosphere-desktop"
+name = "protoimsg-desktop"
 version = "0.0.1"
 edition = "2021"
 
 [lib]
-name = "chatmosphere_desktop_lib"
+name = "protoimsg_desktop_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]

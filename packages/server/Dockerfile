@@ -13,11 +13,11 @@ COPY packages/shared/ packages/shared/
 COPY packages/lexicon/ packages/lexicon/
 COPY packages/server/ packages/server/
 
-RUN pnpm --filter @chatmosphere/shared build && \
-    pnpm --filter @chatmosphere/lexicon build && \
-    pnpm --filter @chatmosphere/server build && \
+RUN pnpm --filter @protoimsg/shared build && \
+    pnpm --filter @protoimsg/lexicon build && \
+    pnpm --filter @protoimsg/server build && \
     cp -r packages/server/src/db/migrations packages/server/dist/db/ && \
-    pnpm --filter @chatmosphere/server deploy --prod /app/deploy
+    pnpm --filter @protoimsg/server deploy --prod /app/deploy
 
 FROM node:22-alpine
 

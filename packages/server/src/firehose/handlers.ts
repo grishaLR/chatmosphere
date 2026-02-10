@@ -1,9 +1,9 @@
-import { NSID } from '@chatmosphere/shared';
+import { NSID } from '@protoimsg/shared';
 import type { Sql } from '../db/client.js';
 import { createRoom } from '../rooms/queries.js';
 import { insertMessage } from '../messages/queries.js';
 import { recordModAction, isUserBanned, upsertRoomRole } from '../moderation/queries.js';
-import { upsertBuddyList, syncBuddyMembers } from '../buddylist/queries.js';
+import { upsertCommunityList, syncCommunityMembers } from '../community/queries.js';
 import { checkMessageContent } from '../moderation/service.js';
 import type { WsServer } from '../ws/server.js';
 import {
@@ -11,7 +11,8 @@ import {
   messageRecordSchema,
   banRecordSchema,
   roleRecordSchema,
-  buddyListRecordSchema,
+  communityRecordSchema,
+  allowlistRecordSchema,
 } from './record-schemas.js';
 
 export interface FirehoseEvent {
@@ -39,11 +40,13 @@ export function createHandlers(db: Sql, wss: WsServer) {
         uri: event.uri,
         did: event.did,
         name: record.name,
+        topic: record.topic,
         description: record.description,
         purpose: record.purpose,
         visibility: record.settings?.visibility ?? 'public',
         minAccountAgeDays: record.settings?.minAccountAgeDays ?? 0,
         slowModeSeconds: record.settings?.slowModeSeconds ?? 0,
+        allowlistEnabled: record.settings?.allowlistEnabled ?? false,
         createdAt: record.createdAt,
       });
       console.info(`Indexed room: ${record.name} (${event.rkey})`);
@@ -77,7 +80,10 @@ export function createHandlers(db: Sql, wss: WsServer) {
         did: event.did,
         roomId,
         text: record.text,
-        replyTo: record.replyTo,
+        replyRoot: record.reply?.root,
+        replyParent: record.reply?.parent,
+        facets: record.facets,
+        embed: record.embed,
         createdAt: record.createdAt,
       });
 
@@ -90,7 +96,9 @@ export function createHandlers(db: Sql, wss: WsServer) {
             did: event.did,
             roomId,
             text: record.text,
-            replyTo: record.replyTo,
+            reply: record.reply,
+            facets: record.facets,
+            embed: record.embed,
             createdAt: record.createdAt,
           },
         });
@@ -137,14 +145,14 @@ export function createHandlers(db: Sql, wss: WsServer) {
       );
     },
 
-    [NSID.BuddyList]: async (event) => {
-      const parsed = buddyListRecordSchema.safeParse(event.record);
+    [NSID.Community]: async (event) => {
+      const parsed = communityRecordSchema.safeParse(event.record);
       if (!parsed.success) {
-        console.warn(`Invalid buddylist record from ${event.did}:`, parsed.error.message);
+        console.warn(`Invalid community record from ${event.did}:`, parsed.error.message);
         return;
       }
       const record = parsed.data;
-      await upsertBuddyList(db, { did: event.did, groups: record.groups });
+      await upsertCommunityList(db, { did: event.did, groups: record.groups });
 
       // Flatten all members across groups for denormalized lookup table
       const allMembers: Array<{ did: string; addedAt: string }> = [];
@@ -153,8 +161,27 @@ export function createHandlers(db: Sql, wss: WsServer) {
           allMembers.push({ did: member.did, addedAt: member.addedAt });
         }
       }
-      await syncBuddyMembers(db, event.did, allMembers);
-      console.info(`Buddy list indexed for ${event.did}: ${allMembers.length} members`);
+      await syncCommunityMembers(db, event.did, allMembers);
+      console.info(`Community list indexed for ${event.did}: ${allMembers.length} members`);
+    },
+
+    [NSID.Allowlist]: async (event) => {
+      const parsed = allowlistRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        console.warn(
+          `Invalid allowlist record from ${event.did} (${event.rkey}):`,
+          parsed.error.message,
+        );
+        return;
+      }
+      const record = parsed.data;
+      const roomId = extractRkey(record.room);
+      await db`
+        INSERT INTO room_allowlist (id, room_id, subject_did, uri, created_at)
+        VALUES (${event.rkey}, ${roomId}, ${record.subject}, ${event.uri}, ${record.createdAt})
+        ON CONFLICT (id) DO NOTHING
+      `;
+      console.info(`Allowlist entry indexed: ${record.subject} in room ${roomId}`);
     },
 
     [NSID.Presence]: (event) => {

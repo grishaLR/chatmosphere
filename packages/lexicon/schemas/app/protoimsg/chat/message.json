@@ -1,0 +1,231 @@
+{
+  "lexicon": 1,
+  "id": "app.protoimsg.chat.message",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "A chat message. Lives in the sender's repo, points to a room.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["room", "text", "createdAt"],
+        "properties": {
+          "room": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the room record this message belongs to."
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 1000,
+            "description": "Message text content."
+          },
+          "facets": {
+            "type": "array",
+            "description": "Rich text annotations (mentions, links). Same format as Bluesky post facets.",
+            "items": {
+              "type": "ref",
+              "ref": "#richTextFacet"
+            }
+          },
+          "reply": {
+            "type": "ref",
+            "ref": "#replyRef",
+            "description": "Structured reply reference for threading."
+          },
+          "embed": {
+            "type": "union",
+            "refs": ["#imageEmbed", "#videoEmbed", "#externalEmbed"],
+            "description": "Embedded media or link card."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of message creation."
+          }
+        }
+      }
+    },
+    "replyRef": {
+      "type": "object",
+      "description": "Thread reply reference with root and parent for efficient deep thread traversal.",
+      "required": ["root", "parent"],
+      "properties": {
+        "root": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the root message in the thread."
+        },
+        "parent": {
+          "type": "string",
+          "format": "at-uri",
+          "description": "AT-URI of the direct parent message being replied to."
+        }
+      }
+    },
+    "imageEmbed": {
+      "type": "object",
+      "description": "Embedded images.",
+      "required": ["images"],
+      "properties": {
+        "images": {
+          "type": "array",
+          "maxLength": 4,
+          "items": {
+            "type": "ref",
+            "ref": "#imageItem"
+          }
+        }
+      }
+    },
+    "imageItem": {
+      "type": "object",
+      "description": "A single embedded image.",
+      "required": ["image", "alt"],
+      "properties": {
+        "image": {
+          "type": "blob",
+          "accept": ["image/png", "image/jpeg", "image/gif", "image/webp"],
+          "maxSize": 1000000,
+          "description": "Image blob reference."
+        },
+        "alt": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Alt text for accessibility."
+        },
+        "aspectRatio": {
+          "type": "ref",
+          "ref": "#aspectRatio"
+        }
+      }
+    },
+    "videoEmbed": {
+      "type": "object",
+      "description": "Embedded video.",
+      "required": ["video"],
+      "properties": {
+        "video": {
+          "type": "blob",
+          "accept": ["video/mp4", "video/webm"],
+          "maxSize": 50000000,
+          "description": "Video blob reference."
+        },
+        "alt": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Alt text for accessibility."
+        },
+        "thumbnail": {
+          "type": "blob",
+          "accept": ["image/png", "image/jpeg"],
+          "maxSize": 1000000,
+          "description": "Video thumbnail image."
+        },
+        "aspectRatio": {
+          "type": "ref",
+          "ref": "#aspectRatio"
+        }
+      }
+    },
+    "externalEmbed": {
+      "type": "object",
+      "description": "External link card.",
+      "required": ["uri", "title"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the external content."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Title of the external content."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Description or summary."
+        },
+        "thumb": {
+          "type": "blob",
+          "accept": ["image/png", "image/jpeg"],
+          "maxSize": 1000000,
+          "description": "Thumbnail image for the link card."
+        }
+      }
+    },
+    "aspectRatio": {
+      "type": "object",
+      "description": "Width and height for layout before media loads.",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "richTextFacet": {
+      "type": "object",
+      "description": "A rich text annotation on the message.",
+      "required": ["index", "features"],
+      "properties": {
+        "index": {
+          "type": "ref",
+          "ref": "#byteSlice"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "union",
+            "refs": ["#mention", "#link"]
+          }
+        }
+      }
+    },
+    "byteSlice": {
+      "type": "object",
+      "description": "Byte range within the text.",
+      "required": ["byteStart", "byteEnd"],
+      "properties": {
+        "byteStart": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "byteEnd": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "mention": {
+      "type": "object",
+      "description": "A mention of another user.",
+      "required": ["did"],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "description": "A hyperlink.",
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

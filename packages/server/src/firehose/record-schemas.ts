@@ -9,22 +9,32 @@ const roomSettings = z
     visibility: z.enum(['public', 'unlisted', 'private']).optional(),
     minAccountAgeDays: z.number().int().min(0).optional(),
     slowModeSeconds: z.number().int().min(0).optional(),
+    allowlistEnabled: z.boolean().optional(),
   })
   .optional();
 
 export const roomRecordSchema = z.object({
   name: z.string().max(100),
+  topic: z.string().max(200),
   description: z.string().max(500).optional(),
   purpose: z.enum(['discussion', 'event', 'community', 'support']),
   createdAt: z.string(),
   settings: roomSettings,
 });
 
+const replyRefSchema = z
+  .object({
+    root: z.string(),
+    parent: z.string(),
+  })
+  .optional();
+
 export const messageRecordSchema = z.object({
   room: z.string(),
   text: z.string().max(3000),
   facets: z.array(z.unknown()).optional(),
-  replyTo: z.string().optional(),
+  reply: replyRefSchema,
+  embed: z.unknown().optional(),
   createdAt: z.string(),
 });
 
@@ -42,23 +52,30 @@ export const roleRecordSchema = z.object({
   createdAt: z.string(),
 });
 
-const buddyMemberSchema = z.object({
+const communityMemberSchema = z.object({
   did: z.string(),
   addedAt: z.string(),
 });
 
-const buddyGroupSchema = z.object({
+const communityGroupSchema = z.object({
   name: z.string().max(100),
-  isCloseFriends: z.boolean().optional(),
-  members: z.array(buddyMemberSchema).max(500),
+  isInnerCircle: z.boolean().optional(),
+  members: z.array(communityMemberSchema).max(500),
 });
 
-export const buddyListRecordSchema = z.object({
-  groups: z.array(buddyGroupSchema).max(50),
+export const communityRecordSchema = z.object({
+  groups: z.array(communityGroupSchema).max(50),
+});
+
+export const allowlistRecordSchema = z.object({
+  room: z.string(),
+  subject: z.string(),
+  createdAt: z.string(),
 });
 
 export type RoomRecordParsed = z.infer<typeof roomRecordSchema>;
 export type MessageRecordParsed = z.infer<typeof messageRecordSchema>;
 export type BanRecordParsed = z.infer<typeof banRecordSchema>;
 export type RoleRecordParsed = z.infer<typeof roleRecordSchema>;
-export type BuddyListRecordParsed = z.infer<typeof buddyListRecordSchema>;
+export type CommunityRecordParsed = z.infer<typeof communityRecordSchema>;
+export type AllowlistRecordParsed = z.infer<typeof allowlistRecordSchema>;

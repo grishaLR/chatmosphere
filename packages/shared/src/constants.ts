@@ -1,17 +1,18 @@
-/** atproto Lexicon NSIDs for chatmosphere collections */
+/** atproto Lexicon NSIDs for protoimsg collections */
 export const NSID = {
-  Room: 'app.chatmosphere.chat.room',
-  Message: 'app.chatmosphere.chat.message',
-  BuddyList: 'app.chatmosphere.chat.buddylist',
-  Presence: 'app.chatmosphere.chat.presence',
-  Poll: 'app.chatmosphere.chat.poll',
-  Vote: 'app.chatmosphere.chat.vote',
-  Ban: 'app.chatmosphere.chat.ban',
-  Role: 'app.chatmosphere.chat.role',
+  Room: 'app.protoimsg.chat.room',
+  Message: 'app.protoimsg.chat.message',
+  Community: 'app.protoimsg.chat.community',
+  Presence: 'app.protoimsg.chat.presence',
+  Poll: 'app.protoimsg.chat.poll',
+  Vote: 'app.protoimsg.chat.vote',
+  Ban: 'app.protoimsg.chat.ban',
+  Role: 'app.protoimsg.chat.role',
+  Allowlist: 'app.protoimsg.chat.allowlist',
 } as const;
 
-/** Namespace prefix for all chatmosphere Lexicon records */
-export const NSID_PREFIX = 'app.chatmosphere.chat.';
+/** Namespace prefix for all protoimsg Lexicon records */
+export const NSID_PREFIX = 'app.protoimsg.chat.';
 
 /** Default room settings */
 export const ROOM_DEFAULTS = {
@@ -27,6 +28,8 @@ export const LIMITS = {
   maxMessageLength: 3000,
   /** Maximum room name length */
   maxRoomNameLength: 100,
+  /** Maximum room topic length */
+  maxRoomTopicLength: 200,
   /** Maximum room description length */
   maxRoomDescriptionLength: 500,
   /** Maximum away message length */

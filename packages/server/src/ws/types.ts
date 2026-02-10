@@ -1,11 +1,11 @@
-// Re-export WS types from shared package — canonical source is @chatmosphere/shared
+// Re-export WS types from shared package — canonical source is @protoimsg/shared
 export type {
   WsMessageBase,
   JoinRoomMessage,
   LeaveRoomMessage,
   StatusChangeMessage,
   PingMessage,
-  RequestBuddyPresenceMessage,
+  RequestCommunityPresenceMessage,
   AuthMessage,
   DmOpenMessage,
   DmCloseMessage,
@@ -17,7 +17,7 @@ export type {
   ClientMessage,
   NewMessageEvent,
   PresenceUpdateEvent,
-  BuddyPresenceEvent,
+  CommunityPresenceEvent,
   RoomJoinedEvent,
   PongEvent,
   ErrorEvent,
@@ -28,4 +28,4 @@ export type {
   DmPersistChangedEvent,
   DmIncomingEvent,
   ServerMessage,
-} from '@chatmosphere/shared';
+} from '@protoimsg/shared';

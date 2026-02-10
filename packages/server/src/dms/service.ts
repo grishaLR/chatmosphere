@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { DM_LIMITS } from '@chatmosphere/shared';
+import { DM_LIMITS } from '@protoimsg/shared';
 import { filterText } from '../moderation/filter.js';
 import type { Sql } from '../db/client.js';
 import {

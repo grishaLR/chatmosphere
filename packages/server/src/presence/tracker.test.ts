@@ -42,8 +42,8 @@ describe('PresenceTracker', () => {
 
   it('sets visibleTo', () => {
     tracker.setOnline('did:plc:alice');
-    tracker.setStatus('did:plc:alice', 'online', undefined, 'close-friends');
-    expect(tracker.getVisibleTo('did:plc:alice')).toBe('close-friends');
+    tracker.setStatus('did:plc:alice', 'online', undefined, 'inner-circle');
+    expect(tracker.getVisibleTo('did:plc:alice')).toBe('inner-circle');
   });
 
   it('defaults visibleTo to everyone', () => {

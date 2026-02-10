@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-const STORAGE_KEY = 'chatmosphere:collapsed-groups';
+const STORAGE_KEY = 'protoimsg:collapsed-groups';
 
 function loadCollapsed(): Set<string> {
   try {

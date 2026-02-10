@@ -1,4 +1,4 @@
--- chatmosphere database schema
+-- protoimsg database schema
 
 -- rooms: aggregated from firehose room records
 CREATE TABLE IF NOT EXISTS rooms (
@@ -47,23 +47,23 @@ CREATE TABLE IF NOT EXISTS mod_actions (
 CREATE INDEX IF NOT EXISTS idx_mod_actions_room ON mod_actions(room_id);
 CREATE INDEX IF NOT EXISTS idx_mod_actions_subject ON mod_actions(subject_did);
 
--- buddy_lists: indexed from atproto buddylist records
-CREATE TABLE IF NOT EXISTS buddy_lists (
+-- community_lists: indexed from atproto community records
+CREATE TABLE IF NOT EXISTS community_lists (
   did         TEXT PRIMARY KEY,
   groups      JSONB NOT NULL DEFAULT '[]',
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- buddy_members: denormalized for reverse lookups (who has me as a buddy?)
-CREATE TABLE IF NOT EXISTS buddy_members (
+-- community_members: denormalized for reverse lookups (who has me in their community?)
+CREATE TABLE IF NOT EXISTS community_members (
   owner_did   TEXT NOT NULL,
-  buddy_did   TEXT NOT NULL,
+  member_did  TEXT NOT NULL,
   added_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (owner_did, buddy_did)
+  PRIMARY KEY (owner_did, member_did)
 );
 
-CREATE INDEX IF NOT EXISTS idx_buddy_members_buddy ON buddy_members(buddy_did);
+CREATE INDEX IF NOT EXISTS idx_community_members_member ON community_members(member_did);
 
 -- room_roles: moderator/owner role assignments from atproto role records
 CREATE TABLE IF NOT EXISTS room_roles (

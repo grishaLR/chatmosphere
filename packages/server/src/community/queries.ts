@@ -1,18 +1,18 @@
 import type { Sql, JsonValue } from '../db/client.js';
 
-export interface BuddyListRow {
+export interface CommunityListRow {
   did: string;
   groups: unknown; // JSONB
   updated_at: Date;
   indexed_at: Date;
 }
 
-export async function upsertBuddyList(
+export async function upsertCommunityList(
   sql: Sql,
   input: { did: string; groups: unknown },
 ): Promise<void> {
   await sql`
-    INSERT INTO buddy_lists (did, groups, updated_at, indexed_at)
+    INSERT INTO community_lists (did, groups, updated_at, indexed_at)
     VALUES (${input.did}, ${sql.json(input.groups as JsonValue)}, NOW(), NOW())
     ON CONFLICT (did) DO UPDATE SET
       groups = ${sql.json(input.groups as JsonValue)},
@@ -21,12 +21,12 @@ export async function upsertBuddyList(
   `;
 }
 
-export async function syncBuddyMembers(
+export async function syncCommunityMembers(
   sql: Sql,
   ownerDid: string,
   members: Array<{ did: string; addedAt: string }>,
 ): Promise<void> {
-  await sql`DELETE FROM buddy_members WHERE owner_did = ${ownerDid}`;
+  await sql`DELETE FROM community_members WHERE owner_did = ${ownerDid}`;
 
   if (members.length > 0) {
     // Deduplicate by DID (a member can appear in multiple groups)
@@ -40,26 +40,44 @@ export async function syncBuddyMembers(
     }
     const rows = unique.map((m) => ({
       owner_did: ownerDid,
-      buddy_did: m.did,
+      member_did: m.did,
       added_at: m.addedAt,
     }));
-    await sql`INSERT INTO buddy_members ${sql(rows)}`;
+    await sql`INSERT INTO community_members ${sql(rows)}`;
   }
 }
 
-export async function getBuddyList(sql: Sql, did: string): Promise<BuddyListRow | undefined> {
-  const rows = await sql<BuddyListRow[]>`
-    SELECT * FROM buddy_lists WHERE did = ${did}
+export async function getCommunityList(
+  sql: Sql,
+  did: string,
+): Promise<CommunityListRow | undefined> {
+  const rows = await sql<CommunityListRow[]>`
+    SELECT * FROM community_lists WHERE did = ${did}
   `;
   return rows[0];
 }
 
+/** Check if `queryDid` is in any of `ownerDid`'s community groups. */
+export async function isCommunityMember(
+  sql: Sql,
+  ownerDid: string,
+  queryDid: string,
+): Promise<boolean> {
+  const rows = await sql<Array<{ found: boolean }>>`
+    SELECT EXISTS (
+      SELECT 1 FROM community_members
+      WHERE owner_did = ${ownerDid} AND member_did = ${queryDid}
+    ) AS found
+  `;
+  return rows[0]?.found ?? false;
+}
+
 /**
- * Check if `queryDid` is in any of `ownerDid`'s close-friends groups.
- * Scans the JSONB `groups` array for groups with `isCloseFriends: true`
+ * Check if `queryDid` is in any of `ownerDid`'s inner circle groups.
+ * Scans the JSONB `groups` array for groups with `isInnerCircle: true`
  * that contain `queryDid` in their members.
  */
-export async function isCloseFriend(
+export async function isInnerCircle(
   sql: Sql,
   ownerDid: string,
   queryDid: string,
@@ -67,11 +85,11 @@ export async function isCloseFriend(
   const rows = await sql<Array<{ found: boolean }>>`
     SELECT EXISTS (
       SELECT 1
-      FROM buddy_lists,
+      FROM community_lists,
            jsonb_array_elements(groups) AS g
       WHERE did = ${ownerDid}
         AND jsonb_typeof(groups) = 'array'
-        AND (g->>'isCloseFriends')::boolean = true
+        AND (g->>'isInnerCircle')::boolean = true
         AND jsonb_typeof(g->'members') = 'array'
         AND EXISTS (
           SELECT 1 FROM jsonb_array_elements(g->'members') AS m

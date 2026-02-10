@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BuddyWatchers } from './buddy-watchers.js';
+import { CommunityWatchers } from './buddy-watchers.js';
 import type { WebSocket } from 'ws';
 
-vi.mock('../buddylist/queries.js', () => ({
-  isCloseFriend: vi.fn(),
+vi.mock('../community/queries.js', () => ({
+  isInnerCircle: vi.fn(),
 }));
 
-const { isCloseFriend } = await import('../buddylist/queries.js');
+const { isInnerCircle } = await import('../community/queries.js');
 
 function createMockWs(): WebSocket {
   const ws = {
@@ -37,12 +37,12 @@ const mockBlockService = {
   doesBlock: vi.fn().mockReturnValue(false),
 } as never;
 
-describe('BuddyWatchers', () => {
-  let watchers: BuddyWatchers;
+describe('CommunityWatchers', () => {
+  let watchers: CommunityWatchers;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    watchers = new BuddyWatchers(mockSql, mockBlockService);
+    watchers = new CommunityWatchers(mockSql, mockBlockService);
   });
 
   it('watch registers a socket to receive updates for DIDs', () => {
@@ -50,7 +50,7 @@ describe('BuddyWatchers', () => {
     watchers.watch(ws, 'did:plc:watcher', ['did:plc:alice']);
     watchers.notify('did:plc:alice', 'online');
     const payload = parseSentMessage(ws);
-    expect(payload.type).toBe('buddy_presence');
+    expect(payload.type).toBe('community_presence');
     expect(payload.data[0]?.status).toBe('online');
   });
 
@@ -96,12 +96,12 @@ describe('BuddyWatchers', () => {
     expect(payload.data[0]?.awayMessage).toBe('lunch');
   });
 
-  it('resolves close-friends visibility per watcher', async () => {
-    vi.mocked(isCloseFriend).mockResolvedValue(true);
+  it('resolves inner-circle visibility per watcher', async () => {
+    vi.mocked(isInnerCircle).mockResolvedValue(true);
 
     const ws = createMockWs();
     watchers.watch(ws, 'did:plc:friend', ['did:plc:alice']);
-    watchers.notify('did:plc:alice', 'online', undefined, 'close-friends');
+    watchers.notify('did:plc:alice', 'online', undefined, 'inner-circle');
 
     // Wait for async notifyWithVisibility
     await vi.waitFor(() => {
@@ -112,12 +112,12 @@ describe('BuddyWatchers', () => {
     expect(payload.data[0]?.status).toBe('online');
   });
 
-  it('shows offline for non-friends with close-friends visibility', async () => {
-    vi.mocked(isCloseFriend).mockResolvedValue(false);
+  it('shows offline for non-friends with inner-circle visibility', async () => {
+    vi.mocked(isInnerCircle).mockResolvedValue(false);
 
     const ws = createMockWs();
     watchers.watch(ws, 'did:plc:stranger', ['did:plc:alice']);
-    watchers.notify('did:plc:alice', 'online', undefined, 'close-friends');
+    watchers.notify('did:plc:alice', 'online', undefined, 'inner-circle');
 
     await vi.waitFor(() => {
       expect(ws.send).toHaveBeenCalledOnce();

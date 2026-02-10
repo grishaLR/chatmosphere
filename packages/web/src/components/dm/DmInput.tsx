@@ -6,7 +6,7 @@ import {
   useEffect,
   type KeyboardEvent,
 } from 'react';
-import { DM_LIMITS } from '@chatmosphere/shared';
+import { DM_LIMITS } from '@protoimsg/shared';
 import styles from './DmInput.module.css';
 
 interface DmInputProps {

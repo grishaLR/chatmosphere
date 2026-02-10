@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from 'react';
-import { LIMITS } from '@chatmosphere/shared';
+import { LIMITS } from '@protoimsg/shared';
 import styles from './MessageInput.module.css';
 
 interface MessageInputProps {

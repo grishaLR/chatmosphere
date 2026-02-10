@@ -1,4 +1,4 @@
-import type { PresenceStatus } from '@chatmosphere/shared';
+import type { PresenceStatus } from '@protoimsg/shared';
 import styles from './StatusDot.module.css';
 
 interface StatusDotProps {

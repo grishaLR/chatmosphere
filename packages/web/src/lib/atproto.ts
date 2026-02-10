@@ -1,12 +1,12 @@
 import type { Agent } from '@atproto/api';
-import { NSID } from '@chatmosphere/shared';
+import { NSID } from '@protoimsg/shared';
 import type {
   RoomPurpose,
   RoomVisibility,
   PresenceStatus,
   PresenceVisibility,
-} from '@chatmosphere/shared';
-import type { BuddyGroup } from '@chatmosphere/lexicon';
+} from '@protoimsg/shared';
+import type { CommunityGroup } from '@protoimsg/lexicon';
 
 /** Extract the record key (last path segment) from an AT URI */
 export function extractRkey(uri: string): string {
@@ -45,6 +45,7 @@ export function generateTid(): string {
 export interface CreateRoomInput {
   name: string;
   description?: string;
+  topic: string;
   purpose: RoomPurpose;
   visibility: RoomVisibility;
 }
@@ -69,6 +70,7 @@ export async function createRoomRecord(
       $type: NSID.Room,
       name: input.name,
       description: input.description,
+      topic: input.topic,
       purpose: input.purpose,
       createdAt: new Date().toISOString(),
       settings: {
@@ -87,7 +89,7 @@ export async function createRoomRecord(
 export interface CreateMessageInput {
   roomUri: string;
   text: string;
-  replyTo?: string;
+  reply?: { root: string; parent: string };
 }
 
 export interface CreateMessageResult {
@@ -110,7 +112,7 @@ export async function createMessageRecord(
       $type: NSID.Message,
       room: input.roomUri,
       text: input.text,
-      replyTo: input.replyTo,
+      reply: input.reply,
       createdAt: new Date().toISOString(),
     },
   });
@@ -122,16 +124,16 @@ export async function createMessageRecord(
   };
 }
 
-// -- Buddy List PDS helpers --
+// -- Community List PDS helpers --
 
-export async function getBuddyListRecord(agent: Agent): Promise<BuddyGroup[]> {
+export async function getCommunityListRecord(agent: Agent): Promise<CommunityGroup[]> {
   try {
     const response = await agent.com.atproto.repo.getRecord({
       repo: agent.assertDid,
-      collection: NSID.BuddyList,
+      collection: NSID.Community,
       rkey: 'self',
     });
-    const record = response.data.value as { groups?: BuddyGroup[] };
+    const record = response.data.value as { groups?: CommunityGroup[] };
     return record.groups ?? [];
   } catch {
     // Record doesn't exist yet
@@ -139,16 +141,16 @@ export async function getBuddyListRecord(agent: Agent): Promise<BuddyGroup[]> {
   }
 }
 
-export async function putBuddyListRecord(
+export async function putCommunityListRecord(
   agent: Agent,
-  groups: BuddyGroup[],
+  groups: CommunityGroup[],
 ): Promise<{ uri: string; cid: string }> {
   const response = await agent.com.atproto.repo.putRecord({
     repo: agent.assertDid,
-    collection: NSID.BuddyList,
+    collection: NSID.Community,
     rkey: 'self',
     record: {
-      $type: NSID.BuddyList,
+      $type: NSID.Community,
       groups,
     },
   });

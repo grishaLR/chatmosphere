@@ -9,7 +9,7 @@ import { messagesRouter } from './messages/router.js';
 import { authRouter } from './auth/router.js';
 import { createRequireAuth } from './auth/middleware.js';
 import { presenceRouter } from './presence/router.js';
-import { buddylistRouter } from './buddylist/router.js';
+import { communityRouter } from './community/router.js';
 import { moderationRouter } from './moderation/router.js';
 import { dmRouter } from './dms/router.js';
 import type { Config } from './config.js';
@@ -50,7 +50,7 @@ export function createApp(
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), messagesRouter(sql));
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), moderationRouter(sql));
   app.use('/api/presence', requireAuth, presenceRouter(presenceService, blockService));
-  app.use('/api/buddylist', requireAuth, buddylistRouter(sql));
+  app.use('/api/community', requireAuth, communityRouter(sql));
   app.use('/api/dms', requireAuth, createRateLimitMiddleware(rateLimiter), dmRouter(sql));
 
   // Error handler (must be last)

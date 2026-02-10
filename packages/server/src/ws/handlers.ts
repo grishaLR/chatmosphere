@@ -1,13 +1,13 @@
 import type { WebSocket } from 'ws';
-import { DM_LIMITS } from '@chatmosphere/shared';
+import { DM_LIMITS } from '@protoimsg/shared';
 import type { ValidatedClientMessage } from './validation.js';
 import type { RoomSubscriptions } from './rooms.js';
 import type { DmSubscriptions } from '../dms/subscriptions.js';
 import type { UserSockets } from './server.js';
-import type { BuddyWatchers } from './buddy-watchers.js';
+import type { CommunityWatchers } from './buddy-watchers.js';
 import type { PresenceService } from '../presence/service.js';
 import type { DmService } from '../dms/service.js';
-import type { PresenceVisibility } from '@chatmosphere/shared';
+import type { PresenceVisibility } from '@protoimsg/shared';
 import type { Sql } from '../db/client.js';
 import type { RateLimiter } from '../moderation/rate-limiter.js';
 import { checkUserAccess } from '../moderation/service.js';
@@ -18,7 +18,7 @@ export async function handleClientMessage(
   did: string,
   data: ValidatedClientMessage,
   roomSubs: RoomSubscriptions,
-  buddyWatchers: BuddyWatchers,
+  communityWatchers: CommunityWatchers,
   service: PresenceService,
   sql: Sql,
   rateLimiter: RateLimiter,
@@ -82,12 +82,12 @@ export async function handleClientMessage(
           data: { did, status: data.status, awayMessage: data.awayMessage },
         });
       }
-      // Notify buddy watchers (visibility-aware)
-      buddyWatchers.notify(did, data.status, data.awayMessage, visibleTo);
+      // Notify community watchers (visibility-aware)
+      communityWatchers.notify(did, data.status, data.awayMessage, visibleTo);
       break;
     }
 
-    case 'request_buddy_presence': {
+    case 'request_community_presence': {
       const presenceList = service
         .getBulkPresence(data.dids)
         .map((p) =>
@@ -95,12 +95,12 @@ export async function handleClientMessage(
         );
       ws.send(
         JSON.stringify({
-          type: 'buddy_presence',
+          type: 'community_presence',
           data: presenceList,
         }),
       );
       // Register this socket as watching these DIDs for live updates
-      buddyWatchers.watch(ws, did, data.dids);
+      communityWatchers.watch(ws, did, data.dids);
       break;
     }
 
@@ -122,7 +122,7 @@ export async function handleClientMessage(
       // Re-notify all watchers with block-filtered presence
       // (newly blocked get offline, newly unblocked get real status)
       const presence = service.getPresence(did);
-      buddyWatchers.notify(did, presence.status, presence.awayMessage);
+      communityWatchers.notify(did, presence.status, presence.awayMessage);
       break;
     }
 

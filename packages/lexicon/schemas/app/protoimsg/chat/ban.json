@@ -1,34 +1,34 @@
 {
   "lexicon": 1,
-  "id": "app.chatmosphere.chat.role",
+  "id": "app.protoimsg.chat.ban",
   "defs": {
     "main": {
       "type": "record",
-      "description": "Assign a moderator role to a user for a specific room.",
+      "description": "A ban issued by a room owner or moderator. Lives in the issuer's repo.",
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["room", "subject", "role", "createdAt"],
+        "required": ["room", "subject", "createdAt"],
         "properties": {
           "room": {
             "type": "string",
             "format": "at-uri",
-            "description": "AT-URI of the room."
+            "description": "AT-URI of the room the ban applies to."
           },
           "subject": {
             "type": "string",
             "format": "did",
-            "description": "DID of the user being assigned the role."
+            "description": "DID of the banned user."
           },
-          "role": {
+          "reason": {
             "type": "string",
-            "knownValues": ["moderator", "owner"],
-            "description": "The role being assigned."
+            "maxLength": 300,
+            "description": "Reason for the ban."
           },
           "createdAt": {
             "type": "string",
             "format": "datetime",
-            "description": "Timestamp of role assignment."
+            "description": "Timestamp of ban."
           }
         }
       }

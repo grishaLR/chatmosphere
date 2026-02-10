@@ -10,7 +10,7 @@
 import { emit, listen } from '@tauri-apps/api/event';
 import type { Event as TauriEvent, UnlistenFn } from '@tauri-apps/api/event';
 import type { WsClient, WsHandler } from './ws';
-import type { ClientMessage, ServerMessage } from '@chatmosphere/shared';
+import type { ClientMessage, ServerMessage } from '@protoimsg/shared';
 
 const WS_SERVER_MESSAGE = 'ws:server-message';
 const WS_CLIENT_MESSAGE = 'ws:client-message';

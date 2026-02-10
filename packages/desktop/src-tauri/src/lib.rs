@@ -17,7 +17,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![update_tray_tooltip])
         .setup(|app| {
             // Build tray menu
-            let show_item = MenuItemBuilder::with_id("show", "Show Chatmosphere").build(app)?;
+            let show_item = MenuItemBuilder::with_id("show", "Show protoimsg").build(app)?;
             let quit_item = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             let menu = MenuBuilder::new(app)
                 .item(&show_item)
@@ -33,7 +33,7 @@ pub fn run() {
 
             TrayIconBuilder::with_id("main-tray")
                 .icon(icon)
-                .tooltip("Chatmosphere")
+                .tooltip("protoimsg")
                 .menu(&menu)
                 .on_menu_event(|app: &tauri::AppHandle, event| match event.id().as_ref() {
                     "show" => {

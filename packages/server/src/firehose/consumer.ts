@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { NSID_PREFIX } from '@chatmosphere/shared';
+import { NSID_PREFIX } from '@protoimsg/shared';
 import type { Sql } from '../db/client.js';
 import { getCursor, saveCursor } from './cursor.js';
 import { createHandlers, type FirehoseEvent } from './handlers.js';

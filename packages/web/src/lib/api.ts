@@ -5,7 +5,7 @@ import { API_URL } from './config.js';
 // Token is kept in-memory and also in localStorage so Tauri child windows
 // can read it on mount without an IPC handshake (shared origin = shared storage).
 
-const TOKEN_STORAGE_KEY = 'chatmosphere:server_token';
+const TOKEN_STORAGE_KEY = 'protoimsg:server_token';
 
 let serverToken: string | null = localStorage.getItem(TOKEN_STORAGE_KEY);
 
@@ -138,7 +138,7 @@ export async function fetchPresence(dids: string[]): Promise<PresenceInfo[]> {
 export interface BuddyListResponse {
   groups: Array<{
     name: string;
-    isCloseFriends?: boolean;
+    isInnerCircle?: boolean;
     members: Array<{ did: string; addedAt: string }>;
   }>;
 }

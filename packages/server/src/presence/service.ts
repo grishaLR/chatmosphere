@@ -1,4 +1,4 @@
-import type { PresenceStatus, PresenceVisibility } from '@chatmosphere/shared';
+import type { PresenceStatus, PresenceVisibility } from '@protoimsg/shared';
 import type { PresenceTracker } from './tracker.js';
 
 export interface PresenceService {

@@ -1,4 +1,4 @@
-import '@chatmosphere/ui/tokens';
+import '@protoimsg/ui/tokens';
 import './app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

@@ -1,25 +1,25 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useVirtualList } from 'virtualized-ui';
 import type { Agent } from '@atproto/api';
-import type { BuddyGroup } from '@chatmosphere/lexicon';
+import type { CommunityGroup } from '@protoimsg/lexicon';
 import { StatusIndicator } from './StatusIndicator';
 import { UserIdentity } from './UserIdentity';
 import { resolveDidOrHandle } from '../../lib/resolve-identity';
 import { useBlocks } from '../../contexts/BlockContext';
 import { useCollapsedGroups } from '../../hooks/useCollapsedGroups';
 import type { DoorEvent } from '../../hooks/useBuddyList';
-import type { BuddyWithPresence, BuddyListRow } from '../../types';
+import type { MemberWithPresence, CommunityListRow } from '../../types';
 import styles from './BuddyListPanel.module.css';
 
 interface BuddyListPanelProps {
-  buddies: BuddyWithPresence[];
-  groups: BuddyGroup[];
+  buddies: MemberWithPresence[];
+  groups: CommunityGroup[];
   doorEvents?: Record<string, DoorEvent>;
   loading: boolean;
   agent: Agent | null;
   onAddBuddy: (did: string) => Promise<void>;
   onRemoveBuddy: (did: string) => Promise<void>;
-  onToggleCloseFriend: (did: string) => Promise<void>;
+  onToggleInnerCircle: (did: string) => Promise<void>;
   onBlockBuddy: (did: string) => void;
   onSendIm?: (did: string) => void;
   onBuddyClick?: (did: string) => void;
@@ -33,7 +33,7 @@ interface BuddyListPanelProps {
 
 const OFFLINE_GROUP = 'Offline';
 const BLOCKED_GROUP = 'Blocked';
-const PROTECTED_GROUPS = new Set(['Buddies', 'Close Friends']);
+const PROTECTED_GROUPS = new Set(['Community', 'Inner Circle']);
 
 const STATUS_ORDER: Record<string, number> = {
   online: 0,
@@ -47,17 +47,17 @@ function BuddyMenu({
   allGroups,
   isBlocked,
   onRemove,
-  onToggleCloseFriend,
+  onToggleInnerCircle,
   onBlock,
   onSendIm,
   onMoveBuddy,
 }: {
-  buddy: BuddyWithPresence;
+  buddy: MemberWithPresence;
   groupName: string;
-  allGroups: BuddyGroup[];
+  allGroups: CommunityGroup[];
   isBlocked: boolean;
   onRemove: () => void;
-  onToggleCloseFriend: () => void;
+  onToggleInnerCircle: () => void;
   onBlock: () => void;
   onSendIm?: () => void;
   onMoveBuddy: (fromGroup: string, toGroup: string) => void;
@@ -111,11 +111,11 @@ function BuddyMenu({
           <button
             className={styles.menuItem}
             onClick={() => {
-              onToggleCloseFriend();
+              onToggleInnerCircle();
               setOpen(false);
             }}
           >
-            {buddy.isCloseFriend ? 'Remove from Close Friends' : 'Add to Close Friends'}
+            {buddy.isInnerCircle ? 'Remove from Inner Circle' : 'Add to Inner Circle'}
           </button>
           {groupName !== OFFLINE_GROUP && moveTargets.length > 0 && (
             <div className={styles.moveSubmenu}>
@@ -229,7 +229,7 @@ export function BuddyListPanel({
   agent,
   onAddBuddy,
   onRemoveBuddy,
-  onToggleCloseFriend,
+  onToggleInnerCircle,
   onBlockBuddy,
   onSendIm,
   onBuddyClick,
@@ -252,7 +252,7 @@ export function BuddyListPanel({
 
   // Build presence map from flat buddies array
   const presenceMap = useMemo(() => {
-    const map = new Map<string, BuddyWithPresence>();
+    const map = new Map<string, MemberWithPresence>();
     for (const b of buddies) {
       map.set(b.did, b);
     }
@@ -260,18 +260,18 @@ export function BuddyListPanel({
   }, [buddies]);
 
   // Build flat rows for virtualization
-  const rows: BuddyListRow[] = useMemo(() => {
-    const result: BuddyListRow[] = [];
-    const offlineBuddies = new Map<string, BuddyWithPresence>();
+  const rows: CommunityListRow[] = useMemo(() => {
+    const result: CommunityListRow[] = [];
+    const offlineBuddies = new Map<string, MemberWithPresence>();
 
     const seenOnline = new Set<string>();
-    // Render Close Friends first so its members are claimed before Buddies
+    // Render Inner Circle first so its members are claimed before Buddies
     const sortedGroups = [...groups].sort((a, b) =>
-      a.isCloseFriends === b.isCloseFriends ? 0 : a.isCloseFriends ? -1 : 1,
+      a.isInnerCircle === b.isInnerCircle ? 0 : a.isInnerCircle ? -1 : 1,
     );
 
     for (const group of sortedGroups) {
-      const onlineMembers: BuddyWithPresence[] = [];
+      const onlineMembers: MemberWithPresence[] = [];
       let totalInGroup = 0;
 
       for (const member of group.members) {
@@ -315,8 +315,8 @@ export function BuddyListPanel({
       }
     }
 
-    // Synthetic "Offline" group at the bottom
-    if (offlineBuddies.size > 0) {
+    // Synthetic "Offline" group at the bottom (always visible)
+    {
       const offlineArray = [...offlineBuddies.values()];
       const isOfflineCollapsed = collapsed.has(OFFLINE_GROUP);
 
@@ -337,7 +337,7 @@ export function BuddyListPanel({
 
     // Synthetic "Blocked" group at the very bottom
     if (blockedDids.size > 0) {
-      const blockedArray: BuddyWithPresence[] = [...blockedDids].map(
+      const blockedArray: MemberWithPresence[] = [...blockedDids].map(
         (did) => presenceMap.get(did) ?? { did, status: 'offline', addedAt: '' },
       );
       const isBlockedCollapsed = collapsed.has(BLOCKED_GROUP);
@@ -438,7 +438,7 @@ export function BuddyListPanel({
         <div className={styles.list} ref={containerRef} onScroll={handleScroll}>
           <div className={styles.spacer} style={{ height: totalSize }}>
             {virtualItems.map((vi) => {
-              const row = data[vi.index] as BuddyListRow;
+              const row = data[vi.index] as CommunityListRow;
 
               if (row.type === 'group-header') {
                 const isProtected = PROTECTED_GROUPS.has(row.groupName);
@@ -569,7 +569,7 @@ export function BuddyListPanel({
                     allGroups={groups}
                     isBlocked={blockedDids.has(buddy.did)}
                     onRemove={() => void onRemoveBuddy(buddy.did)}
-                    onToggleCloseFriend={() => void onToggleCloseFriend(buddy.did)}
+                    onToggleInnerCircle={() => void onToggleInnerCircle(buddy.did)}
                     onBlock={() => {
                       onBlockBuddy(buddy.did);
                     }}

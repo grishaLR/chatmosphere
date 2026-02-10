@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { LIMITS } from '@chatmosphere/shared';
+import { LIMITS } from '@protoimsg/shared';
 import { listConversationsForDid, getDmMessages, getConversation } from './queries.js';
 import type { Sql } from '../db/client.js';
 

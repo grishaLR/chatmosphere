@@ -13,13 +13,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: chatmosphere
-          POSTGRES_USER: chatmosphere
+          POSTGRES_DB: protoimsg
+          POSTGRES_USER: protoimsg
           POSTGRES_PASSWORD: localdev
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U chatmosphere -d chatmosphere"
+          --health-cmd "pg_isready -U protoimsg -d protoimsg"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -52,5 +52,5 @@ jobs:
       - name: Test
         run: pnpm test
         env:
-          DATABASE_URL: postgres://chatmosphere:localdev@localhost:5432/chatmosphere
+          DATABASE_URL: postgres://protoimsg:localdev@localhost:5432/protoimsg
           NODE_ENV: test

@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import type { Sql } from '../db/client.js';
-import { getBuddyList } from './queries.js';
+import { getCommunityList } from './queries.js';
 
-export function buddylistRouter(sql: Sql): Router {
+export function communityRouter(sql: Sql): Router {
   const router = Router();
 
-  // GET /api/buddylist/:did
+  // GET /api/community/:did
   router.get('/:did', async (req, res, next) => {
     try {
-      const row = await getBuddyList(sql, req.params.did);
+      const row = await getCommunityList(sql, req.params.did);
       if (!row) {
         res.json({ groups: [] });
         return;

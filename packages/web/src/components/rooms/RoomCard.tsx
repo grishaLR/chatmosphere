@@ -31,6 +31,7 @@ export function RoomCard({ room }: RoomCardProps) {
         <h3 className={styles.name}>{room.name}</h3>
         <span className={styles.badge}>{room.purpose}</span>
       </div>
+      {room.topic && <p className={styles.topic}>{room.topic}</p>}
       {room.description && <p className={styles.description}>{room.description}</p>}
       <span className={styles.meta}>Created {new Date(room.created_at).toLocaleDateString()}</span>
     </Link>

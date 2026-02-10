@@ -1,12 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicklasxyz/tauri-v2/main/core/tauri-config-schema/schema.json",
-  "productName": "Chatmosphere",
+  "productName": "protoimsg",
   "version": "0.0.1",
-  "identifier": "chat.chatmosphere.desktop",
+  "identifier": "app.protoimsg.desktop",
   "build": {
     "devUrl": "http://127.0.0.1:5173",
-    "frontendDist": "https://chatmosphere.chat",
-    "beforeDevCommand": "pnpm --filter @chatmosphere/web dev",
+    "frontendDist": "../../web/dist",
+    "beforeDevCommand": "pnpm --filter @protoimsg/web dev",
     "beforeBuildCommand": ""
   },
   "app": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Chatmosphere",
+        "title": "protoimsg",
         "width": 260,
         "height": 560,
         "minWidth": 220,

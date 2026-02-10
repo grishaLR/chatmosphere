@@ -1,4 +1,4 @@
-import type { PresenceStatus, PresenceVisibility } from '@chatmosphere/shared';
+import type { PresenceStatus, PresenceVisibility } from '@protoimsg/shared';
 
 /**
  * MVP limitation: Presence is stored in a single process Map. Horizontal scaling

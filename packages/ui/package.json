@@ -1,5 +1,5 @@
 {
-  "name": "@chatmosphere/ui",
+  "name": "@protoimsg/ui",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -54,7 +54,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@chatmosphere/shared": "workspace:*",
+    "@protoimsg/shared": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

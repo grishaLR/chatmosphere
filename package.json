@@ -1,5 +1,5 @@
 {
-  "name": "chatmosphere",
+  "name": "protoimsg",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "validate:lexicon": "pnpm --filter @chatmosphere/lexicon codegen:check",
+    "validate:lexicon": "pnpm --filter @protoimsg/lexicon codegen:check",
     "prepare": "husky"
   },
   "devDependencies": {

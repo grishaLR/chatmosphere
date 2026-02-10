@@ -27,8 +27,8 @@ export interface PingMessage extends WsMessageBase {
   type: 'ping';
 }
 
-export interface RequestBuddyPresenceMessage extends WsMessageBase {
-  type: 'request_buddy_presence';
+export interface RequestCommunityPresenceMessage extends WsMessageBase {
+  type: 'request_community_presence';
   dids: string[];
 }
 
@@ -82,7 +82,7 @@ export type ClientMessage =
   | LeaveRoomMessage
   | StatusChangeMessage
   | PingMessage
-  | RequestBuddyPresenceMessage
+  | RequestCommunityPresenceMessage
   | RoomTypingMessage
   | SyncBlocksMessage
   | DmOpenMessage
@@ -101,7 +101,9 @@ export interface NewMessageEvent extends WsMessageBase {
     did: string;
     roomId: string;
     text: string;
-    replyTo?: string;
+    reply?: { root: string; parent: string };
+    facets?: unknown[];
+    embed?: unknown;
     createdAt: string;
   };
 }
@@ -115,8 +117,8 @@ export interface PresenceUpdateEvent extends WsMessageBase {
   };
 }
 
-export interface BuddyPresenceEvent extends WsMessageBase {
-  type: 'buddy_presence';
+export interface CommunityPresenceEvent extends WsMessageBase {
+  type: 'community_presence';
   data: Array<{
     did: string;
     status: string;
@@ -205,7 +207,7 @@ export interface RoomTypingEvent extends WsMessageBase {
 export type ServerMessage =
   | NewMessageEvent
   | PresenceUpdateEvent
-  | BuddyPresenceEvent
+  | CommunityPresenceEvent
   | RoomJoinedEvent
   | PongEvent
   | ErrorEvent

@@ -1,4 +1,4 @@
-import type { ClientMessage, ServerMessage } from '@chatmosphere/shared';
+import type { ClientMessage, ServerMessage } from '@protoimsg/shared';
 
 export type WsHandler = (msg: ServerMessage) => void;
 

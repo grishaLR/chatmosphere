@@ -6,6 +6,7 @@ export interface RoomView {
   did: string;
   name: string;
   description: string | null;
+  topic: string;
   purpose: string;
   visibility: string;
   min_account_age_days: number;
@@ -20,7 +21,10 @@ export interface MessageView {
   did: string;
   room_id: string;
   text: string;
-  reply_to: string | null;
+  reply_parent: string | null;
+  reply_root: string | null;
+  facets?: unknown[];
+  embed?: unknown;
   created_at: string;
   indexed_at: string;
   /** Client-only: true while waiting for WS confirmation */
@@ -33,17 +37,17 @@ export interface MemberPresence {
   awayMessage?: string;
 }
 
-export interface BuddyWithPresence {
+export interface MemberWithPresence {
   did: string;
   status: string;
   awayMessage?: string;
   addedAt: string;
-  isCloseFriend?: boolean;
+  isInnerCircle?: boolean;
   /** atproto block record key — needed for deletion on unblock */
   blockRkey?: string;
 }
 
-export type BuddyListRow =
+export type CommunityListRow =
   | {
       type: 'group-header';
       groupName: string;
@@ -51,7 +55,7 @@ export type BuddyListRow =
       totalCount: number;
       isCollapsed: boolean;
     }
-  | { type: 'buddy'; buddy: BuddyWithPresence; groupName: string };
+  | { type: 'buddy'; buddy: MemberWithPresence; groupName: string };
 
 export interface DmConversationView {
   id: string;

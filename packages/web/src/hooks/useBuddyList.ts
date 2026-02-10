@@ -1,36 +1,36 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './useAuth';
 import { useWebSocket } from '../contexts/WebSocketContext';
-import { getBuddyListRecord, putBuddyListRecord, generateTid } from '../lib/atproto';
+import { getCommunityListRecord, putCommunityListRecord, generateTid } from '../lib/atproto';
 import { fetchPresence } from '../lib/api';
 import { playDoorOpen, playDoorClose } from '../lib/sounds';
-import type { BuddyGroup } from '@chatmosphere/lexicon';
-import type { BuddyWithPresence } from '../types';
-import type { ServerMessage } from '@chatmosphere/shared';
+import type { CommunityGroup } from '@protoimsg/lexicon';
+import type { MemberWithPresence } from '../types';
+import type { ServerMessage } from '@protoimsg/shared';
 
 export type DoorEvent = 'join' | 'leave';
 
-const DEFAULT_GROUP = 'Buddies';
-const CLOSE_FRIENDS_GROUP = 'Close Friends';
-const PROTECTED_GROUPS = new Set([DEFAULT_GROUP, CLOSE_FRIENDS_GROUP]);
+const DEFAULT_GROUP = 'Community';
+const INNER_CIRCLE_GROUP = 'Inner Circle';
+const PROTECTED_GROUPS = new Set([DEFAULT_GROUP, INNER_CIRCLE_GROUP]);
 const MAX_GROUPS = 50;
 const DOOR_LINGER_MS = 5000;
 
 export function useBuddyList() {
   const { agent } = useAuth();
   const { send, subscribe } = useWebSocket();
-  const [buddies, setBuddies] = useState<BuddyWithPresence[]>([]);
+  const [buddies, setBuddies] = useState<MemberWithPresence[]>([]);
   const [doorEvents, setDoorEvents] = useState<Record<string, DoorEvent>>({});
   const [loading, setLoading] = useState(true);
-  const [groups, setGroups] = useState<BuddyGroup[]>([]);
+  const [groups, setGroups] = useState<CommunityGroup[]>([]);
   const prevStatusRef = useRef<Map<string, string>>(new Map());
   const doorTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // Derive close-friend DIDs from groups (memoized to avoid recomputing on every render)
-  const closeFriendDids = useMemo(
+  // Derive inner-circle DIDs from groups (memoized to avoid recomputing on every render)
+  const innerCircleDids = useMemo(
     () =>
       new Set(
-        groups.filter((g) => g.isCloseFriends === true).flatMap((g) => g.members.map((m) => m.did)),
+        groups.filter((g) => g.isInnerCircle === true).flatMap((g) => g.members.map((m) => m.did)),
       ),
     [groups],
   );
@@ -45,9 +45,46 @@ export function useBuddyList() {
     const currentAgent = agent;
 
     async function load() {
-      const pdsGroups = await getBuddyListRecord(currentAgent);
+      const pdsGroups = await getCommunityListRecord(currentAgent);
       if (cancelledRef.current) return;
-      setGroups(pdsGroups);
+
+      // Migrate legacy "Buddies" → "Community", "Close Friends" → "Inner Circle"
+      let seeded = pdsGroups.map((g) => {
+        if (g.name === 'Buddies') return { ...g, name: DEFAULT_GROUP };
+        if (g.name === 'Close Friends')
+          return { ...g, name: INNER_CIRCLE_GROUP, isInnerCircle: true };
+        return g;
+      });
+
+      // Deduplicate: merge members of groups with the same name
+      const groupMap = new Map<string, CommunityGroup>();
+      for (const g of seeded) {
+        const existing = groupMap.get(g.name);
+        if (existing) {
+          const existingDids = new Set(existing.members.map((m) => m.did));
+          const merged = [
+            ...existing.members,
+            ...g.members.filter((m) => !existingDids.has(m.did)),
+          ];
+          groupMap.set(g.name, { ...existing, members: merged });
+        } else {
+          groupMap.set(g.name, g);
+        }
+      }
+      seeded = [...groupMap.values()];
+
+      // Ensure the two default groups always exist (even if empty)
+      const hasDefault = seeded.some((g) => g.name === DEFAULT_GROUP);
+      const hasInnerCircle = seeded.some((g) => g.name === INNER_CIRCLE_GROUP);
+      if (!hasDefault) seeded = [{ name: DEFAULT_GROUP, members: [] }, ...seeded];
+      if (!hasInnerCircle)
+        seeded = [...seeded, { name: INNER_CIRCLE_GROUP, isInnerCircle: true, members: [] }];
+
+      // Persist if anything changed
+      if (JSON.stringify(seeded) !== JSON.stringify(pdsGroups)) {
+        await putCommunityListRecord(currentAgent, seeded);
+      }
+      setGroups(seeded);
 
       // Flatten all DIDs (deduplicated)
       const addedAtMap = new Map<string, string>();
@@ -68,7 +105,7 @@ export function useBuddyList() {
 
       const cfDids = new Set(
         pdsGroups
-          .filter((g) => g.isCloseFriends === true)
+          .filter((g) => g.isInnerCircle === true)
           .flatMap((g) => g.members.map((m) => m.did)),
       );
 
@@ -96,21 +133,21 @@ export function useBuddyList() {
         // Non-critical — block state just won't be restored
       }
 
-      // Default all buddies to offline — WS request_buddy_presence
+      // Default all buddies to offline — WS request_community_presence
       // will deliver block-filtered presence shortly after
       setBuddies(
         allDids.map((did) => ({
           did,
           status: 'offline',
           addedAt: addedAtMap.get(did) ?? new Date().toISOString(),
-          isCloseFriend: cfDids.has(did),
+          isInnerCircle: cfDids.has(did),
           blockRkey: blockMap.get(did),
         })),
       );
       setLoading(false);
 
       // Request block-filtered presence via WS
-      send({ type: 'request_buddy_presence', dids: allDids });
+      send({ type: 'request_community_presence', dids: allDids });
     }
 
     void load();
@@ -146,10 +183,10 @@ export function useBuddyList() {
     [triggerDoor],
   );
 
-  // Subscribe to presence + buddy_presence WS events
+  // Subscribe to presence + community_presence WS events
   useEffect(() => {
     const unsub = subscribe((msg: ServerMessage) => {
-      if (msg.type === 'buddy_presence') {
+      if (msg.type === 'community_presence') {
         for (const p of msg.data) {
           checkTransition(p.did, p.status);
         }
@@ -186,7 +223,7 @@ export function useBuddyList() {
       const newMember = { did, addedAt: now };
 
       // Update local groups
-      let updatedGroups: BuddyGroup[];
+      let updatedGroups: CommunityGroup[];
       const defaultGroup = groups.find((g) => g.name === DEFAULT_GROUP);
       if (defaultGroup) {
         if (defaultGroup.members.some((m) => m.did === did)) return; // already exists
@@ -200,7 +237,7 @@ export function useBuddyList() {
       setGroups(updatedGroups);
       setBuddies((prev) => [...prev, { did, status: 'offline', addedAt: now }]);
 
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
 
       // Fetch their current presence
       const presenceList = await fetchPresence([did]);
@@ -230,23 +267,23 @@ export function useBuddyList() {
       setGroups(updatedGroups);
       setBuddies((prev) => prev.filter((b) => b.did !== did));
 
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
     },
     [agent, groups],
   );
 
-  const toggleCloseFriend = useCallback(
+  const toggleInnerCircle = useCallback(
     async (did: string) => {
       if (!agent) return;
 
-      let cfGroup = groups.find((g) => g.name === CLOSE_FRIENDS_GROUP);
-      let updatedGroups: BuddyGroup[];
+      let cfGroup = groups.find((g) => g.name === INNER_CIRCLE_GROUP);
+      let updatedGroups: CommunityGroup[];
 
       if (!cfGroup) {
         // Create close friends group with this member
         cfGroup = {
-          name: CLOSE_FRIENDS_GROUP,
-          isCloseFriends: true,
+          name: INNER_CIRCLE_GROUP,
+          isInnerCircle: true,
           members: [{ did, addedAt: new Date().toISOString() }],
         };
         updatedGroups = [...groups, cfGroup];
@@ -255,14 +292,14 @@ export function useBuddyList() {
         if (alreadyIn) {
           // Remove from close friends
           updatedGroups = groups.map((g) =>
-            g.name === CLOSE_FRIENDS_GROUP
+            g.name === INNER_CIRCLE_GROUP
               ? { ...g, members: g.members.filter((m) => m.did !== did) }
               : g,
           );
         } else {
           // Add to close friends
           updatedGroups = groups.map((g) =>
-            g.name === CLOSE_FRIENDS_GROUP
+            g.name === INNER_CIRCLE_GROUP
               ? { ...g, members: [...g.members, { did, addedAt: new Date().toISOString() }] }
               : g,
           );
@@ -270,15 +307,15 @@ export function useBuddyList() {
       }
 
       setGroups(updatedGroups);
-      // Update buddy's isCloseFriend flag
+      // Update buddy's isInnerCircle flag
       const newCfDids = new Set(
         updatedGroups
-          .filter((g) => g.isCloseFriends === true)
+          .filter((g) => g.isInnerCircle === true)
           .flatMap((g) => g.members.map((m) => m.did)),
       );
-      setBuddies((prev) => prev.map((b) => ({ ...b, isCloseFriend: newCfDids.has(b.did) })));
+      setBuddies((prev) => prev.map((b) => ({ ...b, isInnerCircle: newCfDids.has(b.did) })));
 
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
     },
     [agent, groups],
   );
@@ -327,7 +364,7 @@ export function useBuddyList() {
 
       const updatedGroups = [...groups, { name: trimmed, members: [] }];
       setGroups(updatedGroups);
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
     },
     [agent, groups],
   );
@@ -341,7 +378,7 @@ export function useBuddyList() {
 
       const updatedGroups = groups.map((g) => (g.name === oldName ? { ...g, name: trimmed } : g));
       setGroups(updatedGroups);
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
     },
     [agent, groups],
   );
@@ -355,7 +392,7 @@ export function useBuddyList() {
 
       const updatedGroups = groups.filter((g) => g.name !== name);
       setGroups(updatedGroups);
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
     },
     [agent, groups],
   );
@@ -376,7 +413,7 @@ export function useBuddyList() {
       });
 
       setGroups(updatedGroups);
-      await putBuddyListRecord(agent, updatedGroups);
+      await putCommunityListRecord(agent, updatedGroups);
     },
     [agent, groups],
   );
@@ -396,9 +433,9 @@ export function useBuddyList() {
     loading,
     addBuddy,
     removeBuddy,
-    toggleCloseFriend,
+    toggleInnerCircle,
     blockBuddy,
-    closeFriendDids,
+    innerCircleDids,
     agent,
     createGroup,
     renameGroup,

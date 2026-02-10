@@ -7,11 +7,13 @@ import { lexicons } from '../../../../lexicons';
 import { CID } from 'multiformats/cid';
 
 export interface Record {
-  /** AT-URI of the poll being voted on. */
-  poll: string;
-  /** Indices of selected options (0-based). */
-  selectedOptions: number[];
-  /** Timestamp of vote. */
+  /** AT-URI of the room the ban applies to. */
+  room: string;
+  /** DID of the banned user. */
+  subject: string;
+  /** Reason for the ban. */
+  reason?: string;
+  /** Timestamp of ban. */
   createdAt: string;
   [k: string]: unknown;
 }
@@ -20,10 +22,10 @@ export function isRecord(v: unknown): v is Record {
   return (
     isObj(v) &&
     hasProp(v, '$type') &&
-    (v.$type === 'app.chatmosphere.chat.vote#main' || v.$type === 'app.chatmosphere.chat.vote')
+    (v.$type === 'app.protoimsg.chat.ban#main' || v.$type === 'app.protoimsg.chat.ban')
   );
 }
 
 export function validateRecord(v: unknown): ValidationResult {
-  return lexicons.validate('app.chatmosphere.chat.vote#main', v);
+  return lexicons.validate('app.protoimsg.chat.ban#main', v);
 }

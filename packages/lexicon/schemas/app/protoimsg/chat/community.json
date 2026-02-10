@@ -1,10 +1,10 @@
 {
   "lexicon": 1,
-  "id": "app.chatmosphere.chat.buddylist",
+  "id": "app.protoimsg.chat.community",
   "defs": {
     "main": {
       "type": "record",
-      "description": "The user's buddy list. Portable across any app implementing the Lexicon.",
+      "description": "The user's community list. Portable across any app implementing the Lexicon.",
       "key": "literal:self",
       "record": {
         "type": "object",
@@ -12,19 +12,19 @@
         "properties": {
           "groups": {
             "type": "array",
-            "description": "Named groups of buddies, like AIM's buddy list categories.",
+            "description": "Named groups of community members, like AIM's buddy list categories.",
             "maxLength": 50,
             "items": {
               "type": "ref",
-              "ref": "#buddyGroup"
+              "ref": "#communityGroup"
             }
           }
         }
       }
     },
-    "buddyGroup": {
+    "communityGroup": {
       "type": "object",
-      "description": "A named group of buddies.",
+      "description": "A named group of community members.",
       "required": ["name", "members"],
       "properties": {
         "name": {
@@ -32,10 +32,10 @@
           "maxLength": 100,
           "description": "Group label."
         },
-        "isCloseFriends": {
+        "isInnerCircle": {
           "type": "boolean",
           "default": false,
-          "description": "Whether this is a close friends group for presence visibility."
+          "description": "Whether this is an inner circle group for presence visibility."
         },
         "members": {
           "type": "array",
@@ -43,25 +43,25 @@
           "description": "DIDs of group members.",
           "items": {
             "type": "ref",
-            "ref": "#buddyMember"
+            "ref": "#communityMember"
           }
         }
       }
     },
-    "buddyMember": {
+    "communityMember": {
       "type": "object",
-      "description": "A buddy in a group.",
+      "description": "A member in a community group.",
       "required": ["did", "addedAt"],
       "properties": {
         "did": {
           "type": "string",
           "format": "did",
-          "description": "The buddy's DID."
+          "description": "The member's DID."
         },
         "addedAt": {
           "type": "string",
           "format": "datetime",
-          "description": "When this buddy was added."
+          "description": "When this member was added."
         }
       }
     }

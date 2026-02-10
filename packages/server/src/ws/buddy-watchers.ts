@@ -1,16 +1,16 @@
 import type { WebSocket } from 'ws';
-import type { PresenceVisibility } from '@chatmosphere/shared';
+import type { PresenceVisibility } from '@protoimsg/shared';
 import type { Sql } from '../db/client.js';
 import type { BlockService } from '../moderation/block-service.js';
-import { isCloseFriend } from '../buddylist/queries.js';
+import { isCommunityMember, isInnerCircle } from '../community/queries.js';
 import { resolveVisibleStatus } from '../presence/visibility.js';
 
 /**
- * Tracks which sockets are watching which DIDs for buddy presence.
+ * Tracks which sockets are watching which DIDs for community presence.
  * When a watched DID's status changes, we notify the watchers,
- * respecting visibility settings (everyone / close-friends / nobody).
+ * respecting visibility settings (everyone / inner-circle / no-one).
  */
-export class BuddyWatchers {
+export class CommunityWatchers {
   /** did → set of sockets watching that did */
   private watchers = new Map<string, Set<WebSocket>>();
   /** socket → ownerDid (the DID that authenticated this socket) */
@@ -55,11 +55,11 @@ export class BuddyWatchers {
     // Fast path: everyone can see — but still check blocks per-watcher
     if (visibility === 'everyone') {
       const realMsg = JSON.stringify({
-        type: 'buddy_presence',
+        type: 'community_presence',
         data: [{ did, status, awayMessage }],
       });
       const offlineMsg = JSON.stringify({
-        type: 'buddy_presence',
+        type: 'community_presence',
         data: [{ did, status: 'offline' }],
       });
       for (const ws of set) {
@@ -78,7 +78,7 @@ export class BuddyWatchers {
       return;
     }
 
-    // For close-friends / nobody, resolve per-watcher
+    // For inner-circle / no-one, resolve per-watcher
     void this.notifyWithVisibility(did, status, awayMessage, visibility, set);
   }
 
@@ -96,30 +96,35 @@ export class BuddyWatchers {
       if (!watcherDid) continue;
 
       try {
-        // If the buddy blocked this watcher, always show offline
+        // If the user blocked this watcher, always show offline
         if (this.blockService.doesBlock(did, watcherDid)) {
           ws.send(
             JSON.stringify({
-              type: 'buddy_presence',
+              type: 'community_presence',
               data: [{ did, status: 'offline' }],
             }),
           );
           continue;
         }
 
+        const isMember =
+          visibility === 'community' || visibility === 'inner-circle'
+            ? await isCommunityMember(this.sql, did, watcherDid)
+            : false;
         const isFriend =
-          visibility === 'close-friends' ? await isCloseFriend(this.sql, did, watcherDid) : false;
+          visibility === 'inner-circle' ? await isInnerCircle(this.sql, did, watcherDid) : false;
 
         const effectiveStatus = resolveVisibleStatus(
           visibility,
           status as 'online' | 'away' | 'idle' | 'offline' | 'invisible',
+          isMember,
           isFriend,
         );
         const effectiveAway = effectiveStatus === 'offline' ? undefined : awayMessage;
 
         ws.send(
           JSON.stringify({
-            type: 'buddy_presence',
+            type: 'community_presence',
             data: [{ did, status: effectiveStatus, awayMessage: effectiveAway }],
           }),
         );

@@ -10,7 +10,7 @@ import { SessionStore } from './auth/session.js';
 import { RateLimiter } from './moderation/rate-limiter.js';
 import { BlockService } from './moderation/block-service.js';
 import { createDmService } from './dms/service.js';
-import { LIMITS } from '@chatmosphere/shared';
+import { LIMITS } from '@protoimsg/shared';
 import { pruneOldMessages } from './messages/queries.js';
 
 function main() {

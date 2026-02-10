@@ -79,8 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void import('../lib/tauri-windows').then(({ isMainWindow }) => {
         if (!isMainWindow()) {
           const storedToken = getServerToken();
-          const storedDid = localStorage.getItem('chatmosphere:did');
-          const storedHandle = localStorage.getItem('chatmosphere:handle');
+          const storedDid = localStorage.getItem('protoimsg:did');
+          const storedHandle = localStorage.getItem('protoimsg:handle');
           if (storedToken && storedDid) {
             setServerTokenState(storedToken);
             setDid(storedDid);
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .init()
         .then(async (result) => {
           if (result) {
-            sessionStorage.removeItem('chatmosphere:oauth_pending');
+            sessionStorage.removeItem('protoimsg:oauth_pending');
             const { session: restoredSession } = result;
             setAuthPhase('authenticating');
             setSession(restoredSession);
@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setDid(restoredSession.did);
 
             // Persist DID/handle for Tauri child windows
-            localStorage.setItem('chatmosphere:did', restoredSession.did);
+            localStorage.setItem('protoimsg:did', restoredSession.did);
 
             // Resolve real handle via profile
             try {
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const profile = await newAgent.getProfile({ actor: restoredSession.did });
               const resolvedHandle = profile.data.handle;
               setHandle(resolvedHandle);
-              localStorage.setItem('chatmosphere:handle', resolvedHandle);
+              localStorage.setItem('protoimsg:handle', resolvedHandle);
 
               // Create server session for API auth
               setAuthPhase('connecting');
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setAuthPhase('ready');
             }
           } else {
-            sessionStorage.removeItem('chatmosphere:oauth_pending');
+            sessionStorage.removeItem('protoimsg:oauth_pending');
             setAuthPhase('idle');
           }
         })
@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (inputHandle: string) => {
     // Flag that an OAuth redirect is in progress — checked on return to
     // decide whether to show the full ConnectingScreen or a quick restore.
-    sessionStorage.setItem('chatmosphere:oauth_pending', '1');
+    sessionStorage.setItem('protoimsg:oauth_pending', '1');
     const oauthClient = getOAuthClient();
     await oauthClient.signIn(inputHandle, {
       scope: 'atproto transition:generic',
@@ -197,8 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     const sub = did;
     void deleteServerSession();
-    localStorage.removeItem('chatmosphere:did');
-    localStorage.removeItem('chatmosphere:handle');
+    localStorage.removeItem('protoimsg:did');
+    localStorage.removeItem('protoimsg:handle');
     clearAuth();
     if (sub) {
       const oauthClient = getOAuthClient();

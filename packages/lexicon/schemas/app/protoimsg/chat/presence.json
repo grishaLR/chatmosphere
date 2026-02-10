@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.chatmosphere.chat.presence",
+  "id": "app.protoimsg.chat.presence",
   "defs": {
     "main": {
       "type": "record",
@@ -17,7 +17,7 @@
           },
           "visibleTo": {
             "type": "string",
-            "knownValues": ["everyone", "close-friends", "nobody"],
+            "knownValues": ["everyone", "community", "inner-circle", "no-one"],
             "description": "Who can see your real presence status."
           },
           "awayMessage": {

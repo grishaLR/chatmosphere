@@ -8,7 +8,7 @@ export type RoomPurpose = 'discussion' | 'event' | 'community' | 'support';
 export type PresenceStatus = 'online' | 'away' | 'idle' | 'offline' | 'invisible';
 
 /** Who can see your presence */
-export type PresenceVisibility = 'everyone' | 'close-friends' | 'nobody';
+export type PresenceVisibility = 'everyone' | 'community' | 'inner-circle' | 'no-one';
 
 /** Moderator role assignment */
 export type ModeratorRole = 'moderator' | 'owner';

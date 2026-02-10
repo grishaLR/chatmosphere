@@ -1,6 +1,6 @@
 {
   "lexicon": 1,
-  "id": "app.chatmosphere.chat.vote",
+  "id": "app.protoimsg.chat.vote",
   "defs": {
     "main": {
       "type": "record",

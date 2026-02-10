@@ -68,9 +68,9 @@ export function AtprotoInfoModal({ onClose }: AtprotoInfoModalProps) {
           <h3 className={styles.heading}>The short version</h3>
           <p className={styles.text}>
             AT Protocol (or atproto) is a protocol for creating decentralized social apps like the
-            chatmosphere and many more. Instead of one company owning your account, you choose a
-            server (called a <strong>Personal Data Server</strong>, or PDS) to host your identity
-            and data. That same account works across any app built on the protocol.
+            protoimsg and many more. Instead of one company owning your account, you choose a server
+            (called a <strong>Personal Data Server</strong>, or PDS) to host your identity and data.
+            That same account works across any app built on the protocol.
           </p>
           <p className={styles.text}>
             If you're coming from traditional social media, this is a fundamentally different
@@ -96,7 +96,7 @@ export function AtprotoInfoModal({ onClose }: AtprotoInfoModalProps) {
             </li>
             <li>
               <strong>No lock-in.</strong> Apps built on atproto can talk to each other. Your
-              chatmosphere buddies are the same people you follow on Bluesky.
+              protoimsg buddies are the same people you follow on Bluesky.
             </li>
             <li>
               <strong>Open source.</strong> Anyone can run a server or build an app. No gatekeepers.
@@ -107,7 +107,7 @@ export function AtprotoInfoModal({ onClose }: AtprotoInfoModalProps) {
         <section className={styles.section}>
           <h3 className={styles.heading}>Create an account</h3>
           <p className={styles.text}>
-            To use chatmosphere, you need an atproto account on any PDS. Some options:
+            To use protoimsg, you need an atproto account on any PDS. Some options:
           </p>
         </section>
 
@@ -149,7 +149,7 @@ export function AtprotoInfoModal({ onClose }: AtprotoInfoModalProps) {
 
         <section className={styles.section}>
           <p className={styles.text}>
-            chatmosphere is not affiliated with any PDS provider. We are a community-run project
+            protoimsg is not affiliated with any PDS provider. We are a community-run project
             building on the AT Protocol.
           </p>
         </section>

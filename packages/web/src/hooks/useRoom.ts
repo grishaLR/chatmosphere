@@ -3,7 +3,7 @@ import { fetchRoom, NotFoundError } from '../lib/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { playDoorOpen, playDoorClose } from '../lib/sounds';
 import type { RoomView, MemberPresence } from '../types';
-import type { ServerMessage } from '@chatmosphere/shared';
+import type { ServerMessage } from '@protoimsg/shared';
 
 export type DoorEvent = 'join' | 'leave';
 

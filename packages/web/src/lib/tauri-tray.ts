@@ -6,6 +6,6 @@
 import { invoke } from '@tauri-apps/api/core';
 
 export async function updateTrayTooltip(onlineCount: number, status: string): Promise<void> {
-  const tooltip = `Chatmosphere — ${String(onlineCount)} buddies online (${status})`;
+  const tooltip = `protoimsg — ${String(onlineCount)} buddies online (${status})`;
   await invoke('update_tray_tooltip', { tooltip });
 }

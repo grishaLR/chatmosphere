@@ -79,10 +79,10 @@ importers:
       '@atproto/oauth-client-node':
         specifier: ^0.2.0
         version: 0.2.24
-      '@chatmosphere/lexicon':
+      '@protoimsg/lexicon':
         specifier: workspace:*
         version: link:../lexicon
-      '@chatmosphere/shared':
+      '@protoimsg/shared':
         specifier: workspace:*
         version: link:../shared
       cors:
@@ -134,7 +134,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@chatmosphere/shared':
+      '@protoimsg/shared':
         specifier: workspace:*
         version: link:../shared
       react:
@@ -174,13 +174,13 @@ importers:
       '@atproto/oauth-client-browser':
         specifier: ^0.3.0
         version: 0.3.40
-      '@chatmosphere/lexicon':
+      '@protoimsg/lexicon':
         specifier: workspace:*
         version: link:../lexicon
-      '@chatmosphere/shared':
+      '@protoimsg/shared':
         specifier: workspace:*
         version: link:../shared
-      '@chatmosphere/ui':
+      '@protoimsg/ui':
         specifier: workspace:^
         version: link:../ui
       '@tailwindcss/vite':

@@ -1,4 +1,4 @@
-import type { Sql } from '../db/client.js';
+import type { Sql, JsonValue } from '../db/client.js';
 
 export interface MessageRow {
   id: string;
@@ -6,7 +6,10 @@ export interface MessageRow {
   did: string;
   room_id: string;
   text: string;
-  reply_to: string | null;
+  reply_parent: string | null;
+  reply_root: string | null;
+  facets: unknown;
+  embed: unknown;
   created_at: Date;
   indexed_at: Date;
 }
@@ -17,20 +20,26 @@ export interface InsertMessageInput {
   did: string;
   roomId: string;
   text: string;
-  replyTo?: string;
+  replyRoot?: string;
+  replyParent?: string;
+  facets?: unknown[];
+  embed?: unknown;
   createdAt: string;
 }
 
 export async function insertMessage(sql: Sql, input: InsertMessageInput): Promise<void> {
   await sql`
-    INSERT INTO messages (id, uri, did, room_id, text, reply_to, created_at)
+    INSERT INTO messages (id, uri, did, room_id, text, reply_parent, reply_root, facets, embed, created_at)
     VALUES (
       ${input.id},
       ${input.uri},
       ${input.did},
       ${input.roomId},
       ${input.text},
-      ${input.replyTo ?? null},
+      ${input.replyParent ?? null},
+      ${input.replyRoot ?? null},
+      ${input.facets ? sql.json(input.facets as JsonValue) : null},
+      ${input.embed ? sql.json(input.embed as JsonValue) : null},
       ${input.createdAt}
     )
     ON CONFLICT (id) DO NOTHING

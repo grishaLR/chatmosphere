@@ -1,4 +1,4 @@
-import type { RichTextFacet, MentionFeature, LinkFeature } from '@chatmosphere/lexicon';
+import type { RichTextFacet, MentionFeature, LinkFeature } from '@protoimsg/lexicon';
 import type { ReactNode } from 'react';
 import { isSafeUrl } from '../../lib/sanitize';
 import styles from './RichText.module.css';
@@ -26,7 +26,7 @@ type AnyFeature =
   | BskyLinkFeature
   | BskyTagFeature;
 
-/** Facet shape shared by both chatmosphere and Bluesky records */
+/** Facet shape shared by both protoimsg and Bluesky records */
 export interface GenericFacet {
   index: { byteStart: number; byteEnd: number };
   features: AnyFeature[];
@@ -45,7 +45,7 @@ function renderFeature(
   onMentionClick?: (did: string) => void,
 ): ReactNode {
   switch (feature.$type) {
-    case 'app.chatmosphere.chat.message#mention':
+    case 'app.protoimsg.chat.message#mention':
     case 'app.bsky.richtext.facet#mention': {
       const did = feature.did;
       if (onMentionClick) {
@@ -76,7 +76,7 @@ function renderFeature(
         </span>
       );
     }
-    case 'app.chatmosphere.chat.message#link':
+    case 'app.protoimsg.chat.message#link':
     case 'app.bsky.richtext.facet#link':
       if (!isSafeUrl(feature.uri)) {
         return <span key={key}>{text}</span>;
@@ -109,7 +109,7 @@ function renderFeature(
 /**
  * Renders text with atproto facets (mentions, links, tags).
  * Uses TextEncoder/TextDecoder for correct UTF-8 byte offset → string conversion.
- * Supports both chatmosphere and Bluesky facet shapes.
+ * Supports both protoimsg and Bluesky facet shapes.
  */
 export function RichText({ text, facets, onMentionClick }: RichTextProps) {
   if (!facets || facets.length === 0) {

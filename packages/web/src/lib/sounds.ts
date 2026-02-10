@@ -122,7 +122,7 @@ function startDialup(): () => void {
 }
 
 // Fire immediately at module load if returning from OAuth
-if (sessionStorage.getItem('chatmosphere:oauth_pending') === '1') {
+if (sessionStorage.getItem('protoimsg:oauth_pending') === '1') {
   // Optimistically try to unlock AudioContext right away
   const audio = getContext();
   if (audio.state === 'suspended') void audio.resume();

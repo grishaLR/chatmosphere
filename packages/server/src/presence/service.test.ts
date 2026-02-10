@@ -24,7 +24,7 @@ describe('createPresenceService', () => {
 
   it('handleStatusChange updates status and away message', () => {
     service.handleUserConnect('did:plc:alice');
-    service.handleStatusChange('did:plc:alice', 'away', 'lunch break', 'close-friends');
+    service.handleStatusChange('did:plc:alice', 'away', 'lunch break', 'inner-circle');
     const presence = service.getPresence('did:plc:alice');
     expect(presence.status).toBe('away');
     expect(presence.awayMessage).toBe('lunch break');

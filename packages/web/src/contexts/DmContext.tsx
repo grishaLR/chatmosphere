@@ -13,7 +13,7 @@ import { useAuth } from '../hooks/useAuth';
 import { playImNotify } from '../lib/sounds';
 import { IS_TAURI } from '../lib/config';
 import type { DmMessageView } from '../types';
-import type { ServerMessage } from '@chatmosphere/shared';
+import type { ServerMessage } from '@protoimsg/shared';
 
 const MAX_OPEN_POPOVERS = 4;
 const MAX_MESSAGES = 200;

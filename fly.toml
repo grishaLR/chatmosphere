@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for chatmosphere on 2026-02-09T15:38:44-05:00
+# fly.toml app configuration file generated for protoimsg
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'chatmosphere'
+app = 'protoimsg'
 primary_region = 'iad'
 
 [build]

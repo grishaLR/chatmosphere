@@ -40,7 +40,7 @@ describe('Room and message flow', () => {
   it.skipIf(skipIntegration)('create room, insert message, read back', async () => {
     if (!sql) throw new Error('No DB client');
     const roomId = `test-room-${randomUUID().slice(0, 8)}`;
-    const roomUri = `at://did:plc:test/app.chatmosphere.chat.room/${roomId}`;
+    const roomUri = `at://did:plc:test/app.protoimsg.chat.room/${roomId}`;
     const did = 'did:plc:integration-test';
     const now = new Date().toISOString();
 
@@ -51,9 +51,11 @@ describe('Room and message flow', () => {
       name: 'Integration test room',
       description: 'For DB integration tests',
       purpose: 'discussion',
+      topic: 'Testing',
       visibility: 'public',
       minAccountAgeDays: 0,
       slowModeSeconds: 0,
+      allowlistEnabled: false,
       createdAt: now,
     });
 
@@ -62,7 +64,7 @@ describe('Room and message flow', () => {
     expect(room?.name).toBe('Integration test room');
 
     const msgId = `test-msg-${randomUUID().slice(0, 8)}`;
-    const msgUri = `at://${did}/app.chatmosphere.chat.message/${msgId}`;
+    const msgUri = `at://${did}/app.protoimsg.chat.message/${msgId}`;
     await insertMessage(sql, {
       id: msgId,
       uri: msgUri,

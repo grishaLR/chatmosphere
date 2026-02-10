@@ -10,7 +10,7 @@ export interface Record {
   /** Current presence status. */
   status: 'online' | 'away' | 'idle' | 'offline' | 'invisible' | (string & {});
   /** Who can see your real presence status. */
-  visibleTo: 'everyone' | 'close-friends' | 'nobody' | (string & {});
+  visibleTo: 'everyone' | 'community' | 'inner-circle' | 'no-one' | (string & {});
   /** Custom away message / status text. */
   awayMessage?: string;
   /** When presence was last updated. */
@@ -22,11 +22,10 @@ export function isRecord(v: unknown): v is Record {
   return (
     isObj(v) &&
     hasProp(v, '$type') &&
-    (v.$type === 'app.chatmosphere.chat.presence#main' ||
-      v.$type === 'app.chatmosphere.chat.presence')
+    (v.$type === 'app.protoimsg.chat.presence#main' || v.$type === 'app.protoimsg.chat.presence')
   );
 }
 
 export function validateRecord(v: unknown): ValidationResult {
-  return lexicons.validate('app.chatmosphere.chat.presence#main', v);
+  return lexicons.validate('app.protoimsg.chat.presence#main', v);
 }

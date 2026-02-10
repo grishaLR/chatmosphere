@@ -1,4 +1,4 @@
-import { LIMITS } from '@chatmosphere/shared';
+import { LIMITS } from '@protoimsg/shared';
 
 const BLOCKED_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /(.)\1{15,}/, reason: 'Character spam detected' },

@@ -29,7 +29,7 @@ export function RoomDirectoryPage() {
     loading: buddiesLoading,
     addBuddy,
     removeBuddy,
-    toggleCloseFriend,
+    toggleInnerCircle,
     blockBuddy,
     agent,
     createGroup,
@@ -134,7 +134,7 @@ export function RoomDirectoryPage() {
     agent,
     onAddBuddy: addBuddy,
     onRemoveBuddy: removeBuddy,
-    onToggleCloseFriend: toggleCloseFriend,
+    onToggleInnerCircle: toggleInnerCircle,
     onBlockBuddy: (did: string) => {
       const isCurrentlyBlocked = blockedDids.has(did);
       toggleBlock(did);

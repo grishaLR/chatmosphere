@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { LIMITS } from '@chatmosphere/shared';
+import { LIMITS } from '@protoimsg/shared';
 import { getRooms, getRoom } from './service.js';
 import type { Sql } from '../db/client.js';
 

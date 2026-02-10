@@ -1,0 +1,32 @@
+{
+  "lexicon": 1,
+  "id": "app.protoimsg.chat.allowlist",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "An allowlist entry for a room. When the room has allowlistEnabled, only allowlisted users can send messages. Lives in the room owner/mod's repo.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["room", "subject", "createdAt"],
+        "properties": {
+          "room": {
+            "type": "string",
+            "format": "at-uri",
+            "description": "AT-URI of the room the allowlist entry applies to."
+          },
+          "subject": {
+            "type": "string",
+            "format": "did",
+            "description": "DID of the allowlisted user."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of allowlist entry creation."
+          }
+        }
+      }
+    }
+  }
+}

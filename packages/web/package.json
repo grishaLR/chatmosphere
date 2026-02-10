@@ -1,5 +1,5 @@
 {
-  "name": "@chatmosphere/web",
+  "name": "@protoimsg/web",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -14,9 +14,9 @@
   "dependencies": {
     "@atproto/api": "^0.13.0",
     "@atproto/oauth-client-browser": "^0.3.0",
-    "@chatmosphere/lexicon": "workspace:*",
-    "@chatmosphere/shared": "workspace:*",
-    "@chatmosphere/ui": "workspace:^",
+    "@protoimsg/lexicon": "workspace:*",
+    "@protoimsg/shared": "workspace:*",
+    "@protoimsg/ui": "workspace:^",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-table": "^8.21.3",

@@ -23,8 +23,8 @@ const statusChange = z.object({
 
 const ping = z.object({ type: z.literal('ping') });
 
-const requestBuddyPresence = z.object({
-  type: z.literal('request_buddy_presence'),
+const requestCommunityPresence = z.object({
+  type: z.literal('request_community_presence'),
   dids: z.array(did).max(100),
 });
 
@@ -70,7 +70,7 @@ const clientMessage = z.discriminatedUnion('type', [
   leaveRoom,
   statusChange,
   ping,
-  requestBuddyPresence,
+  requestCommunityPresence,
   roomTyping,
   syncBlocks,
   dmOpen,

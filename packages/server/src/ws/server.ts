@@ -3,7 +3,7 @@ import { WebSocketServer, type WebSocket } from 'ws';
 import type { Server } from 'http';
 import { RoomSubscriptions } from './rooms.js';
 import { DmSubscriptions } from '../dms/subscriptions.js';
-import { BuddyWatchers } from './buddy-watchers.js';
+import { CommunityWatchers } from './buddy-watchers.js';
 import { handleClientMessage } from './handlers.js';
 import { attachHeartbeat } from './heartbeat.js';
 import type { PresenceService } from '../presence/service.js';
@@ -68,7 +68,7 @@ export function createWsServer(
   const dmSubs = new DmSubscriptions();
   const userSockets = new UserSockets();
   blockService.startSweep();
-  const buddyWatchers = new BuddyWatchers(sql, blockService);
+  const communityWatchers = new CommunityWatchers(sql, blockService);
 
   wss.on('connection', (ws: WebSocket) => {
     (ws as WebSocket & { socketId?: string }).socketId = randomUUID();
@@ -115,7 +115,7 @@ export function createWsServer(
         service.handleUserConnect(did);
         userSockets.add(did, ws);
         blockService.touch(did);
-        buddyWatchers.notify(did, 'online');
+        communityWatchers.notify(did, 'online');
         cleanupHeartbeat = attachHeartbeat(ws);
         console.info(`WS authenticated: ${did}`);
         return;
@@ -135,7 +135,7 @@ export function createWsServer(
         did,
         data,
         roomSubs,
-        buddyWatchers,
+        communityWatchers,
         service,
         sql,
         rateLimiter,
@@ -153,7 +153,7 @@ export function createWsServer(
         // Remove this socket first so we can check remaining connections
         userSockets.remove(did, ws);
         roomSubs.unsubscribeAll(ws);
-        buddyWatchers.unwatchAll(ws);
+        communityWatchers.unwatchAll(ws);
 
         const abandonedConvos = dmSubs.unsubscribeAll(ws);
         for (const conversationId of abandonedConvos) {
@@ -171,7 +171,7 @@ export function createWsServer(
               data: { did, status: 'offline' },
             });
           }
-          buddyWatchers.notify(did, 'offline');
+          communityWatchers.notify(did, 'offline');
           service.handleUserDisconnect(did);
         }
 

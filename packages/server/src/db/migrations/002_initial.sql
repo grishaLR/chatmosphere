@@ -1,4 +1,4 @@
--- chatmosphere application schema
+-- protoimsg application schema
 
 CREATE TABLE IF NOT EXISTS rooms (
   id          TEXT PRIMARY KEY,
@@ -41,20 +41,20 @@ CREATE TABLE IF NOT EXISTS mod_actions (
 CREATE INDEX IF NOT EXISTS idx_mod_actions_room ON mod_actions(room_id);
 CREATE INDEX IF NOT EXISTS idx_mod_actions_subject ON mod_actions(subject_did);
 
-CREATE TABLE IF NOT EXISTS buddy_lists (
+CREATE TABLE IF NOT EXISTS community_lists (
   did         TEXT PRIMARY KEY,
   groups      JSONB NOT NULL DEFAULT '[]',
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS buddy_members (
+CREATE TABLE IF NOT EXISTS community_members (
   owner_did   TEXT NOT NULL,
-  buddy_did   TEXT NOT NULL,
+  member_did  TEXT NOT NULL,
   added_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (owner_did, buddy_did)
+  PRIMARY KEY (owner_did, member_did)
 );
-CREATE INDEX IF NOT EXISTS idx_buddy_members_buddy ON buddy_members(buddy_did);
+CREATE INDEX IF NOT EXISTS idx_community_members_member ON community_members(member_did);
 
 CREATE TABLE IF NOT EXISTS room_roles (
   id          SERIAL PRIMARY KEY,

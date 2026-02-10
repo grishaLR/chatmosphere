@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm turbo build --filter=@chatmosphere/web",
+  "buildCommand": "pnpm turbo build --filter=@protoimsg/web",
   "outputDirectory": "packages/web/dist",
   "installCommand": "pnpm install",
   "framework": "vite",
