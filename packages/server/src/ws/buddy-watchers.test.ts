@@ -4,10 +4,11 @@ import { CommunityWatchers } from './buddy-watchers.js';
 import type { WebSocket } from 'ws';
 
 vi.mock('../community/queries.js', () => ({
+  isCommunityMember: vi.fn(),
   isInnerCircle: vi.fn(),
 }));
 
-const { isInnerCircle } = await import('../community/queries.js');
+const { isCommunityMember, isInnerCircle } = await import('../community/queries.js');
 
 function createMockWs(): WebSocket {
   const ws = {
@@ -97,6 +98,7 @@ describe('CommunityWatchers', () => {
   });
 
   it('resolves inner-circle visibility per watcher', async () => {
+    vi.mocked(isCommunityMember).mockResolvedValue(true);
     vi.mocked(isInnerCircle).mockResolvedValue(true);
 
     const ws = createMockWs();
@@ -113,6 +115,7 @@ describe('CommunityWatchers', () => {
   });
 
   it('shows offline for non-friends with inner-circle visibility', async () => {
+    vi.mocked(isCommunityMember).mockResolvedValue(true);
     vi.mocked(isInnerCircle).mockResolvedValue(false);
 
     const ws = createMockWs();
