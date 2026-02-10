@@ -46,11 +46,16 @@ export class CommunityWatchers {
   }
 
   /** Notify all sockets watching a specific DID, respecting visibility */
-  notify(did: string, status: string, awayMessage?: string, visibleTo?: PresenceVisibility): void {
+  async notify(
+    did: string,
+    status: string,
+    awayMessage?: string,
+    visibleTo?: PresenceVisibility,
+  ): Promise<void> {
     const set = this.watchers.get(did);
     if (!set) return;
 
-    const visibility = visibleTo ?? 'everyone';
+    const visibility = visibleTo ?? 'no-one';
 
     // Fast path: everyone can see — but still check blocks per-watcher
     if (visibility === 'everyone') {
@@ -78,8 +83,8 @@ export class CommunityWatchers {
       return;
     }
 
-    // For inner-circle / no-one, resolve per-watcher
-    void this.notifyWithVisibility(did, status, awayMessage, visibility, set);
+    // For community / inner-circle / no-one, resolve per-watcher
+    await this.notifyWithVisibility(did, status, awayMessage, visibility, set);
   }
 
   private async notifyWithVisibility(

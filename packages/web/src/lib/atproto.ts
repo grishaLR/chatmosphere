@@ -160,6 +160,25 @@ export async function putCommunityListRecord(
 
 // -- Presence PDS helpers --
 
+export async function getPresenceRecord(
+  agent: Agent,
+): Promise<{ visibleTo?: PresenceVisibility; awayMessage?: string } | null> {
+  try {
+    const response = await agent.com.atproto.repo.getRecord({
+      repo: agent.assertDid,
+      collection: NSID.Presence,
+      rkey: 'self',
+    });
+    const record = response.data.value as {
+      visibleTo?: PresenceVisibility;
+      awayMessage?: string;
+    };
+    return record;
+  } catch {
+    return null;
+  }
+}
+
 export async function putPresenceRecord(
   agent: Agent,
   status: PresenceStatus,

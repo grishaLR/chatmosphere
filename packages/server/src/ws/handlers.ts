@@ -12,6 +12,13 @@ import type { Sql } from '../db/client.js';
 import type { RateLimiter } from '../moderation/rate-limiter.js';
 import { checkUserAccess } from '../moderation/service.js';
 import type { BlockService } from '../moderation/block-service.js';
+import {
+  syncCommunityMembers,
+  upsertCommunityList,
+  isCommunityMember,
+  isInnerCircle,
+} from '../community/queries.js';
+import { resolveVisibleStatus } from '../presence/visibility.js';
 
 export async function handleClientMessage(
   ws: WebSocket,
@@ -83,16 +90,40 @@ export async function handleClientMessage(
         });
       }
       // Notify community watchers (visibility-aware)
-      communityWatchers.notify(did, data.status, data.awayMessage, visibleTo);
+      await communityWatchers.notify(did, data.status, data.awayMessage, visibleTo);
       break;
     }
 
     case 'request_community_presence': {
-      const presenceList = service
-        .getBulkPresence(data.dids)
-        .map((p) =>
-          blockService.doesBlock(p.did, did) ? { did: p.did, status: 'offline' as const } : p,
-        );
+      const rawPresence = service.getBulkPresence(data.dids);
+      const presenceList = await Promise.all(
+        rawPresence.map(async (p) => {
+          if (blockService.doesBlock(p.did, did)) {
+            return { did: p.did, status: 'offline' as const };
+          }
+          const visibility = service.getVisibleTo(p.did);
+          if (visibility === 'everyone') return p;
+
+          const member =
+            visibility === 'community' || visibility === 'inner-circle'
+              ? await isCommunityMember(sql, p.did, did)
+              : false;
+          const friend =
+            visibility === 'inner-circle' ? await isInnerCircle(sql, p.did, did) : false;
+
+          const effectiveStatus = resolveVisibleStatus(
+            visibility,
+            p.status as 'online' | 'away' | 'idle' | 'offline',
+            member,
+            friend,
+          );
+          return {
+            did: p.did,
+            status: effectiveStatus,
+            awayMessage: effectiveStatus === 'offline' ? undefined : p.awayMessage,
+          };
+        }),
+      );
       ws.send(
         JSON.stringify({
           type: 'community_presence',
@@ -122,7 +153,15 @@ export async function handleClientMessage(
       // Re-notify all watchers with block-filtered presence
       // (newly blocked get offline, newly unblocked get real status)
       const presence = service.getPresence(did);
-      communityWatchers.notify(did, presence.status, presence.awayMessage);
+      const blockVisibleTo = service.getVisibleTo(did);
+      await communityWatchers.notify(did, presence.status, presence.awayMessage, blockVisibleTo);
+      break;
+    }
+
+    case 'sync_community': {
+      const allMembers = data.groups.flatMap((g) => g.members);
+      await syncCommunityMembers(sql, did, allMembers);
+      await upsertCommunityList(sql, { did, groups: data.groups });
       break;
     }
 

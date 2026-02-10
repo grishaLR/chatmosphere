@@ -1,27 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import type { PresenceStatus, PresenceVisibility } from '@protoimsg/shared';
 import { useAuth } from '../../hooks/useAuth';
 import { usePresence } from '../../hooks/usePresence';
 import { StatusIndicator } from '../chat/StatusIndicator';
 import { WindowControls } from './WindowControls';
 import { IS_TAURI } from '../../lib/config';
+import { STATUS_OPTIONS, VISIBILITY_OPTIONS } from '../../constants/presence';
 import styles from './Header.module.css';
 
 interface HeaderProps {
   onOpenSettings?: () => void;
 }
-
-const STATUS_OPTIONS: Array<{ value: PresenceStatus; label: string }> = [
-  { value: 'online', label: 'Online' },
-  { value: 'away', label: 'Away' },
-  { value: 'idle', label: 'Idle' },
-];
-
-const VISIBILITY_OPTIONS: Array<{ value: PresenceVisibility; label: string }> = [
-  { value: 'everyone', label: 'Everyone' },
-  { value: 'inner-circle', label: 'Inner Circle' },
-  { value: 'no-one', label: 'No One' },
-];
 
 export function Header({ onOpenSettings }: HeaderProps) {
   const { did, logout } = useAuth();

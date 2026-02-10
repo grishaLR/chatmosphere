@@ -75,6 +75,7 @@ export function createWsServer(
     let did: string | null = null;
     let authenticated = false;
     let cleanupHeartbeat: (() => void) | null = null;
+    let msgQueue: Promise<void> = Promise.resolve();
 
     // Auth timeout — close if no auth message within 5 seconds
     const authTimer = setTimeout(() => {
@@ -115,13 +116,17 @@ export function createWsServer(
         service.handleUserConnect(did);
         userSockets.add(did, ws);
         blockService.touch(did);
-        communityWatchers.notify(did, 'online');
+        // Don't notify community watchers here — visibility hasn't been
+        // restored yet (client sends status_change with saved visibility
+        // immediately after auth). Notifying here with default 'everyone'
+        // would leak presence to users outside the visibility scope.
         cleanupHeartbeat = attachHeartbeat(ws);
         console.info(`WS authenticated: ${did}`);
         return;
       }
 
       if (!did) return;
+      const authedDid = did;
 
       // Validate all post-auth messages with Zod
       const data = parseClientMessage(json);
@@ -130,20 +135,29 @@ export function createWsServer(
         return;
       }
 
-      void handleClientMessage(
-        ws,
-        did,
-        data,
-        roomSubs,
-        communityWatchers,
-        service,
-        sql,
-        rateLimiter,
-        dmSubs,
-        userSockets,
-        dmService,
-        blockService,
-      );
+      // Queue messages so each handler's async DB work completes before
+      // the next starts (e.g. sync_community writes must finish before
+      // status_change reads community_members for visibility checks).
+      msgQueue = msgQueue
+        .then(() =>
+          handleClientMessage(
+            ws,
+            authedDid,
+            data,
+            roomSubs,
+            communityWatchers,
+            service,
+            sql,
+            rateLimiter,
+            dmSubs,
+            userSockets,
+            dmService,
+            blockService,
+          ),
+        )
+        .catch((err: unknown) => {
+          console.error('Message handler error:', err);
+        });
     });
 
     ws.on('close', () => {
@@ -171,7 +185,7 @@ export function createWsServer(
               data: { did, status: 'offline' },
             });
           }
-          communityWatchers.notify(did, 'offline');
+          void communityWatchers.notify(did, 'offline', undefined, 'everyone');
           service.handleUserDisconnect(did);
         }
 

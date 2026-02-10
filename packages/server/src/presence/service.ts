@@ -14,6 +14,7 @@ export interface PresenceService {
   handleLeaveRoom(did: string, roomId: string): void;
   getUserStatus(did: string): PresenceStatus;
   getPresence(did: string): { status: PresenceStatus; awayMessage?: string };
+  getVisibleTo(did: string): PresenceVisibility;
   getRoomPresence(roomId: string): string[];
   getBulkPresence(dids: string[]): Array<{ did: string; status: string; awayMessage?: string }>;
   getUserRooms(did: string): Set<string>;
@@ -52,6 +53,10 @@ export function createPresenceService(tracker: PresenceTracker): PresenceService
 
     getPresence(did: string): { status: PresenceStatus; awayMessage?: string } {
       return tracker.getPresence(did);
+    },
+
+    getVisibleTo(did: string): PresenceVisibility {
+      return tracker.getVisibleTo(did);
     },
 
     getRoomPresence(roomId: string): string[] {

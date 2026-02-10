@@ -38,6 +38,26 @@ const syncBlocks = z.object({
   blockedDids: z.array(did).max(MAX_BLOCK_LIST_SIZE),
 });
 
+const syncCommunity = z.object({
+  type: z.literal('sync_community'),
+  groups: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        isInnerCircle: z.boolean().optional(),
+        members: z
+          .array(
+            z.object({
+              did,
+              addedAt: z.string(),
+            }),
+          )
+          .max(100),
+      }),
+    )
+    .max(20),
+});
+
 const dmOpen = z.object({
   type: z.literal('dm_open'),
   recipientDid: did,
@@ -73,6 +93,7 @@ const clientMessage = z.discriminatedUnion('type', [
   requestCommunityPresence,
   roomTyping,
   syncBlocks,
+  syncCommunity,
   dmOpen,
   dmClose,
   dmSend,

@@ -28,7 +28,7 @@ export class PresenceTracker {
       this.users.set(did, {
         did,
         status: 'online',
-        visibleTo: 'everyone',
+        visibleTo: 'no-one',
         lastSeen: new Date(),
         rooms: new Set(),
       });
@@ -78,7 +78,7 @@ export class PresenceTracker {
   }
 
   getVisibleTo(did: string): PresenceVisibility {
-    return this.users.get(did)?.visibleTo ?? 'everyone';
+    return this.users.get(did)?.visibleTo ?? 'no-one';
   }
 
   getPresenceBulk(dids: string[]): Map<string, { status: PresenceStatus; awayMessage?: string }> {

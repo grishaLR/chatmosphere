@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './useAuth';
 import { useWebSocket } from '../contexts/WebSocketContext';
+import { getCachedVisibility } from './usePresence';
 import { getCommunityListRecord, putCommunityListRecord, generateTid } from '../lib/atproto';
 import { fetchPresence } from '../lib/api';
 import { playDoorOpen, playDoorClose } from '../lib/sounds';
@@ -146,6 +147,13 @@ export function useBuddyList() {
       );
       setLoading(false);
 
+      // Sync community data to server so visibility checks work
+      send({ type: 'sync_community', groups: seeded });
+      // Re-broadcast visibility now that community data is synced.
+      // The server queues messages, so sync_community's DB writes complete
+      // before this status_change triggers communityWatchers.notify.
+      const cachedVis = getCachedVisibility();
+      send({ type: 'status_change', status: 'online', visibleTo: cachedVis });
       // Request block-filtered presence via WS
       send({ type: 'request_community_presence', dids: allDids });
     }
@@ -238,6 +246,7 @@ export function useBuddyList() {
       setBuddies((prev) => [...prev, { did, status: 'offline', addedAt: now }]);
 
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
 
       // Fetch their current presence
       const presenceList = await fetchPresence([did]);
@@ -252,7 +261,7 @@ export function useBuddyList() {
         );
       }
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   const removeBuddy = useCallback(
@@ -268,8 +277,9 @@ export function useBuddyList() {
       setBuddies((prev) => prev.filter((b) => b.did !== did));
 
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   const toggleInnerCircle = useCallback(
@@ -316,8 +326,9 @@ export function useBuddyList() {
       setBuddies((prev) => prev.map((b) => ({ ...b, isInnerCircle: newCfDids.has(b.did) })));
 
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   const blockBuddy = useCallback(
@@ -365,8 +376,9 @@ export function useBuddyList() {
       const updatedGroups = [...groups, { name: trimmed, members: [] }];
       setGroups(updatedGroups);
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   const renameGroup = useCallback(
@@ -379,8 +391,9 @@ export function useBuddyList() {
       const updatedGroups = groups.map((g) => (g.name === oldName ? { ...g, name: trimmed } : g));
       setGroups(updatedGroups);
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   const deleteGroup = useCallback(
@@ -393,8 +406,9 @@ export function useBuddyList() {
       const updatedGroups = groups.filter((g) => g.name !== name);
       setGroups(updatedGroups);
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   const moveBuddy = useCallback(
@@ -414,8 +428,9 @@ export function useBuddyList() {
 
       setGroups(updatedGroups);
       await putCommunityListRecord(agent, updatedGroups);
+      send({ type: 'sync_community', groups: updatedGroups });
     },
-    [agent, groups],
+    [agent, groups, send],
   );
 
   // Cleanup door timers on unmount

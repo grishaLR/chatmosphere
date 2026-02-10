@@ -76,6 +76,15 @@ export interface SyncBlocksMessage extends WsMessageBase {
   blockedDids: string[];
 }
 
+export interface SyncCommunityMessage extends WsMessageBase {
+  type: 'sync_community';
+  groups: Array<{
+    name: string;
+    isInnerCircle?: boolean;
+    members: Array<{ did: string; addedAt: string }>;
+  }>;
+}
+
 export type ClientMessage =
   | AuthMessage
   | JoinRoomMessage
@@ -85,6 +94,7 @@ export type ClientMessage =
   | RequestCommunityPresenceMessage
   | RoomTypingMessage
   | SyncBlocksMessage
+  | SyncCommunityMessage
   | DmOpenMessage
   | DmCloseMessage
   | DmSendMessage

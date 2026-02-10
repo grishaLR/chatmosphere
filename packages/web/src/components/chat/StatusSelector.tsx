@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StatusIndicator } from './StatusIndicator';
 import type { PresenceStatus, PresenceVisibility } from '@protoimsg/shared';
+import { STATUS_OPTIONS, VISIBILITY_OPTIONS } from '../../constants/presence';
 import styles from './StatusSelector.module.css';
 
 interface StatusSelectorProps {
@@ -13,18 +14,6 @@ interface StatusSelectorProps {
     visibleTo?: PresenceVisibility,
   ) => void;
 }
-
-const STATUS_OPTIONS: Array<{ value: PresenceStatus; label: string }> = [
-  { value: 'online', label: 'Online' },
-  { value: 'away', label: 'Away' },
-  { value: 'idle', label: 'Idle' },
-];
-
-const VISIBILITY_OPTIONS: Array<{ value: PresenceVisibility; label: string }> = [
-  { value: 'everyone', label: 'Everyone' },
-  { value: 'inner-circle', label: 'Inner Circle' },
-  { value: 'no-one', label: 'No One' },
-];
 
 export function StatusSelector({
   status,
