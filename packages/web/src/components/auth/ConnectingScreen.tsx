@@ -13,7 +13,7 @@ interface DisplayStep {
 const STEP_LABELS = [
   'Connecting...',
   'Verifying credentials...',
-  'Connecting to protoimsg...',
+  'Connecting to proto instant messenger...',
   'Loading your buddies...',
 ] as const;
 
@@ -113,10 +113,10 @@ export function ConnectingScreen() {
     <div className={styles.backdrop}>
       <div className={styles.window}>
         <div className={styles.titleBar}>
-          <span className={styles.titleText}>protoimsg Sign On</span>
+          <span className={styles.titleText}>proto instant messenger Sign On</span>
         </div>
         <div className={styles.body}>
-          <div className={styles.logo}>protoimsg</div>
+          <div className={styles.logo}>proto instant messenger</div>
           <div className={styles.steps}>
             {steps.map((step) => (
               <div

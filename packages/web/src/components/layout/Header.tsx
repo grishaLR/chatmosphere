@@ -45,7 +45,7 @@ export function Header({ onOpenSettings }: HeaderProps) {
 
   return (
     <header className={styles.header} data-tauri-drag-region="">
-      <h1 className={styles.title}>protoimsg</h1>
+      <h1 className={styles.title}>proto instant messenger</h1>
       <div className={styles.right}>
         {did && (
           <div className={styles.menuWrap} ref={menuRef}>
