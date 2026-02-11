@@ -11,7 +11,7 @@
   resize: none;
   border: none;
   border-radius: 0;
-  padding: var(--cm-space-1.5) var(--cm-space-2);
+  padding: var(--cm-space-1.5) var(--cm-space-4);
   font-size: var(--cm-text-md);
   font-family: inherit;
   line-height: 1.4;
@@ -20,6 +20,7 @@
   overflow-y: auto;
   background: var(--cm-surface-content);
   box-shadow: var(--cm-sunken);
+  box-sizing: border-box;
 }
 
 .textarea:focus {
