@@ -8,7 +8,7 @@ interface MobileTabBarProps {
 }
 
 const TABS: { id: MobileTab; label: string }[] = [
-  { id: 'buddies', label: 'Buddies' },
+  { id: 'buddies', label: 'Community' },
   { id: 'rooms', label: 'Rooms' },
   { id: 'feed', label: 'Feed' },
 ];

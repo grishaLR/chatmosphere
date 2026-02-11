@@ -26,7 +26,7 @@ export function LoginForm() {
   return (
     <>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <h1 className={styles.title}>protoimsg</h1>
+        <h1 className={styles.title}>proto instant messenger</h1>
         <p className={styles.subtitle}>AIM-inspired chat on the AT Protocol</p>
         <label className={styles.label} htmlFor="handle">
           atproto handle
