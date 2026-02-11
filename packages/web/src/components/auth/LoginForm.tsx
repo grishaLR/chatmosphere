@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { ActorSearch, type ActorSearchResult } from '../shared/ActorSearch';
 import { AtprotoInfoModal } from './AtprotoInfoModal';
 import styles from './LoginForm.module.css';
 
@@ -23,6 +24,10 @@ export function LoginForm() {
     });
   }
 
+  function handleActorSelect(actor: ActorSearchResult) {
+    setHandle(actor.handle);
+  }
+
   return (
     <>
       <form className={styles.form} onSubmit={handleSubmit}>
@@ -31,15 +36,14 @@ export function LoginForm() {
         <label className={styles.label} htmlFor="handle">
           atproto handle
         </label>
-        <input
+        <ActorSearch
           id="handle"
-          className={styles.input}
-          type="text"
-          placeholder="you.your-server.com"
           value={handle}
-          onChange={(e) => {
-            setHandle(e.target.value);
-          }}
+          onInputChange={setHandle}
+          onSelect={handleActorSelect}
+          clearOnSelect={false}
+          placeholder="you.your-server.com"
+          variant="default"
           disabled={loading}
           autoFocus
         />

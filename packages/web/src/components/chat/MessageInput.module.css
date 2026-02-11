@@ -8,13 +8,14 @@
 .textarea {
   flex: 1;
   resize: none;
-  padding: var(--cm-space-1.5) var(--cm-space-2);
+  padding: var(--cm-space-1.5) var(--cm-space-4);
   border: none;
   border-radius: 0;
   font-family: inherit;
   font-size: var(--cm-text-lg);
   background: var(--cm-surface-content);
   box-shadow: var(--cm-sunken);
+  box-sizing: border-box;
 }
 
 .textarea:focus {

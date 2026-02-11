@@ -1,0 +1,154 @@
+.wrap {
+  position: relative;
+}
+
+/* ---- Input variants ---- */
+
+.inputCompact {
+  width: 100%;
+  padding: var(--cm-space-1) var(--cm-space-2);
+  border: none;
+  border-radius: 0;
+  font-size: var(--cm-text-base);
+  min-width: 0;
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
+  box-sizing: border-box;
+}
+
+.inputCompact:focus {
+  outline: none;
+}
+
+.inputDefault {
+  width: 100%;
+  padding: var(--cm-space-1.5) var(--cm-space-4);
+  padding-inline-start: var(--cm-space-4);
+  padding-inline-end: var(--cm-space-4);
+  border: none;
+  border-radius: 0;
+  font-size: var(--cm-text-lg);
+  background: var(--cm-surface-content);
+  box-shadow: var(--cm-sunken);
+  box-sizing: border-box;
+}
+
+.inputDefault:focus {
+  outline: var(--cm-space-0\.5) dotted var(--cm-focus);
+  outline-offset: var(--cm-focus-inset);
+}
+
+/* ---- Dropdown ---- */
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-base-100);
+  box-shadow: var(--cm-raised), var(--cm-window-shadow);
+  z-index: 200;
+}
+
+.status {
+  padding: var(--cm-space-3) var(--cm-space-4);
+  font-size: var(--cm-text-sm);
+  color: var(--cm-border-dark);
+  text-align: center;
+}
+
+.menu {
+  max-height: 240px;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* ---- Option variants ---- */
+
+.optionCompact {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-3);
+  padding: var(--cm-space-2) var(--cm-space-3);
+  cursor: pointer;
+  font-size: var(--cm-text-base);
+}
+
+.optionDefault {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-4);
+  padding: var(--cm-space-3) var(--cm-space-4);
+  cursor: pointer;
+  font-size: var(--cm-text-md);
+}
+
+.optionCompact:hover,
+.optionDefault:hover,
+.optionFocused {
+  background: var(--cm-selection);
+  color: var(--cm-chrome-text);
+}
+
+.optionDisabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.optionDisabled:hover,
+.optionDisabled.optionFocused {
+  background: none;
+  color: var(--color-base-content);
+}
+
+/* ---- Avatar ---- */
+
+.avatarCompact {
+  width: var(--cm-avatar-sm);
+  height: var(--cm-avatar-sm);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.avatarDefault {
+  width: var(--cm-avatar-md);
+  height: var(--cm-avatar-md);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+/* ---- Text ---- */
+
+.actorInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.handle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.displayName {
+  font-size: var(--cm-text-sm);
+  color: var(--cm-border-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.optionCompact:hover .displayName,
+.optionDefault:hover .displayName,
+.optionFocused .displayName {
+  color: var(--cm-chrome-text);
+  opacity: 0.7;
+}
+
+.disabledBadge {
+  font-size: var(--cm-text-xs);
+  color: var(--cm-border-dark);
+  flex-shrink: 0;
+}

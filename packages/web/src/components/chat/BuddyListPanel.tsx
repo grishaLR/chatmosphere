@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useVirtualList } from 'virtualized-ui';
-import type { Agent } from '@atproto/api';
 import type { CommunityGroup } from '@protoimsg/lexicon';
 import { StatusIndicator } from './StatusIndicator';
 import { UserIdentity } from './UserIdentity';
-import { resolveDidOrHandle } from '../../lib/resolve-identity';
+import { ActorSearch, type ActorSearchResult } from '../shared/ActorSearch';
 import { useBlocks } from '../../contexts/BlockContext';
 import { useCollapsedGroups } from '../../hooks/useCollapsedGroups';
 import type { DoorEvent } from '../../hooks/useBuddyList';
@@ -16,7 +15,6 @@ interface BuddyListPanelProps {
   groups: CommunityGroup[];
   doorEvents?: Record<string, DoorEvent>;
   loading: boolean;
-  agent: Agent | null;
   onAddBuddy: (did: string) => Promise<void>;
   onRemoveBuddy: (did: string) => Promise<void>;
   onToggleInnerCircle: (did: string) => Promise<void>;
@@ -226,7 +224,6 @@ export function BuddyListPanel({
   groups,
   doorEvents = {},
   loading,
-  agent,
   onAddBuddy,
   onRemoveBuddy,
   onToggleInnerCircle,
@@ -242,13 +239,19 @@ export function BuddyListPanel({
 }: BuddyListPanelProps) {
   const { blockedDids } = useBlocks();
   const { collapsed, toggle: toggleCollapse } = useCollapsedGroups();
-  const [addInput, setAddInput] = useState('');
-  const [adding, setAdding] = useState(false);
-  const [addError, setAddError] = useState<string | null>(null);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [renamingGroup, setRenamingGroup] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+
+  const buddyDids = useMemo(() => new Set(buddies.map((b) => b.did)), [buddies]);
+
+  const handleBuddySelect = useCallback(
+    (actor: ActorSearchResult) => {
+      void onAddBuddy(actor.did);
+    },
+    [onAddBuddy],
+  );
 
   // Build presence map from flat buddies array
   const presenceMap = useMemo(() => {
@@ -368,22 +371,6 @@ export function BuddyListPanel({
       estimatedItemHeight: 28,
     });
 
-  const handleAdd = async () => {
-    const input = addInput.trim();
-    if (!input || !agent) return;
-    setAdding(true);
-    setAddError(null);
-    try {
-      const did = await resolveDidOrHandle(agent, input);
-      await onAddBuddy(did);
-      setAddInput('');
-    } catch {
-      setAddError(`Could not resolve "${input}"`);
-    } finally {
-      setAdding(false);
-    }
-  };
-
   const handleCreateGroup = useCallback(async () => {
     const trimmed = newGroupName.trim();
     if (!trimmed) {
@@ -409,26 +396,14 @@ export function BuddyListPanel({
 
   return (
     <div className={styles.panel}>
-      <div className={styles.addSection}>
-        <input
-          className={styles.addInput}
-          type="text"
-          placeholder="Add buddy (DID or handle)..."
-          value={addInput}
-          onChange={(e) => {
-            setAddInput(e.target.value);
-            setAddError(null);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') void handleAdd();
-          }}
-          disabled={adding}
+      <div className={styles.searchSection}>
+        <ActorSearch
+          onSelect={handleBuddySelect}
+          isOptionDisabled={(actor) => buddyDids.has(actor.did)}
+          placeholder="Search buddies..."
+          variant="compact"
         />
-        <button className={styles.addBtn} onClick={() => void handleAdd()} disabled={adding}>
-          Add
-        </button>
       </div>
-      {addError && <p className={styles.addError}>{addError}</p>}
 
       {loading ? (
         <p className={styles.empty}>Loading...</p>
