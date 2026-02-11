@@ -1,6 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -40,7 +39,7 @@ function oauthMetadataPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [tailwindcss(), react(), oauthMetadataPlugin()],
+  plugins: [react(), oauthMetadataPlugin()],
   server: {
     port: 5173,
     strictPort: true,

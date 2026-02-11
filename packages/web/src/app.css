@@ -1,9 +1,8 @@
-/* Tailwind/daisyUI: base layer and theme only. Component styling is CSS Modules + design tokens. */
-@import "tailwindcss";
-@plugin "daisyui" {
-  themes: aim --default;
+/* Minimal reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
 }
-
 
 /* AIM Global Styles */
 
