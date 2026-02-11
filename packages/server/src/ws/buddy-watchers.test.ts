@@ -49,7 +49,7 @@ describe('CommunityWatchers', () => {
   it('watch registers a socket to receive updates for DIDs', async () => {
     const ws = createMockWs();
     watchers.watch(ws, 'did:plc:watcher', ['did:plc:alice']);
-    await watchers.notify('did:plc:alice', 'online');
+    await watchers.notify('did:plc:alice', 'online', undefined, 'everyone');
     const payload = parseSentMessage(ws);
     expect(payload.type).toBe('community_presence');
     expect(payload.data[0]?.status).toBe('online');
@@ -92,7 +92,7 @@ describe('CommunityWatchers', () => {
   it('includes awayMessage in notification', async () => {
     const ws = createMockWs();
     watchers.watch(ws, 'did:plc:watcher', ['did:plc:alice']);
-    await watchers.notify('did:plc:alice', 'away', 'lunch');
+    await watchers.notify('did:plc:alice', 'away', 'lunch', 'everyone');
     const payload = parseSentMessage(ws);
     expect(payload.data[0]?.awayMessage).toBe('lunch');
   });

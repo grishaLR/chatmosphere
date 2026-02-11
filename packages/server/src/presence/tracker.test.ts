@@ -46,13 +46,13 @@ describe('PresenceTracker', () => {
     expect(tracker.getVisibleTo('did:plc:alice')).toBe('inner-circle');
   });
 
-  it('defaults visibleTo to everyone', () => {
+  it('defaults visibleTo to no-one', () => {
     tracker.setOnline('did:plc:alice');
-    expect(tracker.getVisibleTo('did:plc:alice')).toBe('everyone');
+    expect(tracker.getVisibleTo('did:plc:alice')).toBe('no-one');
   });
 
-  it('returns everyone for unknown user visibleTo', () => {
-    expect(tracker.getVisibleTo('did:plc:unknown')).toBe('everyone');
+  it('returns no-one for unknown user visibleTo', () => {
+    expect(tracker.getVisibleTo('did:plc:unknown')).toBe('no-one');
   });
 
   it('getPresence returns offline for unknown users', () => {
