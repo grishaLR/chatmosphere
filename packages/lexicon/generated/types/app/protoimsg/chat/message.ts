@@ -11,7 +11,7 @@ export interface Record {
   room: string;
   /** Message text content. */
   text: string;
-  /** Rich text annotations (mentions, links). Same format as Bluesky post facets. */
+  /** Rich text annotations (mentions, links, tags, formatting). Extends the Bluesky facet convention with additional formatting features. */
   facets?: RichTextFacet[];
   reply?: ReplyRef;
   embed?: ImageEmbed | VideoEmbed | ExternalEmbed | { $type: string; [k: string]: unknown };
@@ -137,10 +137,21 @@ export function validateAspectRatio(v: unknown): ValidationResult {
   return lexicons.validate('app.protoimsg.chat.message#aspectRatio', v);
 }
 
-/** A rich text annotation on the message. */
+/** Annotation of a sub-string within rich text. */
 export interface RichTextFacet {
   index: ByteSlice;
-  features: (Mention | Link | { $type: string; [k: string]: unknown })[];
+  features: (
+    | Mention
+    | Link
+    | Tag
+    | Bold
+    | Italic
+    | Strikethrough
+    | CodeInline
+    | CodeBlock
+    | Blockquote
+    | { $type: string; [k: string]: unknown }
+  )[];
   [k: string]: unknown;
 }
 
@@ -152,7 +163,7 @@ export function validateRichTextFacet(v: unknown): ValidationResult {
   return lexicons.validate('app.protoimsg.chat.message#richTextFacet', v);
 }
 
-/** Byte range within the text. */
+/** Specifies the sub-string range a facet feature applies to. Start index is inclusive, end index is exclusive. Indices are zero-indexed, counting bytes of the UTF-8 encoded text. */
 export interface ByteSlice {
   byteStart: number;
   byteEnd: number;
@@ -167,7 +178,7 @@ export function validateByteSlice(v: unknown): ValidationResult {
   return lexicons.validate('app.protoimsg.chat.message#byteSlice', v);
 }
 
-/** A mention of another user. */
+/** Facet feature for mention of another account. The text is usually a handle, including a '@' prefix, but the facet reference is a DID. */
 export interface Mention {
   did: string;
   [k: string]: unknown;
@@ -181,7 +192,7 @@ export function validateMention(v: unknown): ValidationResult {
   return lexicons.validate('app.protoimsg.chat.message#mention', v);
 }
 
-/** A hyperlink. */
+/** Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL. */
 export interface Link {
   uri: string;
   [k: string]: unknown;
@@ -193,4 +204,98 @@ export function isLink(v: unknown): v is Link {
 
 export function validateLink(v: unknown): ValidationResult {
   return lexicons.validate('app.protoimsg.chat.message#link', v);
+}
+
+/** Facet feature for a hashtag. The text usually includes a '#' prefix, but the facet reference should not. */
+export interface Tag {
+  tag: string;
+  [k: string]: unknown;
+}
+
+export function isTag(v: unknown): v is Tag {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#tag';
+}
+
+export function validateTag(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#tag', v);
+}
+
+/** Facet feature for bold text. */
+export interface Bold {
+  [k: string]: unknown;
+}
+
+export function isBold(v: unknown): v is Bold {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#bold';
+}
+
+export function validateBold(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#bold', v);
+}
+
+/** Facet feature for italic text. */
+export interface Italic {
+  [k: string]: unknown;
+}
+
+export function isItalic(v: unknown): v is Italic {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#italic';
+}
+
+export function validateItalic(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#italic', v);
+}
+
+/** Facet feature for strikethrough text. */
+export interface Strikethrough {
+  [k: string]: unknown;
+}
+
+export function isStrikethrough(v: unknown): v is Strikethrough {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#strikethrough';
+}
+
+export function validateStrikethrough(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#strikethrough', v);
+}
+
+/** Facet feature for inline code. */
+export interface CodeInline {
+  [k: string]: unknown;
+}
+
+export function isCodeInline(v: unknown): v is CodeInline {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#codeInline';
+}
+
+export function validateCodeInline(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#codeInline', v);
+}
+
+/** Facet feature for a code block. The text contains the code content. */
+export interface CodeBlock {
+  /** Programming language for syntax highlighting. */
+  lang?: string;
+  [k: string]: unknown;
+}
+
+export function isCodeBlock(v: unknown): v is CodeBlock {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#codeBlock';
+}
+
+export function validateCodeBlock(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#codeBlock', v);
+}
+
+/** Facet feature for a block quotation. */
+export interface Blockquote {
+  [k: string]: unknown;
+}
+
+export function isBlockquote(v: unknown): v is Blockquote {
+  return isObj(v) && hasProp(v, '$type') && v.$type === 'app.protoimsg.chat.message#blockquote';
+}
+
+export function validateBlockquote(v: unknown): ValidationResult {
+  return lexicons.validate('app.protoimsg.chat.message#blockquote', v);
 }

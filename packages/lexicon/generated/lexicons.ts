@@ -169,7 +169,7 @@ export const schemaDict = {
             facets: {
               type: 'array',
               description:
-                'Rich text annotations (mentions, links). Same format as Bluesky post facets.',
+                'Rich text annotations (mentions, links, tags, formatting). Extends the Bluesky facet convention with additional formatting features.',
               items: {
                 type: 'ref',
                 ref: 'lex:app.protoimsg.chat.message#richTextFacet',
@@ -325,7 +325,7 @@ export const schemaDict = {
       },
       richTextFacet: {
         type: 'object',
-        description: 'A rich text annotation on the message.',
+        description: 'Annotation of a sub-string within rich text.',
         required: ['index', 'features'],
         properties: {
           index: {
@@ -339,6 +339,13 @@ export const schemaDict = {
               refs: [
                 'lex:app.protoimsg.chat.message#mention',
                 'lex:app.protoimsg.chat.message#link',
+                'lex:app.protoimsg.chat.message#tag',
+                'lex:app.protoimsg.chat.message#bold',
+                'lex:app.protoimsg.chat.message#italic',
+                'lex:app.protoimsg.chat.message#strikethrough',
+                'lex:app.protoimsg.chat.message#codeInline',
+                'lex:app.protoimsg.chat.message#codeBlock',
+                'lex:app.protoimsg.chat.message#blockquote',
               ],
             },
           },
@@ -346,7 +353,8 @@ export const schemaDict = {
       },
       byteSlice: {
         type: 'object',
-        description: 'Byte range within the text.',
+        description:
+          'Specifies the sub-string range a facet feature applies to. Start index is inclusive, end index is exclusive. Indices are zero-indexed, counting bytes of the UTF-8 encoded text.',
         required: ['byteStart', 'byteEnd'],
         properties: {
           byteStart: {
@@ -361,7 +369,8 @@ export const schemaDict = {
       },
       mention: {
         type: 'object',
-        description: 'A mention of another user.',
+        description:
+          "Facet feature for mention of another account. The text is usually a handle, including a '@' prefix, but the facet reference is a DID.",
         required: ['did'],
         properties: {
           did: {
@@ -372,7 +381,8 @@ export const schemaDict = {
       },
       link: {
         type: 'object',
-        description: 'A hyperlink.',
+        description:
+          'Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL.',
         required: ['uri'],
         properties: {
           uri: {
@@ -380,6 +390,55 @@ export const schemaDict = {
             format: 'uri',
           },
         },
+      },
+      tag: {
+        type: 'object',
+        description:
+          "Facet feature for a hashtag. The text usually includes a '#' prefix, but the facet reference should not.",
+        required: ['tag'],
+        properties: {
+          tag: {
+            type: 'string',
+            maxLength: 640,
+            maxGraphemes: 64,
+          },
+        },
+      },
+      bold: {
+        type: 'object',
+        description: 'Facet feature for bold text.',
+        properties: {},
+      },
+      italic: {
+        type: 'object',
+        description: 'Facet feature for italic text.',
+        properties: {},
+      },
+      strikethrough: {
+        type: 'object',
+        description: 'Facet feature for strikethrough text.',
+        properties: {},
+      },
+      codeInline: {
+        type: 'object',
+        description: 'Facet feature for inline code.',
+        properties: {},
+      },
+      codeBlock: {
+        type: 'object',
+        description: 'Facet feature for a code block. The text contains the code content.',
+        properties: {
+          lang: {
+            type: 'string',
+            maxLength: 50,
+            description: 'Programming language for syntax highlighting.',
+          },
+        },
+      },
+      blockquote: {
+        type: 'object',
+        description: 'Facet feature for a block quotation.',
+        properties: {},
       },
     },
   },

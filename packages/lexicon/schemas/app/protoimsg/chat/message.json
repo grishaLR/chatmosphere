@@ -251,19 +251,23 @@
     },
     "bold": {
       "type": "object",
-      "description": "Facet feature for bold text."
+      "description": "Facet feature for bold text.",
+      "properties": {}
     },
     "italic": {
       "type": "object",
-      "description": "Facet feature for italic text."
+      "description": "Facet feature for italic text.",
+      "properties": {}
     },
     "strikethrough": {
       "type": "object",
-      "description": "Facet feature for strikethrough text."
+      "description": "Facet feature for strikethrough text.",
+      "properties": {}
     },
     "codeInline": {
       "type": "object",
-      "description": "Facet feature for inline code."
+      "description": "Facet feature for inline code.",
+      "properties": {}
     },
     "codeBlock": {
       "type": "object",
@@ -278,7 +282,8 @@
     },
     "blockquote": {
       "type": "object",
-      "description": "Facet feature for a block quotation."
+      "description": "Facet feature for a block quotation.",
+      "properties": {}
     }
   }
 }
