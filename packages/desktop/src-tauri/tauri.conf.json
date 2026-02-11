@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicklasxyz/tauri-v2/main/core/tauri-config-schema/schema.json",
-  "productName": "protoimsg",
+  "productName": "proto instant messenger",
   "version": "0.0.1",
   "identifier": "app.protoimsg.desktop",
   "build": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "protoimsg",
+        "title": "proto instant messenger",
         "width": 260,
         "height": 560,
         "minWidth": 220,
