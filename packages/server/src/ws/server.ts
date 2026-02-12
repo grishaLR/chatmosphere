@@ -15,6 +15,7 @@ import type { SessionStore } from '../auth/session-store.js';
 import type { RateLimiterStore } from '../moderation/rate-limiter-store.js';
 import { BlockService } from '../moderation/block-service.js';
 import { createLogger } from '../logger.js';
+import { Sentry } from '../sentry.js';
 
 const log = createLogger('ws');
 const AUTH_TIMEOUT_MS = 5000;
@@ -165,7 +166,8 @@ export function createWsServer(
             ws.send(JSON.stringify({ type: 'auth_success' }));
             log.info({ did }, 'WS authenticated');
           })
-          .catch(() => {
+          .catch((err: unknown) => {
+            Sentry.captureException(err);
             ws.close(4001, 'Auth error');
           });
         return;
@@ -202,6 +204,7 @@ export function createWsServer(
           ),
         )
         .catch((err: unknown) => {
+          Sentry.captureException(err);
           log.error({ err }, 'Message handler error');
         });
     });
@@ -251,6 +254,7 @@ export function createWsServer(
     });
 
     ws.on('error', (err) => {
+      Sentry.captureException(err);
       log.error({ err }, 'WebSocket error');
     });
   });

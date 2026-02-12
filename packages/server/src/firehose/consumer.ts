@@ -7,6 +7,7 @@ import type { WsServer } from '../ws/server.js';
 import type { PresenceService } from '../presence/service.js';
 import type { SessionStore } from '../auth/session-store.js';
 import { createLogger } from '../logger.js';
+import { Sentry } from '../sentry.js';
 
 const log = createLogger('firehose');
 
@@ -117,6 +118,7 @@ export function createFirehoseConsumer(
                 log.info({ did: event.did, handle: newHandle }, 'Identity update');
               }
             })().catch((err: unknown) => {
+              Sentry.captureException(err);
               log.error({ err }, 'Error handling identity event');
             });
           }
@@ -136,6 +138,7 @@ export function createFirehoseConsumer(
                 );
               }
             })().catch((err: unknown) => {
+              Sentry.captureException(err);
               log.error({ err }, 'Error handling account event');
             });
           }
@@ -187,9 +190,11 @@ export function createFirehoseConsumer(
             await saveCursor(db, event.time_us);
           }
         })().catch((err: unknown) => {
+          Sentry.captureException(err);
           log.error({ err, collection: commit.collection }, 'Error handling commit event');
         });
       } catch (err) {
+        Sentry.captureException(err);
         log.error({ err }, 'Error parsing Jetstream event');
       }
     });
@@ -210,6 +215,7 @@ export function createFirehoseConsumer(
     });
 
     ws.on('error', (err) => {
+      Sentry.captureException(err);
       log.error({ err }, 'Jetstream error');
     });
   }

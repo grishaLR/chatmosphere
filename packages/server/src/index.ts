@@ -1,6 +1,7 @@
 import { createServer } from 'http';
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
+import { initSentry } from './sentry.js';
 import { initLogger, createLogger } from './logger.js';
 import { createDb } from './db/client.js';
 import { createFirehoseConsumer } from './firehose/consumer.js';
@@ -20,6 +21,7 @@ import { pruneOldMessages } from './messages/queries.js';
 
 async function main() {
   const config = loadConfig();
+  initSentry(config);
   initLogger(config);
   const log = createLogger('server');
 
