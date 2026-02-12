@@ -6,6 +6,11 @@ describe('SessionStore', () => {
     vi.restoreAllMocks();
   });
 
+  it('throws if TTL is <= 0', () => {
+    expect(() => new SessionStore(0)).toThrow('Session TTL must be greater than 0');
+    expect(() => new SessionStore(-1)).toThrow('Session TTL must be greater than 0');
+  });
+
   it('create returns a UUID token', () => {
     const store = new SessionStore();
     const token = store.create('did:plc:abc', 'alice.bsky.social');

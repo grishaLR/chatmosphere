@@ -20,6 +20,9 @@ export class SessionStore {
   private ttlMs: number;
 
   constructor(ttlMs = DEFAULT_TTL_MS) {
+    if (ttlMs <= 0) {
+      throw new Error('Session TTL must be greater than 0');
+    }
     this.ttlMs = ttlMs;
   }
 
