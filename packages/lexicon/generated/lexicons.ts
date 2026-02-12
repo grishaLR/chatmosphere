@@ -666,6 +666,7 @@ export const schemaDict = {
             selectedOptions: {
               type: 'array',
               description: 'Indices of selected options (0-based).',
+              maxLength: 10,
               items: {
                 type: 'integer',
                 minimum: 0,

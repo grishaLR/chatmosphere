@@ -60,6 +60,9 @@ export async function deleteMessage(sql: Sql, uri: string): Promise<void> {
   await sql`DELETE FROM messages WHERE uri = ${uri}`;
 }
 
+/** ISO 8601 datetime (basic validation to prevent SQL injection / garbage input) */
+const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
 export async function getMessagesByRoom(
   sql: Sql,
   roomId: string,
@@ -68,6 +71,9 @@ export async function getMessagesByRoom(
   const { limit = 50, before } = options;
 
   if (before) {
+    if (!ISO_DATETIME_RE.test(before)) {
+      throw new Error('Invalid "before" cursor: expected ISO 8601 timestamp');
+    }
     return sql<MessageRow[]>`
       SELECT * FROM messages
       WHERE room_id = ${roomId} AND created_at < ${before}

@@ -10,7 +10,7 @@
 }
 
 .input:focus {
-  outline: 2px solid var(--cm-focus);
+  outline: var(--cm-focus-outset) solid var(--cm-focus);
   outline-offset: var(--cm-focus-offset);
 }
 
