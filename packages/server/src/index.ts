@@ -82,13 +82,21 @@ function main() {
     console.info('Shutting down...');
     clearInterval(pruneInterval);
     await firehose.stop();
-    wss.close();
-    httpServer.close(() => {
-      void db.end().then(() => {
-        console.info('Shutdown complete');
-        process.exit(0);
+
+    // Close WS server and wait for all close handlers to drain.
+    // WS close handlers contain async work (DM cleanup, presence
+    // notifications) that needs the DB — must finish before db.end().
+    await wss.close();
+
+    await new Promise<void>((resolve) => {
+      httpServer.close(() => {
+        resolve();
       });
     });
+
+    await db.end();
+    console.info('Shutdown complete');
+    process.exit(0);
   };
 
   process.on('SIGTERM', () => void shutdown());

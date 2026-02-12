@@ -18,6 +18,8 @@ export interface UserPresence {
 /** In-memory presence tracker backed by WebSocket connections */
 export class PresenceTracker {
   private users = new Map<string, UserPresence>();
+  /** Reverse index: roomId → Set of DIDs currently in that room. O(1) lookups. */
+  private roomMembers = new Map<string, Set<string>>();
 
   setOnline(did: string): void {
     const existing = this.users.get(did);
@@ -36,7 +38,18 @@ export class PresenceTracker {
   }
 
   setOffline(did: string): void {
-    this.users.delete(did);
+    const user = this.users.get(did);
+    if (user) {
+      // Clean up reverse index for all rooms this user was in
+      for (const roomId of user.rooms) {
+        const members = this.roomMembers.get(roomId);
+        if (members) {
+          members.delete(did);
+          if (members.size === 0) this.roomMembers.delete(roomId);
+        }
+      }
+      this.users.delete(did);
+    }
   }
 
   setStatus(
@@ -58,6 +71,13 @@ export class PresenceTracker {
     const user = this.users.get(did);
     if (user) {
       user.rooms.add(roomId);
+      // Update reverse index
+      let members = this.roomMembers.get(roomId);
+      if (!members) {
+        members = new Set();
+        this.roomMembers.set(roomId, members);
+      }
+      members.add(did);
     }
   }
 
@@ -65,6 +85,12 @@ export class PresenceTracker {
     const user = this.users.get(did);
     if (user) {
       user.rooms.delete(roomId);
+      // Update reverse index
+      const members = this.roomMembers.get(roomId);
+      if (members) {
+        members.delete(did);
+        if (members.size === 0) this.roomMembers.delete(roomId);
+      }
     }
   }
 
@@ -93,14 +119,10 @@ export class PresenceTracker {
     return this.users.get(did)?.rooms ?? new Set();
   }
 
+  /** O(1) via reverse index instead of O(N) scan over all users */
   getRoomMembers(roomId: string): string[] {
-    const members: string[] = [];
-    for (const [did, presence] of this.users) {
-      if (presence.rooms.has(roomId)) {
-        members.push(did);
-      }
-    }
-    return members;
+    const members = this.roomMembers.get(roomId);
+    return members ? [...members] : [];
   }
 
   getOnlineUsers(): string[] {

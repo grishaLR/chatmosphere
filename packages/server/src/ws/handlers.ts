@@ -21,6 +21,13 @@ import {
 } from '../community/queries.js';
 import { resolveVisibleStatus } from '../presence/visibility.js';
 
+/**
+ * Per-user-per-room typing throttle. Prevents a single client from flooding
+ * a room with typing indicators. Key: "roomId:did", value: last broadcast timestamp.
+ */
+const TYPING_THROTTLE_MS = 3000;
+const typingThrottle = new Map<string, number>();
+
 export async function handleClientMessage(
   ws: WebSocket,
   did: string,
@@ -143,6 +150,13 @@ export async function handleClientMessage(
       // Only broadcast if the user is actually in the room
       const roomMembers = roomSubs.getSubscribers(data.roomId);
       if (roomMembers.has(ws)) {
+        // Per-user-per-room throttle: one typing broadcast per TYPING_THROTTLE_MS
+        const throttleKey = `${data.roomId}:${did}`;
+        const now = Date.now();
+        const lastTyping = typingThrottle.get(throttleKey);
+        if (lastTyping && now - lastTyping < TYPING_THROTTLE_MS) break;
+        typingThrottle.set(throttleKey, now);
+
         roomSubs.broadcast(
           data.roomId,
           { type: 'room_typing', data: { roomId: data.roomId, did } },

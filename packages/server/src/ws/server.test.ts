@@ -55,13 +55,14 @@ function setup() {
         sessions,
         wss,
         url: `ws://127.0.0.1:${String(port)}/ws`,
-        cleanup: () =>
-          new Promise<void>((done) => {
-            wss.close();
+        cleanup: async () => {
+          await wss.close();
+          await new Promise<void>((done) => {
             httpServer.close(() => {
               done();
             });
-          }),
+          });
+        },
       });
     });
   });

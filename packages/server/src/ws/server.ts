@@ -69,7 +69,7 @@ export class UserSockets {
 
 export interface WsServer {
   broadcastToRoom: (roomId: string, message: ServerMessage) => void;
-  close: () => void;
+  close: () => Promise<void>;
 }
 
 export function createWsServer(
@@ -245,7 +245,16 @@ export function createWsServer(
     },
     close: () => {
       blockService.stopSweep();
-      wss.close();
+      return new Promise<void>((resolve, reject) => {
+        // Close all client sockets first so their 'close' handlers fire
+        for (const client of wss.clients) {
+          client.close(1001, 'Server shutting down');
+        }
+        wss.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
     },
   };
 }
