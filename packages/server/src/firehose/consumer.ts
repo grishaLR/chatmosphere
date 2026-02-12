@@ -56,6 +56,8 @@ export interface FirehoseConsumer {
 
 const RECONNECT_DELAY_MS = 3000;
 const CURSOR_SAVE_INTERVAL = 100;
+/** Jetstream retains ~72 hours of events. Beyond this, events are permanently lost. */
+const CURSOR_STALENESS_THRESHOLD_US = 72 * 60 * 60 * 1_000_000;
 
 export function createFirehoseConsumer(
   jetstreamUrl: string,
@@ -71,6 +73,18 @@ export function createFirehoseConsumer(
   let lastCursor: number | undefined;
 
   function connect(cursor: number | undefined) {
+    // Staleness check: warn if cursor is beyond Jetstream's retention window
+    if (cursor) {
+      const nowUs = Date.now() * 1000;
+      const ageUs = nowUs - cursor;
+      if (ageUs > CURSOR_STALENESS_THRESHOLD_US) {
+        const ageHours = Math.round(ageUs / 3_600_000_000);
+        console.warn(
+          `⚠ Jetstream cursor is ${String(ageHours)}h old (retention ~72h). Events may have been lost. Consider a backfill.`,
+        );
+      }
+    }
+
     const url = new URL(jetstreamUrl);
     url.searchParams.set('wantedCollections', NSID_PREFIX + '*');
     if (cursor) {
