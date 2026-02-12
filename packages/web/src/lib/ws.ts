@@ -52,20 +52,25 @@ export function createWsClient(url: string, token: string, opts?: WsClientOption
     };
 
     ws.onmessage = (event) => {
+      let msg: ServerMessage;
       try {
-        const msg = JSON.parse(event.data as string) as ServerMessage;
-
-        // Track auth success to enable message sending
-        if (msg.type === 'auth_success' && !authenticated) {
-          setAuthenticated(true);
-          flushQueue();
-        }
-
-        for (const handler of handlers) {
-          handler(msg);
-        }
+        msg = JSON.parse(event.data as string) as ServerMessage;
       } catch {
-        // Ignore malformed messages
+        return; // Ignore malformed JSON
+      }
+
+      // Track auth success to enable message sending
+      if (msg.type === 'auth_success' && !authenticated) {
+        setAuthenticated(true);
+        flushQueue();
+      }
+
+      for (const handler of handlers) {
+        try {
+          handler(msg);
+        } catch (err) {
+          console.error('WS handler error:', err);
+        }
       }
     };
 

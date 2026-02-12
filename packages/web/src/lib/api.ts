@@ -109,10 +109,15 @@ export async function fetchRoom(id: string, opts?: { signal?: AbortSignal }): Pr
   return data.room;
 }
 
+export interface FetchMessagesResult {
+  messages: MessageView[];
+  replyCounts: Record<string, number>;
+}
+
 export async function fetchMessages(
   roomId: string,
   opts?: { limit?: number; before?: string; signal?: AbortSignal },
-): Promise<MessageView[]> {
+): Promise<FetchMessagesResult> {
   const params = new URLSearchParams();
   if (opts?.limit) params.set('limit', String(opts.limit));
   if (opts?.before) params.set('before', opts.before);
@@ -123,6 +128,28 @@ export async function fetchMessages(
     { signal: opts?.signal },
   );
   if (!res.ok) throw new Error(`Failed to fetch messages: ${res.status}`);
+
+  const data = (await res.json()) as {
+    messages: MessageView[];
+    replyCounts?: Record<string, number>;
+  };
+  return { messages: data.messages, replyCounts: data.replyCounts ?? {} };
+}
+
+export async function fetchThreadMessages(
+  roomId: string,
+  rootUri: string,
+  opts?: { limit?: number; signal?: AbortSignal },
+): Promise<MessageView[]> {
+  const params = new URLSearchParams();
+  params.set('root', rootUri);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+
+  const res = await authFetch(
+    `/api/rooms/${encodeURIComponent(roomId)}/threads?${params.toString()}`,
+    { signal: opts?.signal },
+  );
+  if (!res.ok) throw new Error(`Failed to fetch thread: ${res.status}`);
 
   const data = (await res.json()) as { messages: MessageView[] };
   return data.messages;

@@ -90,6 +90,45 @@ export async function getMessagesByRoom(
   `;
 }
 
+/** Get all messages in a thread (root + replies), ordered chronologically. */
+export async function getThreadMessages(
+  sql: Sql,
+  roomId: string,
+  rootUri: string,
+  options: { limit?: number } = {},
+): Promise<MessageRow[]> {
+  const { limit = 200 } = options;
+
+  return sql<MessageRow[]>`
+    SELECT * FROM messages
+    WHERE room_id = ${roomId}
+      AND (uri = ${rootUri} OR reply_root = ${rootUri})
+    ORDER BY created_at ASC
+    LIMIT ${limit}
+  `;
+}
+
+/** Reply count per root URI. Only counts direct children of the thread root. */
+export interface ReplyCount {
+  reply_root: string;
+  count: string;
+}
+
+/** Get reply counts for root messages in a room. Accepts the URIs of messages to check. */
+export async function getReplyCountsByRootUris(
+  sql: Sql,
+  rootUris: string[],
+): Promise<ReplyCount[]> {
+  if (rootUris.length === 0) return [];
+
+  return sql<ReplyCount[]>`
+    SELECT reply_root, COUNT(*)::text as count
+    FROM messages
+    WHERE reply_root IN ${sql(rootUris)}
+    GROUP BY reply_root
+  `;
+}
+
 const PRUNE_BATCH_SIZE = 1000;
 
 /** Delete room messages older than retentionDays in batches. Returns total count of deleted rows. */
