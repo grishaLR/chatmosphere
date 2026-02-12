@@ -26,7 +26,7 @@ export function useBuddyList() {
   const [error, setError] = useState<Error | null>(null);
   const [groups, setGroups] = useState<CommunityGroup[]>([]);
   const prevStatusRef = useRef<Map<string, string>>(new Map());
-  const doorTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const doorTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   // M46: ref for callbacks to read latest groups — avoids stale closure when rapid ops occur
   const groupsRef = useRef(groups);
@@ -182,12 +182,13 @@ export function useBuddyList() {
 
     setDoorEvents((prev) => ({ ...prev, [did]: event }));
     const t = setTimeout(() => {
+      doorTimersRef.current.delete(t);
       setDoorEvents((prev) => {
         const { [did]: _, ...rest } = prev;
         return rest;
       });
     }, DOOR_LINGER_MS);
-    doorTimersRef.current.push(t);
+    doorTimersRef.current.add(t);
   }, []);
 
   const checkTransition = useCallback(
@@ -454,9 +455,9 @@ export function useBuddyList() {
 
   // Cleanup door timers on unmount
   useEffect(() => {
-    const timers = doorTimersRef.current;
     return () => {
-      timers.forEach(clearTimeout);
+      for (const t of doorTimersRef.current) clearTimeout(t);
+      doorTimersRef.current.clear();
     };
   }, []);
 

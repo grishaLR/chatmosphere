@@ -60,11 +60,12 @@ export function useRoom(roomId: string) {
 
     send({ type: 'join_room', roomId });
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    const timers = new Set<ReturnType<typeof setTimeout>>();
 
     const addDoorEvent = (did: string, event: DoorEvent) => {
       setDoorEvents((prev) => ({ ...prev, [did]: event }));
       const t = setTimeout(() => {
+        timers.delete(t);
         setDoorEvents((prev) => {
           const { [did]: _, ...rest } = prev;
           return rest;
@@ -73,7 +74,7 @@ export function useRoom(roomId: string) {
           setMembers((prev) => prev.filter((m) => m.did !== did));
         }
       }, 5000);
-      timers.push(t);
+      timers.add(t);
     };
 
     const unsub = subscribe((msg: ServerMessage) => {
@@ -109,7 +110,8 @@ export function useRoom(roomId: string) {
 
     return () => {
       send({ type: 'leave_room', roomId });
-      timers.forEach(clearTimeout);
+      for (const t of timers) clearTimeout(t);
+      timers.clear();
       knownDidsRef.current.clear();
       unsub();
     };
