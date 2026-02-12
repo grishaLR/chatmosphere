@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { WebSocketServer, type WebSocket } from 'ws';
-import type { Server } from 'http';
+import type { Server, IncomingMessage } from 'http';
 import { RoomSubscriptions } from './rooms.js';
 import { DmSubscriptions } from '../dms/subscriptions.js';
 import { CommunityWatchers } from './buddy-watchers.js';
@@ -16,6 +16,28 @@ import type { RateLimiter } from '../moderation/rate-limiter.js';
 import { BlockService } from '../moderation/block-service.js';
 
 const AUTH_TIMEOUT_MS = 5000;
+const MAX_WS_CONNECTIONS_PER_IP = 20;
+
+/** Tracks WebSocket connections per IP for rate limiting. */
+class WsConnectionTracker {
+  private counts = new Map<string, number>();
+
+  tryIncrement(ip: string): boolean {
+    const count = this.counts.get(ip) ?? 0;
+    if (count >= MAX_WS_CONNECTIONS_PER_IP) return false;
+    this.counts.set(ip, count + 1);
+    return true;
+  }
+
+  decrement(ip: string): void {
+    const count = this.counts.get(ip) ?? 0;
+    if (count <= 1) {
+      this.counts.delete(ip);
+    } else {
+      this.counts.set(ip, count - 1);
+    }
+  }
+}
 
 /** Maps a DID to all of its connected WebSocket sessions */
 export class UserSockets {
@@ -59,10 +81,21 @@ export function createWsServer(
   dmService: DmService,
   blockService: BlockService,
 ): WsServer {
+  const connectionTracker = new WsConnectionTracker();
+
   const wss = new WebSocketServer({
     server: httpServer,
     path: '/ws',
     maxPayload: 100_000, // 100KB — prevent OOM from single malicious message
+    verifyClient: (info, callback) => {
+      const ip = info.req.socket.remoteAddress ?? 'unknown';
+      if (!connectionTracker.tryIncrement(ip)) {
+        callback(false, 429, 'Too many WebSocket connections');
+        return;
+      }
+      (info.req as IncomingMessage & { _wsRemoteIp?: string })._wsRemoteIp = ip;
+      callback(true);
+    },
   });
   const roomSubs = new RoomSubscriptions();
   const dmSubs = new DmSubscriptions();
@@ -70,8 +103,11 @@ export function createWsServer(
   blockService.startSweep();
   const communityWatchers = new CommunityWatchers(sql, blockService);
 
-  wss.on('connection', (ws: WebSocket) => {
-    (ws as WebSocket & { socketId?: string }).socketId = randomUUID();
+  wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
+    const remoteIp = (req as IncomingMessage & { _wsRemoteIp?: string })._wsRemoteIp ?? 'unknown';
+    (ws as WebSocket & { socketId?: string; remoteIp?: string }).socketId = randomUUID();
+    (ws as WebSocket & { socketId?: string; remoteIp?: string }).remoteIp = remoteIp;
+
     let did: string | null = null;
     let authenticated = false;
     let cleanupHeartbeat: (() => void) | null = null;
@@ -162,6 +198,8 @@ export function createWsServer(
     });
 
     ws.on('close', () => {
+      const ip = (ws as WebSocket & { remoteIp?: string }).remoteIp;
+      if (ip) connectionTracker.decrement(ip);
       clearTimeout(authTimer);
       cleanupHeartbeat?.();
       if (did) {
