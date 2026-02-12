@@ -22,6 +22,9 @@ docker compose up -d
 cp packages/server/.env.example packages/server/.env
 pnpm --filter @protoimsg/server db:migrate
 
+# Optional: seed dev DB with sample rooms and messages
+pnpm --filter @protoimsg/server db:seed
+
 # Run dev servers
 pnpm dev
 ```

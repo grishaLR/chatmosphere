@@ -50,7 +50,7 @@
   font-size: var(--cm-text-base);
   line-height: 1;
   flex-shrink: 0;
-  animation: doorPop 0.3s ease-out;
+  animation: doorPop var(--cm-duration-slower) ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

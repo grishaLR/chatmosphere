@@ -9,7 +9,7 @@
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
   cursor: pointer;
   max-width: var(--cm-notification-max-w);
-  animation: slideUp 0.2s ease-out;
+  animation: slideUp var(--cm-duration-slow) ease-out;
 }
 
 .notification:hover {

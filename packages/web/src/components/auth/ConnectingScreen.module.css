@@ -91,7 +91,7 @@
     var(--color-accent),
     var(--color-primary)
   );
-  animation: fillProgress 2.5s ease-in-out infinite;
+  animation: fillProgress var(--cm-duration-progress) ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

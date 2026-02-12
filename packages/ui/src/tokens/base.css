@@ -71,6 +71,22 @@
   --cm-focus-inset: -2px;
   --cm-focus-inset-lg: -4px;
 
+  /* ── Transition durations ───────────────────────────── */
+  --cm-duration-fast: 0.1s;
+  --cm-duration-normal: 0.15s;
+  --cm-duration-slow: 0.2s;
+  --cm-duration-slower: 0.3s;
+  --cm-duration-progress: 2.5s;
+
+  /* ── z-index layers ─────────────────────────────────── */
+  --cm-z-submenu: 10;
+  --cm-z-dropdown: 50;
+  --cm-z-sticky: 100;
+  --cm-z-popover: 200;
+  --cm-z-tab: 900;
+  --cm-z-dm: 1000;
+  --cm-z-banner: 2000;
+
   /* ── Filters ────────────────────────────────────────── */
   --cm-blur-base: 4px;
   --cm-blur-light: 2px;

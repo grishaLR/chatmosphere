@@ -59,7 +59,7 @@
   background: var(--color-base-100);
   border-radius: var(--cm-radius-md);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
-  z-index: 200;
+  z-index: var(--cm-z-popover);
   overflow: hidden;
 }
 
