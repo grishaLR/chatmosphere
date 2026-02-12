@@ -8,6 +8,7 @@ import { roomsRouter } from './rooms/router.js';
 import { messagesRouter } from './messages/router.js';
 import { authRouter } from './auth/router.js';
 import { createRequireAuth } from './auth/middleware.js';
+import { ChallengeStore } from './auth/challenge.js';
 import { presenceRouter } from './presence/router.js';
 import { communityRouter } from './community/router.js';
 import { moderationRouter } from './moderation/router.js';
@@ -43,7 +44,12 @@ export function createApp(
   });
 
   // Auth routes (unprotected — login creates sessions; rate-limited by IP)
-  app.use('/api/auth', createRateLimitMiddleware(authRateLimiter), authRouter(sessions, config));
+  const challenges = new ChallengeStore();
+  app.use(
+    '/api/auth',
+    createRateLimitMiddleware(authRateLimiter),
+    authRouter(sessions, config, challenges),
+  );
 
   // Protected API routes
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), roomsRouter(sql));

@@ -22,7 +22,21 @@ export function getServerToken(): string | null {
   return serverToken;
 }
 
-// -- Server session --
+// -- Server session (challenge-response auth) --
+
+interface ChallengeResponse {
+  nonce: string;
+}
+
+export async function fetchChallenge(did: string): Promise<ChallengeResponse> {
+  const res = await fetch(`${API_URL}/api/auth/challenge`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ did }),
+  });
+  if (!res.ok) throw new Error(`Failed to get auth challenge: ${res.status}`);
+  return (await res.json()) as ChallengeResponse;
+}
 
 interface ServerSessionResponse {
   token: string;
@@ -33,11 +47,13 @@ interface ServerSessionResponse {
 export async function createServerSession(
   did: string,
   handle: string,
+  nonce: string,
+  rkey: string,
 ): Promise<ServerSessionResponse> {
   const res = await fetch(`${API_URL}/api/auth/session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ did, handle }),
+    body: JSON.stringify({ did, handle, nonce, rkey }),
   });
   if (!res.ok) throw new Error(`Failed to create server session: ${res.status}`);
   return (await res.json()) as ServerSessionResponse;
