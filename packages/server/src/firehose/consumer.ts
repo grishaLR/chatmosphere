@@ -164,15 +164,18 @@ export function createFirehoseConsumer(
           }
           // Collection-specific indexing
           await handler(firehoseEvent);
+
+          // Save cursor periodically. Awaited inside the async block so the
+          // cursor on disk always reflects events that have been processed.
+          // On crash, we may re-process up to CURSOR_SAVE_INTERVAL events —
+          // all handlers use upsert (ON CONFLICT) so replays are idempotent.
+          eventCount++;
+          if (eventCount % CURSOR_SAVE_INTERVAL === 0) {
+            await saveCursor(db, event.time_us);
+          }
         })().catch((err: unknown) => {
           console.error(`Error handling ${commit.collection} event:`, err);
         });
-
-        // Save cursor periodically
-        eventCount++;
-        if (eventCount % CURSOR_SAVE_INTERVAL === 0) {
-          void saveCursor(db, lastCursor);
-        }
       } catch (err) {
         console.error('Error parsing Jetstream event:', err);
       }

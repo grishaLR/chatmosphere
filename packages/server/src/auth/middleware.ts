@@ -17,6 +17,7 @@ export function createRequireAuth(
   return (req: Request, res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
+      console.warn(`[audit] auth rejected: missing header — ${req.method} ${req.path}`);
       res.status(401).json({ error: 'Missing authorization header' });
       return;
     }
@@ -24,6 +25,7 @@ export function createRequireAuth(
     const token = authHeader.slice(7);
     const session = sessions.get(token);
     if (!session) {
+      console.warn(`[audit] auth rejected: invalid/expired token — ${req.method} ${req.path}`);
       res.status(401).json({ error: 'Invalid or expired session' });
       return;
     }

@@ -1,5 +1,6 @@
 import type { WebSocket } from 'ws';
 import { DM_LIMITS } from '@protoimsg/shared';
+import { filterText } from '../moderation/filter.js';
 import type { ValidatedClientMessage } from './validation.js';
 import type { RoomSubscriptions } from './rooms.js';
 import type { DmSubscriptions } from '../dms/subscriptions.js';
@@ -59,7 +60,9 @@ export async function handleClientMessage(
           members,
         }),
       );
-      // Notify room of new member (include awayMessage if present)
+      // Notify room of new member (include awayMessage if present).
+      // Visibility is NOT applied here — rooms are public spaces. If you join,
+      // you're visible. The visibleTo setting only governs buddy-list presence.
       const presence = service.getPresence(did);
       roomSubs.broadcast(data.roomId, {
         type: 'presence',
@@ -81,7 +84,8 @@ export async function handleClientMessage(
     case 'status_change': {
       const visibleTo = data.visibleTo as PresenceVisibility | undefined;
       service.handleStatusChange(did, data.status, data.awayMessage, visibleTo);
-      // Broadcast presence update to all rooms the user is in
+      // Broadcast real status to all rooms — rooms are public spaces (like going
+      // outside). Visibility only controls buddy-list presence, not room presence.
       const rooms = service.getUserRooms(did);
       for (const roomId of rooms) {
         roomSubs.broadcast(roomId, {
@@ -149,6 +153,7 @@ export async function handleClientMessage(
     }
 
     case 'sync_blocks': {
+      console.info(`[audit] sync_blocks — did=${did} count=${String(data.blockedDids.length)}`);
       blockService.sync(did, data.blockedDids);
       // Re-notify all watchers with block-filtered presence
       // (newly blocked get offline, newly unblocked get real status)
@@ -218,6 +223,16 @@ export async function handleClientMessage(
           }),
         );
         break;
+      }
+
+      // M17: Fail-fast content filter in WS handler — reject spam/abuse before
+      // hitting the DB in the service layer (service still re-checks as defense-in-depth)
+      {
+        const filter = filterText(data.text);
+        if (!filter.passed) {
+          ws.send(JSON.stringify({ type: 'error', message: filter.reason ?? 'Message blocked' }));
+          break;
+        }
       }
 
       // Check blocks before sending
