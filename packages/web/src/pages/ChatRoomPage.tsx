@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { IS_TAURI } from '../lib/config';
 import { useRoom } from '../hooks/useRoom';
 import { useMessages } from '../hooks/useMessages';
 import { useBlocks } from '../contexts/BlockContext';
+import { useMentionNotifications } from '../contexts/MentionNotificationContext';
 import { MessageList } from '../components/chat/MessageList';
 import { MessageInput } from '../components/chat/MessageInput';
 import { MemberList } from '../components/chat/MemberList';
@@ -30,6 +31,12 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     sendTyping,
   } = useMessages(roomId);
   const { blockedDids } = useBlocks();
+  const { clearMentions } = useMentionNotifications();
+
+  // Clear unread mention badge when entering the room
+  useEffect(() => {
+    clearMentions(roomId);
+  }, [roomId, clearMentions]);
 
   // Thread panel state
   const [activeThread, setActiveThread] = useState<ChatThreadState | null>(null);

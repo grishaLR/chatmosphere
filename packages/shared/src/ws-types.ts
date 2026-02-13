@@ -206,6 +206,18 @@ export interface DmIncomingEvent extends WsMessageBase {
   };
 }
 
+export interface MentionNotificationEvent extends WsMessageBase {
+  type: 'mention_notification';
+  data: {
+    roomId: string;
+    roomName: string;
+    senderDid: string;
+    messageText: string;
+    messageUri: string;
+    createdAt: string;
+  };
+}
+
 export interface AuthSuccessEvent extends WsMessageBase {
   type: 'auth_success';
 }
@@ -231,4 +243,5 @@ export type ServerMessage =
   | DmMessageEvent
   | DmTypingEvent
   | DmPersistChangedEvent
-  | DmIncomingEvent;
+  | DmIncomingEvent
+  | MentionNotificationEvent;

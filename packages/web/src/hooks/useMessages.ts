@@ -4,6 +4,8 @@ import { fetchMessages } from '../lib/api';
 import { NSID } from '@protoimsg/shared';
 import { createMessageRecord, generateTid, type CreateMessageInput } from '../lib/atproto';
 import { parseMarkdownFacets } from '../lib/markdown-facets';
+import { hasMentionOf } from '../lib/facet-utils';
+import { playImNotify } from '../lib/sounds';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from './useAuth';
 import type { MessageView } from '../types';
@@ -58,6 +60,11 @@ export function useMessages(roomId: string) {
         if (senderTimer) {
           clearTimeout(senderTimer);
           typingTimers.current.delete(event.data.did);
+        }
+
+        // Play notification sound when someone else mentions us
+        if (did && event.data.did !== did && hasMentionOf(event.data.facets, did)) {
+          playImNotify();
         }
 
         // If this is a reply, increment the reply count for its root

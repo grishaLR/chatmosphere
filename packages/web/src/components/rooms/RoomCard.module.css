@@ -39,6 +39,18 @@
   color: var(--color-base-content);
 }
 
+.mentionBadge {
+  margin-left: auto;
+  font-size: var(--cm-text-sm);
+  font-weight: 700;
+  padding: var(--cm-space-0.5) var(--cm-space-2);
+  background: var(--color-error);
+  color: var(--color-error-content);
+  border-radius: var(--cm-radius-pill);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .topic {
   margin: var(--cm-space-1) 0 0;
   font-size: var(--cm-text-sm);

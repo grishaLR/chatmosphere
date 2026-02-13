@@ -2,6 +2,8 @@ import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useVirtualList } from 'virtualized-ui';
 import { MessageItem } from './MessageItem';
 import { UserIdentity } from './UserIdentity';
+import { hasMentionOf } from '../../lib/facet-utils';
+import { useAuth } from '../../hooks/useAuth';
 import type { MessageView } from '../../types';
 import styles from './MessageList.module.css';
 
@@ -24,6 +26,7 @@ export function MessageList({
   replyCounts,
   onOpenThread,
 }: MessageListProps) {
+  const { did } = useAuth();
   const isNearBottomRef = useRef(true);
 
   // Main timeline only shows root messages (not replies)
@@ -74,6 +77,7 @@ export function MessageList({
               message={data[vi.index] as MessageView}
               replyCount={replyCounts?.[(data[vi.index] as MessageView).uri]}
               onOpenThread={onOpenThread}
+              isMentioned={!!did && hasMentionOf((data[vi.index] as MessageView).facets, did)}
             />
           </div>
         ))}

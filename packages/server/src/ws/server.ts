@@ -73,6 +73,8 @@ export class UserSockets {
 
 export interface WsServer {
   broadcastToRoom: (roomId: string, message: ServerMessage) => void;
+  sendToUser: (did: string, message: ServerMessage) => void;
+  isSubscribedToRoom: (did: string, roomId: string) => boolean;
   close: () => Promise<void>;
 }
 
@@ -280,6 +282,21 @@ export function createWsServer(
   return {
     broadcastToRoom: (roomId: string, message: ServerMessage) => {
       roomSubs.broadcast(roomId, message);
+    },
+    sendToUser: (did: string, message: ServerMessage) => {
+      const sockets = userSockets.get(did);
+      const payload = JSON.stringify(message);
+      for (const ws of sockets) {
+        if (ws.readyState === ws.OPEN) ws.send(payload);
+      }
+    },
+    isSubscribedToRoom: (did: string, roomId: string) => {
+      const sockets = userSockets.get(did);
+      const subscribers = roomSubs.getSubscribers(roomId);
+      for (const ws of sockets) {
+        if (subscribers.has(ws)) return true;
+      }
+      return false;
     },
     close: async () => {
       blockService.stopSweep();

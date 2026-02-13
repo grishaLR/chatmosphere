@@ -12,6 +12,10 @@
   opacity: 0.6;
 }
 
+.mentioned {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
 .meta {
   display: inline-flex;
   align-items: center;

@@ -13,6 +13,8 @@ interface MessageItemProps {
   onOpenThread?: (rootUri: string) => void;
   /** Whether to hide the reply/thread actions (e.g. inside thread panel) */
   hideActions?: boolean;
+  /** Whether this message mentions the current user */
+  isMentioned?: boolean;
 }
 
 function formatTime(dateStr: string): string {
@@ -25,6 +27,7 @@ export const MessageItem = memo(function MessageItem({
   replyCount,
   onOpenThread,
   hideActions,
+  isMentioned,
 }: MessageItemProps) {
   const moderation = useModeration(message.did);
   const [revealed, setRevealed] = useState(false);
@@ -39,7 +42,9 @@ export const MessageItem = memo(function MessageItem({
   const hasReplies = (replyCount ?? 0) > 0;
 
   return (
-    <div className={`${styles.item} ${message.pending ? styles.pending : ''}`}>
+    <div
+      className={`${styles.item} ${message.pending ? styles.pending : ''} ${isMentioned ? styles.mentioned : ''}`}
+    >
       <span className={styles.meta}>
         <span className={styles.did}>
           <UserIdentity did={message.did} showAvatar />

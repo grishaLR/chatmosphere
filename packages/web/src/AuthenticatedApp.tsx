@@ -3,7 +3,9 @@ import { ModerationProvider } from './contexts/ModerationContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { DmProvider } from './contexts/DmContext';
+import { MentionNotificationProvider } from './contexts/MentionNotificationContext';
 import { DmPopoverContainer } from './components/dm/DmPopoverContainer';
+import { MentionToastContainer } from './components/mentions/MentionToastContainer';
 import { BlockProvider } from './contexts/BlockContext';
 import { ConnectionBanner } from './components/ConnectionBanner';
 
@@ -16,8 +18,11 @@ export function AuthenticatedApp({ children }: { children: ReactNode }) {
           <ConnectionBanner />
           <BlockProvider>
             <DmProvider>
-              {children}
-              <DmPopoverContainer />
+              <MentionNotificationProvider>
+                {children}
+                <DmPopoverContainer />
+                <MentionToastContainer />
+              </MentionNotificationProvider>
             </DmProvider>
           </BlockProvider>
         </WebSocketProvider>

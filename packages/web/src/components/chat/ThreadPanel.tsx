@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChatThread, type ChatThreadState } from '../../hooks/useChatThread';
 import { useBlocks } from '../../contexts/BlockContext';
+import { useAuth } from '../../hooks/useAuth';
+import { hasMentionOf } from '../../lib/facet-utils';
 import { MessageItem } from './MessageItem';
 import { MessageInput } from './MessageInput';
 import type { MessageView } from '../../types';
@@ -16,6 +18,7 @@ interface ThreadPanelProps {
 export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPanelProps) {
   const { messages, loading, sendReply } = useChatThread(thread, liveMessages);
   const { blockedDids } = useBlocks();
+  const { did } = useAuth();
 
   // Navigation stack — allows drilling into reply-to-reply threads.
   // The last entry is the currently focused message URI.
@@ -96,7 +99,11 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
         {focusedMessage && (
           <>
             <div className={styles.rootMessage}>
-              <MessageItem message={focusedMessage} hideActions />
+              <MessageItem
+                message={focusedMessage}
+                hideActions
+                isMentioned={!!did && hasMentionOf(focusedMessage.facets, did)}
+              />
             </div>
             <div className={styles.divider}>
               <span className={styles.replyCountLabel}>
@@ -109,6 +116,7 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
                 message={msg}
                 replyCount={childReplyCounts[msg.uri]}
                 onOpenThread={handleDrillInto}
+                isMentioned={!!did && hasMentionOf(msg.facets, did)}
               />
             ))}
           </>

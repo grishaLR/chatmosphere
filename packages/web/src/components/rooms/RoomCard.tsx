@@ -5,6 +5,7 @@ import styles from './RoomCard.module.css';
 
 interface RoomCardProps {
   room: RoomView;
+  mentionCount?: number;
 }
 
 function handleTauriClick(e: React.MouseEvent, room: RoomView) {
@@ -14,7 +15,7 @@ function handleTauriClick(e: React.MouseEvent, room: RoomView) {
   });
 }
 
-export function RoomCard({ room }: RoomCardProps) {
+export function RoomCard({ room, mentionCount }: RoomCardProps) {
   return (
     <Link
       to={`/rooms/${room.id}`}
@@ -30,6 +31,9 @@ export function RoomCard({ room }: RoomCardProps) {
       <div className={styles.header}>
         <h3 className={styles.name}>{room.name}</h3>
         <span className={styles.badge}>{room.purpose}</span>
+        {mentionCount != null && mentionCount > 0 && (
+          <span className={styles.mentionBadge}>@{mentionCount}</span>
+        )}
       </div>
       {room.topic && <p className={styles.topic}>{room.topic}</p>}
       {room.description && <p className={styles.description}>{room.description}</p>}

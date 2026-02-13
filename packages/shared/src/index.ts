@@ -38,5 +38,6 @@ export type {
   DmTypingEvent,
   DmPersistChangedEvent,
   DmIncomingEvent,
+  MentionNotificationEvent,
   ServerMessage,
 } from './ws-types.js';
