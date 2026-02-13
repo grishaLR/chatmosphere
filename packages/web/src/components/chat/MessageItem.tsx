@@ -1,7 +1,7 @@
 import { useState, memo, useCallback } from 'react';
 import type { MessageView } from '../../types';
 import { useModeration } from '../../hooks/useModeration';
-import { RichText } from './RichText';
+import { RichText, type GenericFacet } from './RichText';
 import { UserIdentity } from './UserIdentity';
 import styles from './MessageItem.module.css';
 
@@ -60,7 +60,7 @@ export const MessageItem = memo(function MessageItem({
         </span>
       ) : (
         <span className={styles.text}>
-          <RichText text={message.text} />
+          <RichText text={message.text} facets={message.facets as GenericFacet[]} />
         </span>
       )}
       {!hideActions && onOpenThread && (

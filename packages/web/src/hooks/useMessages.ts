@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { RichText as RichTextAPI } from '@atproto/api';
 import { fetchMessages } from '../lib/api';
 import { NSID } from '@protoimsg/shared';
 import { createMessageRecord, generateTid, type CreateMessageInput } from '../lib/atproto';
+import { parseMarkdownFacets } from '../lib/markdown-facets';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from './useAuth';
 import type { MessageView } from '../types';
@@ -78,6 +80,7 @@ export function useMessages(roomId: string) {
               did: event.data.did,
               room_id: event.data.roomId,
               text: event.data.text,
+              facets: event.data.facets,
               reply_parent: event.data.reply?.parent ?? null,
               reply_root: event.data.reply?.root ?? null,
               created_at: event.data.createdAt,
@@ -96,6 +99,7 @@ export function useMessages(roomId: string) {
               did: event.data.did,
               room_id: event.data.roomId,
               text: event.data.text,
+              facets: event.data.facets,
               reply_parent: event.data.reply?.parent ?? null,
               reply_root: event.data.reply?.root ?? null,
               created_at: event.data.createdAt,
@@ -136,6 +140,16 @@ export function useMessages(roomId: string) {
     async (text: string, roomUri: string, reply?: { root: string; parent: string }) => {
       if (!agent || !did) return;
 
+      // Parse markdown → cleaned text + formatting facets
+      const { text: cleaned, facets: mdFacets } = parseMarkdownFacets(text);
+
+      // Detect semantic facets (mentions, links, tags) on the cleaned text
+      const rt = new RichTextAPI({ text: cleaned });
+      await rt.detectFacets(agent);
+
+      // Merge markdown facets with detected semantic facets
+      const allFacets = [...mdFacets, ...(rt.facets ?? [])] as Record<string, unknown>[];
+
       // Pre-generate rkey so we can add the optimistic message immediately
       const rkey = generateTid();
       const uri = `at://${did}/${NSID.Message}/${rkey}`;
@@ -148,7 +162,8 @@ export function useMessages(roomId: string) {
           uri,
           did,
           room_id: roomId,
-          text,
+          text: cleaned,
+          facets: allFacets.length > 0 ? allFacets : undefined,
           reply_parent: reply?.parent ?? null,
           reply_root: reply?.root ?? null,
           created_at: new Date().toISOString(),
@@ -157,7 +172,12 @@ export function useMessages(roomId: string) {
         },
       ]);
 
-      const input: CreateMessageInput = { roomUri, text, reply };
+      const input: CreateMessageInput = {
+        roomUri,
+        text: cleaned,
+        facets: allFacets.length > 0 ? allFacets : undefined,
+        reply,
+      };
 
       try {
         await createMessageRecord(agent, input, rkey);

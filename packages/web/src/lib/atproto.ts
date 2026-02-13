@@ -89,6 +89,7 @@ export async function createRoomRecord(
 export interface CreateMessageInput {
   roomUri: string;
   text: string;
+  facets?: Record<string, unknown>[];
   reply?: { root: string; parent: string };
 }
 
@@ -113,6 +114,7 @@ export async function createMessageRecord(
       $type: NSID.Message,
       room: input.roomUri,
       text: input.text,
+      facets: input.facets?.length ? input.facets : undefined,
       reply: input.reply,
       createdAt: new Date().toISOString(),
     },

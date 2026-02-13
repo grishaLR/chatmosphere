@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { LIMITS } from '@protoimsg/shared';
 import type { MessageView } from '../../types';
+import { FormattingToolbar } from './FormattingToolbar';
 import { UserIdentity } from './UserIdentity';
 import styles from './MessageInput.module.css';
 
@@ -71,6 +72,7 @@ export function MessageInput({
           </button>
         </div>
       )}
+      <FormattingToolbar textareaRef={textareaRef} onTextChange={handleChange} />
       <div className={styles.inputRow}>
         <textarea
           ref={textareaRef}
