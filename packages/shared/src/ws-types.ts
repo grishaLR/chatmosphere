@@ -85,6 +85,11 @@ export interface SyncCommunityMessage extends WsMessageBase {
   }>;
 }
 
+export interface MakeCall extends WsMessageBase {
+  type: 'make_call';
+  conversationId: string;
+}
+
 export type ClientMessage =
   | AuthMessage
   | JoinRoomMessage
@@ -99,7 +104,8 @@ export type ClientMessage =
   | DmCloseMessage
   | DmSendMessage
   | DmTypingMessage
-  | DmTogglePersistMessage;
+  | DmTogglePersistMessage
+  | MakeCall;
 
 // Server → Client messages
 
@@ -247,6 +253,14 @@ export interface PollVoteEvent extends WsMessageBase {
     voterDid: string;
     /** Which options they picked */
     selectedOptions: number[];
+  }
+}
+
+export interface IncomingCall extends WsMessageBase {
+  type: 'incoming_call';
+  data: {
+    conversationId: string;
+    senderDid: string;
   };
 }
 
@@ -278,4 +292,5 @@ export type ServerMessage =
   | DmIncomingEvent
   | MentionNotificationEvent
   | PollCreatedEvent
-  | PollVoteEvent;
+  | PollVoteEvent
+  | IncomingCall;
