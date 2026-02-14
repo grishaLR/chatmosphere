@@ -14,6 +14,7 @@ interface DmPopoverProps {
   onSend: (text: string) => void;
   onTyping: () => void;
   onTogglePersist: (persist: boolean) => void;
+  onMakeCall: () => void;
 }
 
 export function DmPopover({
@@ -24,6 +25,7 @@ export function DmPopover({
   onSend,
   onTyping,
   onTogglePersist,
+  onMakeCall,
 }: DmPopoverProps) {
   const { t } = useTranslation('dm');
   const { recipientDid, messages, persist, minimized, typing, unreadCount } = conversation;
@@ -80,6 +82,18 @@ export function DmPopover({
           </span>
         )}
         <div className={styles.headerActions}>
+          <button
+            className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMakeCall();
+            }}
+            title={persist ? 'Messages saved (7 days)' : 'Messages ephemeral — click to save'}
+            aria-label={persist ? 'Disable message saving' : 'Enable message saving'}
+            aria-pressed={persist}
+          >
+            📹
+          </button>
           <button
             className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
             onClick={(e) => {

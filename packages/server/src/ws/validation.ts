@@ -86,6 +86,11 @@ const dmTogglePersist = z.object({
   persist: z.boolean(),
 });
 
+const makeCall = z.object({
+  type: z.literal('make_call'),
+  conversationId: z.string().min(1),
+});
+
 const clientMessage = z.discriminatedUnion('type', [
   joinRoom,
   leaveRoom,
@@ -100,6 +105,7 @@ const clientMessage = z.discriminatedUnion('type', [
   dmSend,
   dmTyping,
   dmTogglePersist,
+  makeCall,
 ]);
 
 export type ValidatedClientMessage = z.infer<typeof clientMessage>;

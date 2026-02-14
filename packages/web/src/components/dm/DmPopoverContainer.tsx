@@ -18,6 +18,7 @@ export function DmPopoverContainer() {
     togglePersist,
     dismissNotification,
     openFromNotification,
+    makeCall,
   } = useDm();
   const { did } = useAuth();
 
@@ -47,6 +48,9 @@ export function DmPopoverContainer() {
           }}
           onTogglePersist={(persist) => {
             togglePersist(convo.conversationId, persist);
+          }}
+          onMakeCall={() => {
+            makeCall(convo.conversationId, ''); // TODO: pass actual text or call data
           }}
         />
       ))}

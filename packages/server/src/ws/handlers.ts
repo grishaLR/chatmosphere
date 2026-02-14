@@ -419,5 +419,27 @@ export async function handleClientMessage(
       }
       break;
     }
+
+    case 'make_call': {
+      const isParticipant = await dmService.isParticipant(data.conversationId, did);
+      if (!isParticipant) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Not a participant' }));
+        break;
+      }
+      try {
+        dmSubs.broadcast(
+          data.conversationId,
+          {
+            type: 'incoming_call',
+            data: { conversationId: data.conversationId, senderDid: did },
+          },
+          ws, // exclude sender
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to notify user of incoming call';
+        ws.send(JSON.stringify({ type: 'error', message: msg }));
+      }
+      break;
+    }
   }
 }

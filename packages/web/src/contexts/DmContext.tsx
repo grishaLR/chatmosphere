@@ -49,6 +49,7 @@ interface DmContextValue {
   togglePersist: (conversationId: string, persist: boolean) => void;
   dismissNotification: (conversationId: string) => void;
   openFromNotification: (notification: DmNotification) => void;
+  makeCall: (conversationId: string, text: string) => void;
 }
 
 const DmContext = createContext<DmContextValue | null>(null);
@@ -217,6 +218,20 @@ export function DmProvider({ children }: { children: ReactNode }) {
       openDm(notification.senderDid);
     },
     [dismissNotification, openDm],
+  );
+
+  const makeCall = useCallback(
+    (conversationId: string) => {
+      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
+      send({ type: 'make_call', conversationId });
+
+      console.warn('Making call feature coming soon!');
+      // TODO: implement call UI and flow. For now we just send the message and show an alert on incoming_call.
+      // The text parameter is intended for passing call data (e.g. offer/answer in a WebRTC flow)
+      // once the feature is implemented.
+      // H5: Timeout pending messages — mark as failed after 15s
+    },
+    [send, did],
   );
 
   // WS event handler
@@ -403,6 +418,10 @@ export function DmProvider({ children }: { children: ReactNode }) {
           }
           break;
         }
+        case 'incoming_call': {
+          console.warn('Incoming call feature coming soon!');
+          break;
+        }
       }
     });
 
@@ -484,6 +503,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
       togglePersist,
       dismissNotification,
       openFromNotification,
+      makeCall,
     }),
     [
       conversations,
@@ -497,6 +517,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
       togglePersist,
       dismissNotification,
       openFromNotification,
+      makeCall,
     ],
   );
 
