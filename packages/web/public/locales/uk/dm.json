@@ -1,0 +1,56 @@
+{
+  "input": {
+    "placeholder": "Напишіть повідомлення...",
+    "ariaLabel": "Напишіть особисте повідомлення",
+    "send": "Надіслати"
+  },
+
+  "messageList": {
+    "empty": "Повідомлень ще немає. Привітайтеся!",
+    "typing": "друкує..."
+  },
+
+  "popover": {
+    "ariaLabel": "Особиста розмова з {{recipientDid}}",
+    "header": {
+      "ariaLabel": {
+        "expand": "Розмова з {{recipientDid}} — натисніть, щоб розгорнути",
+        "minimize": "Розмова з {{recipientDid}} — натисніть, щоб згорнути"
+      }
+    },
+    "unreadAriaLabel": "{{count}} непрочитаних повідомлень",
+    "unreadOverflow": "99+",
+    "persist": {
+      "titleActive": "Повідомлення збережено (7 днів)",
+      "titleInactive": "Повідомлення тимчасові — натисніть, щоб зберегти",
+      "ariaLabel": {
+        "disable": "Вимкнути збереження повідомлень",
+        "enable": "Увімкнути збереження повідомлень"
+      }
+    },
+    "minimize": {
+      "titleExpand": "Розгорнути",
+      "titleMinimize": "Згорнути",
+      "ariaLabel": {
+        "expand": "Розгорнути розмову",
+        "minimize": "Згорнути розмову"
+      }
+    },
+    "close": {
+      "title": "Закрити",
+      "ariaLabel": "Закрити розмову"
+    }
+  },
+
+  "notification": {
+    "ariaLabel": "Нове повідомлення від {{senderDid}}: {{preview}}",
+    "dismiss": {
+      "title": "Сховати",
+      "ariaLabel": "Сховати сповіщення"
+    }
+  },
+
+  "popoverContainer": {
+    "ariaLabel": "Сповіщення особистих повідомлень"
+  }
+}

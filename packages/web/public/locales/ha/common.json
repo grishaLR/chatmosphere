@@ -1,0 +1,110 @@
+{
+  "appName": "proto instant messenger",
+
+  "status": {
+    "online": "A kan layi",
+    "away": "Ba a nan",
+    "idle": "A tsaye"
+  },
+
+  "visibility": {
+    "everyone": "Kowa",
+    "community": "Al'umma",
+    "innerCircle": "Na kusa",
+    "noOne": "Ba kowa"
+  },
+
+  "theme": {
+    "aim": "AIM Na Asali",
+    "nytLight": "Mai Haske",
+    "nytDark": "Mai Duhu",
+    "dracula": "Dracula",
+    "valentine": "Soyayya",
+    "garden": "Lambu",
+    "coffee": "Kofi",
+    "fantasy": "Mafarki",
+    "nord": "Nord",
+    "retro": "Retro",
+    "black": "Baki",
+    "wireframe": "Wireframe"
+  },
+
+  "nav": {
+    "community": "Al'umma",
+    "rooms": "\u0110akuna",
+    "feed": "Labarai"
+  },
+
+  "header": {
+    "menu": "Menu",
+    "awayMessage": {
+      "label": "Sa\u0137on rashin halarta",
+      "placeholder": "msl. Zan dawo, ina zuwa shan kofi"
+    },
+    "visibility": {
+      "label": "Wane ne zai iya ganina"
+    },
+    "settings": "Saituna",
+    "minimize": "Rage",
+    "signOut": "Fita"
+  },
+
+  "statusSelector": {
+    "awayMessage": {
+      "label": "Sa\u0137on rashin halarta",
+      "placeholder": "msl. Zan dawo, ina zuwa shan kofi"
+    },
+    "visibility": {
+      "label": "Wane ne zai iya ganina"
+    }
+  },
+
+  "connectionBanner": {
+    "message": "An rasa ha\u0257in yanar gizo \u2014 ana sake ha\u0257awa..."
+  },
+
+  "errorBoundary": {
+    "title": "Wani abu ya lalace",
+    "fallbackMessage": "Kuskure maras tsammani ya faru",
+    "tryAgain": "Sake gwadawa"
+  },
+
+  "button": {
+    "back": "Koma",
+    "cancel": "Soke",
+    "send": "Aika",
+    "close": "Rufe",
+    "save": "Ajiye",
+    "settings": "Saituna"
+  },
+
+  "aria": {
+    "expand": "Bu\u0257e",
+    "collapse": "Rufe"
+  },
+
+  "serverError": {
+    "unknown": "Kuskure da ba a sani ba ta faru",
+    "unauthorized": "Dole ne ka shiga",
+    "invalidSession": "Zaman ka ya \u0137are. Da fatan za ka sake shiga.",
+    "invalidChallenge": "Kalubalen tantancewa ya \u0137are. Da fatan za ka sake gwadawa.",
+    "handleMismatch": "Tantance sunan bai yi nasara ba",
+    "authVerificationFailed": "Tantancewa bai yi nasara ba",
+    "authTimeout": "Tantancewa ta \u0137are",
+    "authRequired": "Ana buƙatar tantancewa",
+    "forbidden": "Ba ka da izinin yin wannan",
+    "banned": "Ba a ba wannan asusu damar amfani da wannan sabis ba",
+    "accessDenied": "An hana shiga",
+    "notParticipant": "Ba ka cikin wannan tattaunawa ba",
+    "blockedUser": "Ba za ka iya aika saƙo ga wannan mai amfani ba",
+    "selfDm": "Ba za ka iya aika saƙo ga kanka ba",
+    "notFound": "Ba a samu ba",
+    "rateLimited": "Buƙatu da yawa. Da fatan za ka jira ka sake gwadawa.",
+    "serverError": "Wani abu ya lalace a \u0253angarenmu",
+    "networkError": "Kuskuren cibiyar sadarwa. Duba ha\u0257in ka.",
+    "invalidInput": "Shigarwar da ba daidai ba",
+    "messageTooLong": "Saƙon ya yi tsawo",
+    "contentFiltered": "An toshe saƙon ta hanyar tace abun ciki",
+    "alreadyExists": "Ya riga ya wanzu"
+  }
+}

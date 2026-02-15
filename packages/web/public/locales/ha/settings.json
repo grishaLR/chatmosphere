@@ -1,0 +1,38 @@
+{
+  "back": "Koma",
+
+  "accountInfo": {
+    "title": "Bayanan Asusu",
+    "didLabel": "DID",
+    "handleLabel": "Suna"
+  },
+
+  "editProfile": {
+    "title": "Gyara Bayanan Martaba",
+    "loading": "Ana loda bayanan martaba...",
+    "changeAvatar": "Canja Hoto",
+    "displayNameLabel": "Sunan Nuni",
+    "bioLabel": "Bayani",
+    "saving": "Ana ajiyewa...",
+    "save": "Ajiye"
+  },
+
+  "appearance": {
+    "title": "Kamannin fuska"
+  },
+
+  "language": {
+    "title": "Harshe"
+  },
+
+  "translation": {
+    "title": "Fassara",
+    "autoTranslate": "Fassara bugaggu ta atomatik",
+    "autoTranslateHint": "Fassara bugaggu da bayanai ta atomatik zuwa harshinka"
+  },
+
+  "actions": {
+    "title": "Ayyuka",
+    "signOut": "Fita"
+  }
+}

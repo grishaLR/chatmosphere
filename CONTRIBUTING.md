@@ -6,7 +6,7 @@ Thanks for your interest in contributing! protoimsg is AIM-inspired group chat b
 
 - Node.js 22+
 - [pnpm](https://pnpm.io/) 9+
-- Docker (for Postgres)
+- Docker (for Postgres, and optionally Redis + translation backends)
 
 ## Setup
 
@@ -15,8 +15,8 @@ git clone https://github.com/grisha/protoimsg.git
 cd protoimsg
 pnpm install
 
-# Start Postgres
-docker compose up -d
+# Start core services (Postgres + Redis)
+docker compose up -d postgres redis --wait
 
 # Configure and migrate
 cp packages/server/.env.example packages/server/.env
@@ -30,6 +30,8 @@ pnpm dev
 ```
 
 Server runs on `http://localhost:3000`, web app on `http://localhost:5173`.
+
+> **Shortcut:** `pnpm dev:up` starts all Docker services (including translation backends), runs migrations, and launches dev servers in one command. See the Translation section below if you need the full stack.
 
 ## Project Structure
 
@@ -90,6 +92,58 @@ Common prefixes: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`.
 - After modifying schemas, run `pnpm --filter @protoimsg/lexicon codegen` to regenerate types
 - `knownValues` fields are open sets — don't use strict enums for these in firehose validation
 - Reference [Bluesky](https://github.com/bluesky-social) and [Blacksky](https://github.com/blacksky-algorithms/blacksky.community) for ATProto conventions
+
+## Translation
+
+Translation is optional for most development work. The system uses two backends:
+
+- **LibreTranslate** — handles standard languages (en, es, ru, ar, etc.). Runs on port `5100`.
+- **NLLB** (No Language Left Behind) — handles African languages (sw, ha). Runs on port `6060`.
+
+Both backends are heavy containers. LibreTranslate downloads language models on first start (~1-2 min). NLLB downloads a ~3GB model on first start (~3 min). Skip them unless you're working on translation features.
+
+### Running translation backends
+
+```bash
+# Start translation backends alongside core services
+docker compose up -d postgres redis libretranslate nllb --wait
+
+# Or start everything at once
+docker compose up -d --wait
+```
+
+Then enable translation in your `.env`:
+
+```env
+TRANSLATE_ENABLED=true
+LIBRETRANSLATE_URL=http://localhost:5100
+NLLB_URL=http://localhost:6060
+```
+
+You can run either backend independently. If only `NLLB_URL` is set (no `LIBRETRANSLATE_URL`), NLLB handles all languages. If only `LIBRETRANSLATE_URL` is set, only the standard languages are available.
+
+### Verifying it works
+
+```bash
+# Check both backends are healthy
+docker compose ps
+
+# Test the API
+curl http://localhost:3000/api/translate/status
+# → { "available": true, "languages": ["en","es","ru","ar",...,"sw","ha"] }
+```
+
+### Adding a new language
+
+1. **Server:** If it's an NLLB-only language, add its ISO code to `NLLB_ONLY_CODES` in `packages/server/src/translate/lang-codes.ts`. Make sure the ISO-to-FLORES mapping exists in `ISO_TO_FLORES` and the franc detection mapping exists in `ISO3_TO_ISO1`.
+2. **Locale files:** Create `packages/web/public/locales/<code>/` with all 8 namespace JSON files (common, auth, chat, dm, feed, rooms, settings, atproto). Match every key from the English locale. All translations must be reviewed by a native speaker before merging.
+3. **Frontend:** Add the code to `supportedLngs` in `packages/web/src/i18n/index.ts` and add a `{ code, label }` entry to the `LANGUAGES` array in `packages/web/src/components/settings/LanguageSelector.tsx`.
+
+### Architecture notes
+
+- Both backends share the same `translation_cache` table in Postgres — no separate migration needed.
+- Routing is by target language: codes in `NLLB_ONLY_CODES` go to NLLB, everything else goes to LibreTranslate.
+- NLLB uses [franc-min](https://github.com/wooorm/franc) for source language detection and sends batch requests grouped by source language. LibreTranslate uses its built-in `source: "auto"` detection and sends sequential requests.
 
 ## Testing
 

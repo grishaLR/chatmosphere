@@ -1,0 +1,25 @@
+app = 'protoimsg-nllb'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  HOST = '0.0.0.0'
+  PORT = '6060'
+
+[http_service]
+  internal_port = 6060
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+
+[mounts]
+  source = 'nllb_models'
+  destination = '/models'
+
+[[vm]]
+  memory = '4gb'
+  cpu_kind = 'performance'
+  cpus = 1

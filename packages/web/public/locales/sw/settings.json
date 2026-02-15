@@ -1,0 +1,38 @@
+{
+  "back": "Rudi",
+
+  "accountInfo": {
+    "title": "Taarifa za Akaunti",
+    "didLabel": "DID",
+    "handleLabel": "Jina"
+  },
+
+  "editProfile": {
+    "title": "Hariri Wasifu",
+    "loading": "Inapakia wasifu...",
+    "changeAvatar": "Badilisha Picha",
+    "displayNameLabel": "Jina la Kuonyesha",
+    "bioLabel": "Wasifu",
+    "saving": "Inahifadhi...",
+    "save": "Hifadhi"
+  },
+
+  "appearance": {
+    "title": "Muonekano"
+  },
+
+  "language": {
+    "title": "Lugha"
+  },
+
+  "translation": {
+    "title": "Tafsiri",
+    "autoTranslate": "Tafsiri machapisho kiotomatiki",
+    "autoTranslateHint": "Tafsiri kiotomatiki machapisho na wasifu kwa lugha yako"
+  },
+
+  "actions": {
+    "title": "Vitendo",
+    "signOut": "Toka"
+  }
+}
