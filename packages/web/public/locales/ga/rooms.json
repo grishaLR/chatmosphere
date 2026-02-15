@@ -1,0 +1,55 @@
+{
+  "createRoom": {
+    "title": "Cruthaigh Seomra",
+    "nameLabel": "Ainm",
+    "namePlaceholder": "Ainm an tseomra",
+    "descriptionLabel": "Cur Síos",
+    "descriptionPlaceholder": "Cad é ábhar an tseomra seo?",
+    "topicLabel": "Topaic",
+    "topicPlaceholder": "Topaic reatha an phlé",
+    "purposeLabel": "Cuspóir",
+    "purpose": {
+      "discussion": "Plé",
+      "event": "Imeacht",
+      "community": "Pobal",
+      "support": "Tacaíocht"
+    },
+    "visibilityLabel": "Infheictheacht",
+    "visibility": {
+      "public": "Poiblí",
+      "unlisted": "Gan Liostú",
+      "private": "Príobháideach"
+    },
+    "error": {
+      "default": "Theip ar chruthú an tseomra"
+    },
+    "cancel": "Cealaigh",
+    "submitting": "Ag cruthú...",
+    "submit": "Cruthaigh"
+  },
+
+  "roomList": {
+    "empty": "Gan seomraí aimsithe. Cruthaigh ceann chun tosú!"
+  },
+
+  "roomCard": {
+    "createdDate": "Cruthaithe {{date}}",
+    "translate": "Aistrigh",
+    "translating": "Ag aistriú...",
+    "translatedTo": "Aistrithe go {{lang}}",
+    "showOriginal": "Taispeáin an bunleagan"
+  },
+
+  "directory": {
+    "searchPlaceholder": "Cuardaigh seomraí...",
+    "createButton": "Cruthaigh Seomra",
+    "loading": "Ag lódáil seomraí..."
+  },
+
+  "chatRoom": {
+    "invalidId": "ID seomra neamhbhailí",
+    "loading": "Tá an seomra á shocrú...",
+    "notFound": "Seomra gan aimsiú",
+    "backToRooms": "Seomraí"
+  }
+}

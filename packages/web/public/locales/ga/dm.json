@@ -1,0 +1,56 @@
+{
+  "input": {
+    "placeholder": "Clóscríobh teachtaireacht...",
+    "ariaLabel": "Clóscríobh teachtaireacht DM",
+    "send": "Seol"
+  },
+
+  "messageList": {
+    "empty": "Gan teachtaireachtaí fós. Abair haló!",
+    "typing": "ag clóscríobh..."
+  },
+
+  "popover": {
+    "ariaLabel": "Comhrá DM le {{recipientDid}}",
+    "header": {
+      "ariaLabel": {
+        "expand": "DM le {{recipientDid}} — cliceáil chun leathnú",
+        "minimize": "DM le {{recipientDid}} — cliceáil chun íoslaghdú"
+      }
+    },
+    "unreadAriaLabel": "{{count}} teachtaireacht neamhléite",
+    "unreadOverflow": "99+",
+    "persist": {
+      "titleActive": "Teachtaireachtaí sábháilte (7 lá)",
+      "titleInactive": "Teachtaireachtaí gearrshaolach — cliceáil chun sábháil",
+      "ariaLabel": {
+        "disable": "Díchumasaigh sábháil teachtaireachtaí",
+        "enable": "Cumasaigh sábháil teachtaireachtaí"
+      }
+    },
+    "minimize": {
+      "titleExpand": "Leathnaigh",
+      "titleMinimize": "Íoslaghdaigh",
+      "ariaLabel": {
+        "expand": "Leathnaigh comhrá",
+        "minimize": "Íoslaghdaigh comhrá"
+      }
+    },
+    "close": {
+      "title": "Dún",
+      "ariaLabel": "Dún comhrá"
+    }
+  },
+
+  "notification": {
+    "ariaLabel": "Teachtaireacht nua ó {{senderDid}}: {{preview}}",
+    "dismiss": {
+      "title": "Díbir",
+      "ariaLabel": "Díbir fógra"
+    }
+  },
+
+  "popoverContainer": {
+    "ariaLabel": "Fógraí DM"
+  }
+}

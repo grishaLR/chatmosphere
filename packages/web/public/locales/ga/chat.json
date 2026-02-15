@@ -1,0 +1,120 @@
+{
+  "buddyList": {
+    "searchPlaceholder": "Cuardaigh cairde...",
+    "loading": "Ag lódáil...",
+    "empty": "Gan chairde fós",
+    "createGroup": {
+      "placeholder": "Ainm an ghrúpa...",
+      "button": "+ Cruthaigh Grúpa"
+    },
+    "footer": {
+      "chatRooms": "Seomraí Comhrá",
+      "feed": "Fotha"
+    },
+    "groups": {
+      "innerCircle": "Ciorcal Inmheánach",
+      "community": "Pobal",
+      "offline": "As Líne",
+      "blocked": "Coiscthe"
+    }
+  },
+
+  "buddyMenu": {
+    "button": {
+      "title": "Roghanna",
+      "ariaLabel": "Roghanna carad"
+    },
+    "sendIm": "Seol Teachtaireacht",
+    "addToInnerCircle": "Cuir leis an gCiorcal Inmheánach",
+    "removeFromInnerCircle": "Bain ón gCiorcal Inmheánach",
+    "moveTo": "Bog go...",
+    "block": "Coisc",
+    "unblock": "Díchoisc",
+    "remove": "Bain"
+  },
+
+  "memberMenu": {
+    "button": {
+      "title": "Roghanna",
+      "ariaLabel": "Roghanna ball"
+    },
+    "addToBuddyList": "Cuir le Liosta Cairde",
+    "block": "Coisc",
+    "unblock": "Díchoisc",
+    "feedback": {
+      "added": "Curtha leis!",
+      "alreadyInList": "Ar an liosta cairde cheana féin",
+      "error": "Earráid ag cur carad leis"
+    }
+  },
+
+  "messageInput": {
+    "placeholder": {
+      "default": "Clóscríobh teachtaireacht... (Enter chun seoladh, Shift+Enter le haghaidh líne nua)",
+      "reply": "Freagra... (Enter chun seoladh, Esc chun cealú)"
+    },
+    "replyingTo": "Ag freagairt ar",
+    "cancelReply": {
+      "ariaLabel": "Cealaigh freagra"
+    },
+    "ariaLabel": {
+      "default": "Clóscríobh teachtaireacht",
+      "reply": "Clóscríobh freagra"
+    },
+    "send": "Seol"
+  },
+
+  "messageItem": {
+    "contentWarning": "Rabhadh inneachair",
+    "clickToReveal": "Cliceáil chun nochtadh",
+    "replyCount_one": "{{count}} fhreagra",
+    "replyCount_other": "{{count}} freagra",
+    "replyButton": "Freagair",
+    "translate": "Aistrigh",
+    "translating": "Ag aistriú...",
+    "translatedTo": "Aistrithe go {{lang}}",
+    "showOriginal": "Taispeáin an bunleagan"
+  },
+
+  "messageList": {
+    "loading": "Ag lódáil teachtaireachtaí...",
+    "empty": "Gan teachtaireachtaí fós. Tosaigh an comhrá!",
+    "typing": {
+      "one": "ag clóscríobh...",
+      "twoAnd": "agus",
+      "twoSuffix": "ag clóscríobh...",
+      "many": "{{count}} duine ag clóscríobh..."
+    }
+  },
+
+  "threadPanel": {
+    "ariaLabel": "Snáithe",
+    "title": "Snáithe",
+    "backAriaLabel": "Ar ais go tuismitheoir",
+    "closeAriaLabel": "Dún snáithe",
+    "loading": "Ag lódáil snáithe...",
+    "notFound": "Snáithe gan aimsiú",
+    "replyCount_one": "{{count}} fhreagra",
+    "replyCount_other": "{{count}} freagra",
+    "inputPlaceholder": "Freagair sa snáithe..."
+  },
+
+  "formattingToolbar": {
+    "bold": "Trom",
+    "italic": "Iodálach",
+    "strikethrough": "Líne tríd",
+    "code": "Cód",
+    "blockquote": "Blocsliocht"
+  },
+
+  "memberList": {
+    "heading": "Baill ({{count}})"
+  },
+
+  "groupHeader": {
+    "renameGroup": "Athainmnigh grúpa",
+    "deleteGroup": "Scrios grúpa",
+    "expand": "Leathnaigh",
+    "collapse": "Laghdaigh"
+  }
+}

@@ -41,12 +41,38 @@ services:
       - lt_models:/home/libretranslate/.local
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:5000/languages']
-      interval: 10s
+      interval: 15s
       timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  nllb:
+    build: ./docker/nllb
+    ports:
+      - '6060:6060'
+    volumes:
+      - nllb_models:/models
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'curl',
+          '-sf',
+          'http://localhost:6060/translate',
+          '-X',
+          'POST',
+          '-H',
+          'Content-Type: application/json',
+          '-d',
+          '{"source":["hi"],"src_lang":"eng_Latn","tgt_lang":"spa_Latn"}',
+        ]
+      interval: 15s
+      timeout: 15s
       retries: 10
-      start_period: 60s
+      start_period: 180s # model download ~3GB on first start
 
 volumes:
   pgdata:
   redisdata:
   lt_models:
+  nllb_models:
