@@ -489,5 +489,30 @@ export async function handleClientMessage(
       }
       break;
     }
+
+    case 'new_ice_candidate': {
+      const { conversationId, candidate } = data;
+      const isParticipant = await dmService.isParticipant(conversationId, did);
+      if (!isParticipant) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Not a participant' }));
+        break;
+      }
+
+      console.info({ conversationId, candidate }, 'Received new ICE candidate');
+      try {
+        dmSubs.broadcast(
+          conversationId,
+          {
+            type: 'new_ice_candidate',
+            data: { conversationId: conversationId, candidate: candidate },
+          },
+          ws, // exclude sender
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejectedcall';
+        ws.send(JSON.stringify({ type: 'error', message: msg }));
+      }
+      break;
+    }
   }
 }

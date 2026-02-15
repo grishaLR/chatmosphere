@@ -103,6 +103,12 @@ const acceptCall = z.object({
   answer: z.string().min(1),
 });
 
+const newIceCandidate = z.object({
+  type: z.literal('new_ice_candidate'),
+  conversationId: z.string().min(1),
+  candidate: z.string().min(1),
+});
+
 const clientMessage = z.discriminatedUnion('type', [
   joinRoom,
   leaveRoom,
@@ -120,6 +126,7 @@ const clientMessage = z.discriminatedUnion('type', [
   makeCall,
   rejectCall,
   acceptCall,
+  newIceCandidate,
 ]);
 
 export type ValidatedClientMessage = z.infer<typeof clientMessage>;

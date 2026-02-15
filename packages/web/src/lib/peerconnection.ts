@@ -3,15 +3,18 @@ import { ClientMessage } from '@protoimsg/shared';
 interface PeerConnectionConfig {
   config: RTCConfiguration;
   send: (msg: ClientMessage) => void;
+  conversationId: string;
 }
 
 export default class PeerManager {
   public pc: RTCPeerConnection;
   send: (msg: ClientMessage) => void;
+  public conversationId: string;
 
   constructor(peerConfig: PeerConnectionConfig) {
     this.send = peerConfig.send;
     this.pc = new RTCPeerConnection(peerConfig.config);
+    this.conversationId = peerConfig.conversationId;
 
     this.pc.onicecandidate = this.handleICECandidateEvent.bind(this);
     this.pc.ontrack = this.handleTrackEvent.bind(this);
@@ -25,7 +28,7 @@ export default class PeerManager {
     if (event.candidate) {
       this.send({
         type: 'new_ice_candidate',
-        target: 'TODO',
+        conversationId: this.conversationId,
         candidate: event.candidate,
       });
     }
@@ -60,6 +63,14 @@ export default class PeerManager {
     console.warn(
       'Signaling state change - this should be handled in DmContext, not PeerConnectionImpl',
     );
-    // Handle signaling state change event
+
+    if (this.pc.signalingState === 'stable') {
+      // Once stable, we can check if there are pending offers to create and send an answer for
+      // This can happen if the remote peer creates multiple offers before we respond to the first one
+      // In that case, we want to make sure we process all offers and don't leave any pending
+      // (This is a bit of a band-aid for handling rapid offer creation, ideally we'd want a more robust solution for queuing offers)
+      // Note: This is only relevant for the callee - the caller should not be receiving multiple offers without responding to the first one
+      // TODO: render peer connection in UI
+    }
   }
 }
