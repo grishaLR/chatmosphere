@@ -69,6 +69,7 @@ async function main() {
         sql: db,
         libreTranslateUrl: config.LIBRETRANSLATE_URL,
         nllbUrl: config.NLLB_URL,
+        nllbApiKey: config.NLLB_API_KEY,
       })
     : null;
   const supportedLanguages = config.TRANSLATE_ENABLED

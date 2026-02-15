@@ -5,16 +5,21 @@ primary_region = 'iad'
   image = 'libretranslate/libretranslate:latest'
 
 [env]
-  LT_LOAD_ONLY = 'en,es,ru,ar'
+  LT_LOAD_ONLY = 'en,es,ru,ar,uk,ga'
   LT_DISABLE_WEB_UI = 'true'
   LT_UPDATE_MODELS = 'true'
+  LT_THREADS = '4'
+
+[mounts]
+  source = 'lt_models'
+  destination = '/home/libretranslate/.local'
 
 [http_service]
   internal_port = 5000
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = false
   auto_start_machines = true
-  min_machines_running = 1
+  min_machines_running = 2
 
 [checks]
   [checks.health]
@@ -22,10 +27,10 @@ primary_region = 'iad'
     type = 'http'
     interval = '15s'
     timeout = '10s'
-    grace_period = '300s'
+    grace_period = '600s'
     path = '/languages'
 
 [[vm]]
-  memory = '2gb'
-  cpu_kind = 'shared'
+  memory = '4gb'
+  cpu_kind = 'performance'
   cpus = 2
