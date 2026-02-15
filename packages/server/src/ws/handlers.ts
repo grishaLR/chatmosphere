@@ -443,5 +443,51 @@ export async function handleClientMessage(
       }
       break;
     }
+
+    case 'reject_call': {
+      const { conversationId } = data;
+      const isParticipant = await dmService.isParticipant(conversationId, did);
+      if (!isParticipant) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Not a participant' }));
+        break;
+      }
+      try {
+        dmSubs.broadcast(
+          conversationId,
+          {
+            type: 'reject_call',
+            data: { conversationId: conversationId },
+          },
+          ws, // exclude sender
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejectedcall';
+        ws.send(JSON.stringify({ type: 'error', message: msg }));
+      }
+      break;
+    }
+
+    case 'accept_call': {
+      const { conversationId, answer } = data;
+      const isParticipant = await dmService.isParticipant(conversationId, did);
+      if (!isParticipant) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Not a participant' }));
+        break;
+      }
+      try {
+        dmSubs.broadcast(
+          conversationId,
+          {
+            type: 'accept_call',
+            data: { conversationId: conversationId, answer: answer },
+          },
+          ws, // exclude sender
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejectedcall';
+        ws.send(JSON.stringify({ type: 'error', message: msg }));
+      }
+      break;
+    }
   }
 }
