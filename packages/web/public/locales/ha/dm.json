@@ -1,0 +1,56 @@
+{
+  "input": {
+    "placeholder": "Rubuta saƙo...",
+    "ariaLabel": "Rubuta saƙon DM",
+    "send": "Aika"
+  },
+
+  "messageList": {
+    "empty": "Babu saƙonni tukuna. Ka ce sannu!",
+    "typing": "yana rubuta..."
+  },
+
+  "popover": {
+    "ariaLabel": "Tattaunawar DM da {{recipientDid}}",
+    "header": {
+      "ariaLabel": {
+        "expand": "DM da {{recipientDid}} \u2014 danna don bu\u0257ewa",
+        "minimize": "DM da {{recipientDid}} \u2014 danna don ragewa"
+      }
+    },
+    "unreadAriaLabel": "saƙonni {{count}} da ba a karanta ba",
+    "unreadOverflow": "99+",
+    "persist": {
+      "titleActive": "An ajiye saƙonni (kwanaki 7)",
+      "titleInactive": "Saƙonni na \u0257an lokaci ne \u2014 danna don ajiyewa",
+      "ariaLabel": {
+        "disable": "Kashe ajiyar saƙonni",
+        "enable": "Kunna ajiyar saƙonni"
+      }
+    },
+    "minimize": {
+      "titleExpand": "Bu\u0257e",
+      "titleMinimize": "Rage",
+      "ariaLabel": {
+        "expand": "Bu\u0257e tattaunawa",
+        "minimize": "Rage tattaunawa"
+      }
+    },
+    "close": {
+      "title": "Rufe",
+      "ariaLabel": "Rufe tattaunawa"
+    }
+  },
+
+  "notification": {
+    "ariaLabel": "Sabon saƙo daga {{senderDid}}: {{preview}}",
+    "dismiss": {
+      "title": "Watsar",
+      "ariaLabel": "Watsar da sanarwa"
+    }
+  },
+
+  "popoverContainer": {
+    "ariaLabel": "Sanarwar DM"
+  }
+}

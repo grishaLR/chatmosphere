@@ -1,0 +1,56 @@
+{
+  "input": {
+    "placeholder": "Andika ujumbe...",
+    "ariaLabel": "Andika ujumbe wa DM",
+    "send": "Tuma"
+  },
+
+  "messageList": {
+    "empty": "Hakuna ujumbe bado. Sema habari!",
+    "typing": "anaandika..."
+  },
+
+  "popover": {
+    "ariaLabel": "Mazungumzo ya DM na {{recipientDid}}",
+    "header": {
+      "ariaLabel": {
+        "expand": "DM na {{recipientDid}} \u2014 bofya kupanua",
+        "minimize": "DM na {{recipientDid}} \u2014 bofya kupunguza"
+      }
+    },
+    "unreadAriaLabel": "ujumbe {{count}} ambao haujasomwa",
+    "unreadOverflow": "99+",
+    "persist": {
+      "titleActive": "Ujumbe umehifadhiwa (siku 7)",
+      "titleInactive": "Ujumbe ni wa muda \u2014 bofya kuhifadhi",
+      "ariaLabel": {
+        "disable": "Zima uhifadhi wa ujumbe",
+        "enable": "Washa uhifadhi wa ujumbe"
+      }
+    },
+    "minimize": {
+      "titleExpand": "Panua",
+      "titleMinimize": "Punguza",
+      "ariaLabel": {
+        "expand": "Panua mazungumzo",
+        "minimize": "Punguza mazungumzo"
+      }
+    },
+    "close": {
+      "title": "Funga",
+      "ariaLabel": "Funga mazungumzo"
+    }
+  },
+
+  "notification": {
+    "ariaLabel": "Ujumbe mpya kutoka {{senderDid}}: {{preview}}",
+    "dismiss": {
+      "title": "Ondoa",
+      "ariaLabel": "Ondoa arifa"
+    }
+  },
+
+  "popoverContainer": {
+    "ariaLabel": "Arifa za DM"
+  }
+}

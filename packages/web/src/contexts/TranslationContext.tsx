@@ -29,6 +29,7 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
 
   const cacheRef = useRef(new Map<string, string>());
   const loadingSetRef = useRef(new Set<string>());
+  const queueRef = useRef<Promise<void>>(Promise.resolve());
   const [cacheVersion, forceUpdate] = useState(0);
   const prevLangRef = useRef(targetLang);
 
@@ -99,15 +100,19 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
       }
       forceUpdate((n) => n + 1);
 
-      void translateTexts(toTranslate, targetLang).then((response) => {
-        for (const text of toTranslate) {
-          loadingSetRef.current.delete(text);
-        }
-        for (const item of response.translations) {
-          cacheRef.current.set(item.text, item.translated);
-        }
-        forceUpdate((n) => n + 1);
-      });
+      // Chain onto the queue so batches process sequentially — prevents
+      // overwhelming the single-threaded NLLB server with concurrent requests
+      queueRef.current = queueRef.current.then(() =>
+        translateTexts(toTranslate, targetLang).then((response) => {
+          for (const text of toTranslate) {
+            loadingSetRef.current.delete(text);
+          }
+          for (const item of response.translations) {
+            cacheRef.current.set(item.text, item.translated);
+          }
+          forceUpdate((n) => n + 1);
+        }),
+      );
     },
     [targetLang, available],
   );

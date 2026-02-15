@@ -1,0 +1,38 @@
+{
+  "back": "Назад",
+
+  "accountInfo": {
+    "title": "Інформація про акаунт",
+    "didLabel": "DID",
+    "handleLabel": "Ім'я"
+  },
+
+  "editProfile": {
+    "title": "Редагувати профіль",
+    "loading": "Завантаження профілю...",
+    "changeAvatar": "Змінити аватар",
+    "displayNameLabel": "Ім'я для відображення",
+    "bioLabel": "Біографія",
+    "saving": "Збереження...",
+    "save": "Зберегти"
+  },
+
+  "appearance": {
+    "title": "Зовнішній вигляд"
+  },
+
+  "language": {
+    "title": "Мова"
+  },
+
+  "translation": {
+    "title": "Переклад",
+    "autoTranslate": "Автоматичний переклад постів",
+    "autoTranslateHint": "Автоматично перекладати пости стрічки та біографії вашою мовою"
+  },
+
+  "actions": {
+    "title": "Дії",
+    "signOut": "Вийти"
+  }
+}

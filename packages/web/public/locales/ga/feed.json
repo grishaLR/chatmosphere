@@ -1,0 +1,58 @@
+{
+  "composer": {
+    "collapsed": "Cad atá ar d'intinn?",
+    "replyingTo": "Ag freagairt ar @{{handle}}",
+    "placeholder": "Clóscríobh do phostáil...",
+    "charCount": "{{count}}/{{max}}",
+    "attachImage": "Ceangail Íomhá",
+    "cancel": "Cealaigh",
+    "posting": "Ag postáil...",
+    "post": "Postáil"
+  },
+
+  "post": {
+    "pinned": "Pionnáilte",
+    "repostedBy": "Athphostáilte ag",
+    "replyTo": "Freagra ar @{{handle}}",
+    "relativeTime": {
+      "seconds": "{{count}}s",
+      "minutes": "{{count}}n",
+      "hours": "{{count}}u",
+      "days": "{{count}}l",
+      "months": "{{count}}mí"
+    },
+    "translate": "Aistrigh",
+    "translatedTo": "Aistrithe go {{lang}}",
+    "showOriginal": "Taispeáin an bunleagan",
+    "translating": "Ag aistriú..."
+  },
+
+  "feedView": {
+    "loading": "Ag lódáil fotha...",
+    "empty": "Gan postálacha le taispeáint",
+    "loadingMore": "Ag lódáil tuilleadh...",
+    "refresh": "Athnuaigh fotha"
+  },
+
+  "profileView": {
+    "back": "Ar Ais",
+    "loading": "Ag lódáil próifíle...",
+    "error": "Theip ar lódáil na próifíle",
+    "followers": "leantóirí",
+    "following": "ag leanúint",
+    "posts": "postálacha",
+    "loadingMore": "Ag lódáil tuilleadh...",
+    "translateBio": "Aistrigh beathaisnéis",
+    "translating": "Ag aistriú...",
+    "translatedTo": "Aistrithe go {{lang}}",
+    "showOriginal": "Taispeáin an bunleagan"
+  },
+
+  "threadView": {
+    "back": "Ar Ais",
+    "loading": "Ag lódáil snáithe...",
+    "notFound": "Snáithe gan aimsiú",
+    "viewReplies_one": "Féach ar {{count}} fhreagra",
+    "viewReplies_other": "Féach ar {{count}} freagra"
+  }
+}

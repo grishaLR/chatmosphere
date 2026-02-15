@@ -1,0 +1,120 @@
+{
+  "buddyList": {
+    "searchPlaceholder": "Tafuta marafiki...",
+    "loading": "Inapakia...",
+    "empty": "Hakuna marafiki bado",
+    "createGroup": {
+      "placeholder": "Jina la kundi...",
+      "button": "+ Unda Kundi"
+    },
+    "footer": {
+      "chatRooms": "Vyumba vya Mazungumzo",
+      "feed": "Mlisho"
+    },
+    "groups": {
+      "innerCircle": "Watu wa Karibu",
+      "community": "Jamii",
+      "offline": "Nje ya mtandao",
+      "blocked": "Waliozuiwa"
+    }
+  },
+
+  "buddyMenu": {
+    "button": {
+      "title": "Chaguo",
+      "ariaLabel": "Chaguo za rafiki"
+    },
+    "sendIm": "Tuma Ujumbe",
+    "addToInnerCircle": "Ongeza kwa Watu wa Karibu",
+    "removeFromInnerCircle": "Ondoa kutoka Watu wa Karibu",
+    "moveTo": "Hamisha hadi...",
+    "block": "Zuia",
+    "unblock": "Ondoa kuzuia",
+    "remove": "Ondoa"
+  },
+
+  "memberMenu": {
+    "button": {
+      "title": "Chaguo",
+      "ariaLabel": "Chaguo za mwanachama"
+    },
+    "addToBuddyList": "Ongeza kwa Orodha ya Marafiki",
+    "block": "Zuia",
+    "unblock": "Ondoa kuzuia",
+    "feedback": {
+      "added": "Ameongezwa!",
+      "alreadyInList": "Tayari yumo kwenye orodha ya marafiki",
+      "error": "Hitilafu ya kuongeza rafiki"
+    }
+  },
+
+  "messageInput": {
+    "placeholder": {
+      "default": "Andika ujumbe... (Enter kutuma, Shift+Enter kwa mstari mpya)",
+      "reply": "Jibu... (Enter kutuma, Esc kughairi)"
+    },
+    "replyingTo": "Unajibu",
+    "cancelReply": {
+      "ariaLabel": "Ghairi jibu"
+    },
+    "ariaLabel": {
+      "default": "Andika ujumbe",
+      "reply": "Andika jibu"
+    },
+    "send": "Tuma"
+  },
+
+  "messageItem": {
+    "contentWarning": "Onyo la maudhui",
+    "clickToReveal": "Bofya kuona",
+    "replyCount_one": "jibu {{count}}",
+    "replyCount_other": "majibu {{count}}",
+    "replyButton": "Jibu",
+    "translate": "Tafsiri",
+    "translating": "Inatafsiri...",
+    "translatedTo": "Imetafsiriwa kwa {{lang}}",
+    "showOriginal": "Onyesha asili"
+  },
+
+  "messageList": {
+    "loading": "Inapakia ujumbe...",
+    "empty": "Hakuna ujumbe bado. Anza mazungumzo!",
+    "typing": {
+      "one": "anaandika...",
+      "twoAnd": "na",
+      "twoSuffix": "wanaandika...",
+      "many": "watu {{count}} wanaandika..."
+    }
+  },
+
+  "threadPanel": {
+    "ariaLabel": "Mfuatano",
+    "title": "Mfuatano",
+    "backAriaLabel": "Rudi kwenye mzazi",
+    "closeAriaLabel": "Funga mfuatano",
+    "loading": "Inapakia mfuatano...",
+    "notFound": "Mfuatano haujapatikana",
+    "replyCount_one": "jibu {{count}}",
+    "replyCount_other": "majibu {{count}}",
+    "inputPlaceholder": "Jibu kwenye mfuatano..."
+  },
+
+  "formattingToolbar": {
+    "bold": "Nene",
+    "italic": "Italiki",
+    "strikethrough": "Kupigwa mstari",
+    "code": "Msimbo",
+    "blockquote": "Dondoo"
+  },
+
+  "memberList": {
+    "heading": "Wanachama ({{count}})"
+  },
+
+  "groupHeader": {
+    "renameGroup": "Badilisha jina la kundi",
+    "deleteGroup": "Futa kundi",
+    "expand": "Panua",
+    "collapse": "Kunja"
+  }
+}

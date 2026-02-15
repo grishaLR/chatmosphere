@@ -1,0 +1,55 @@
+{
+  "createRoom": {
+    "title": "\u0136ir\u0137iri \u0110aki",
+    "nameLabel": "Suna",
+    "namePlaceholder": "Sunan \u0257aki",
+    "descriptionLabel": "Bayani",
+    "descriptionPlaceholder": "Me wannan \u0257akin yake magana a kai?",
+    "topicLabel": "Batu",
+    "topicPlaceholder": "Batun da ake tattaunawa a yanzu",
+    "purposeLabel": "Manufa",
+    "purpose": {
+      "discussion": "Tattaunawa",
+      "event": "Taro",
+      "community": "Al'umma",
+      "support": "Tallafi"
+    },
+    "visibilityLabel": "Ganuwa",
+    "visibility": {
+      "public": "Na jama'a",
+      "unlisted": "Ba a jera ba",
+      "private": "Mai zaman kansa"
+    },
+    "error": {
+      "default": "Ba a sami damar \u0137ir\u0137irar \u0257aki ba"
+    },
+    "cancel": "Soke",
+    "submitting": "Ana \u0137ir\u0137irawa...",
+    "submit": "\u0136ir\u0137ira"
+  },
+
+  "roomList": {
+    "empty": "Ba a sami \u0257akuna ba. \u0136ir\u0137iri \u0257aya don farawa!"
+  },
+
+  "roomCard": {
+    "createdDate": "An \u0137ir\u0137ira {{date}}",
+    "translate": "Fassara",
+    "translating": "Ana fassarawa...",
+    "translatedTo": "An fassara zuwa {{lang}}",
+    "showOriginal": "Nuna asali"
+  },
+
+  "directory": {
+    "searchPlaceholder": "Nemo \u0257akuna...",
+    "createButton": "\u0136ir\u0137iri \u0110aki",
+    "loading": "Ana loda \u0257akuna..."
+  },
+
+  "chatRoom": {
+    "invalidId": "ID na \u0257aki ba daidai ba",
+    "loading": "Ana shirya \u0257aki...",
+    "notFound": "Ba a sami \u0257akin ba",
+    "backToRooms": "\u0110akuna"
+  }
+}

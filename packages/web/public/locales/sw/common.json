@@ -1,0 +1,110 @@
+{
+  "appName": "proto instant messenger",
+
+  "status": {
+    "online": "Mtandaoni",
+    "away": "Sipatikani",
+    "idle": "Kimya"
+  },
+
+  "visibility": {
+    "everyone": "Kila mtu",
+    "community": "Jamii",
+    "innerCircle": "Watu wa karibu",
+    "noOne": "Hakuna mtu"
+  },
+
+  "theme": {
+    "aim": "AIM Asili",
+    "nytLight": "Minimali Angavu",
+    "nytDark": "Minimali Giza",
+    "dracula": "Dracula",
+    "valentine": "Valentaini",
+    "garden": "Bustani",
+    "coffee": "Kahawa",
+    "fantasy": "Fantasia",
+    "nord": "Nord",
+    "retro": "Retro",
+    "black": "Nyeusi",
+    "wireframe": "Wireframe"
+  },
+
+  "nav": {
+    "community": "Jamii",
+    "rooms": "Vyumba",
+    "feed": "Mlisho"
+  },
+
+  "header": {
+    "menu": "Menyu",
+    "awayMessage": {
+      "label": "Ujumbe wa kutokuwepo",
+      "placeholder": "mf. Narudi, naenda kuchukua kahawa"
+    },
+    "visibility": {
+      "label": "Nani anaweza kuniona"
+    },
+    "settings": "Mipangilio",
+    "minimize": "Punguza",
+    "signOut": "Toka"
+  },
+
+  "statusSelector": {
+    "awayMessage": {
+      "label": "Ujumbe wa kutokuwepo",
+      "placeholder": "mf. Narudi, naenda kuchukua kahawa"
+    },
+    "visibility": {
+      "label": "Nani anaweza kuniona"
+    }
+  },
+
+  "connectionBanner": {
+    "message": "Muunganisho umepotea \u2014 inaunganisha tena..."
+  },
+
+  "errorBoundary": {
+    "title": "Kuna tatizo limetokea",
+    "fallbackMessage": "Hitilafu isiyotarajiwa imetokea",
+    "tryAgain": "Jaribu tena"
+  },
+
+  "button": {
+    "back": "Rudi",
+    "cancel": "Ghairi",
+    "send": "Tuma",
+    "close": "Funga",
+    "save": "Hifadhi",
+    "settings": "Mipangilio"
+  },
+
+  "aria": {
+    "expand": "Panua",
+    "collapse": "Kunja"
+  },
+
+  "serverError": {
+    "unknown": "Hitilafu isiyojulikana imetokea",
+    "unauthorized": "Lazima uwe umeingia",
+    "invalidSession": "Kipindi chako kimeisha. Tafadhali ingia tena.",
+    "invalidChallenge": "Changamoto ya uthibitishaji imeisha. Tafadhali jaribu tena.",
+    "handleMismatch": "Uthibitishaji wa jina umeshindwa",
+    "authVerificationFailed": "Uthibitishaji umeshindwa",
+    "authTimeout": "Uthibitishaji umeisha muda",
+    "authRequired": "Uthibitishaji unahitajika",
+    "forbidden": "Huna ruhusa ya kufanya hivyo",
+    "banned": "Akaunti hii hairuhusiwi kutumia huduma hii",
+    "accessDenied": "Ufikiaji umekataliwa",
+    "notParticipant": "Wewe si mshiriki wa mazungumzo haya",
+    "blockedUser": "Huwezi kutuma ujumbe kwa mtumiaji huyu",
+    "selfDm": "Huwezi kujitumia ujumbe",
+    "notFound": "Haijapatikana",
+    "rateLimited": "Maombi mengi mno. Tafadhali subiri na ujaribu tena.",
+    "serverError": "Kuna tatizo upande wetu",
+    "networkError": "Hitilafu ya mtandao. Angalia muunganisho wako.",
+    "invalidInput": "Ingizo batili",
+    "messageTooLong": "Ujumbe ni mrefu mno",
+    "contentFiltered": "Ujumbe umezuiwa na kichujio cha maudhui",
+    "alreadyExists": "Tayari ipo"
+  }
+}

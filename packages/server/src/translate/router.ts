@@ -4,37 +4,22 @@ import { ERROR_CODES } from '@protoimsg/shared';
 import type { TranslateService } from './service.js';
 import type { RateLimiterStore } from '../moderation/rate-limiter-store.js';
 
-const SUPPORTED_LANGS = [
-  'en',
-  'es',
-  'ru',
-  'ar',
-  'ga',
-  'uk',
-  'zh',
-  'hi',
-  'ja',
-  'ko',
-  'vi',
-  'fr',
-  'pt',
-  'de',
-  'tr',
-  'th',
-] as const;
 const MAX_TEXTS = 30;
 const MAX_TEXT_LENGTH = 5000;
-
-const translateSchema = z.object({
-  texts: z.array(z.string().max(MAX_TEXT_LENGTH)).min(1).max(MAX_TEXTS),
-  targetLang: z.enum(SUPPORTED_LANGS),
-});
 
 export function translateRouter(
   translateService: TranslateService,
   translateRateLimiter: RateLimiterStore,
+  supportedLanguages: string[],
 ): Router {
   const router = Router();
+
+  const translateSchema = z.object({
+    texts: z.array(z.string().max(MAX_TEXT_LENGTH)).min(1).max(MAX_TEXTS),
+    targetLang: z.string().refine((val) => supportedLanguages.includes(val), {
+      message: 'Unsupported target language',
+    }),
+  });
 
   // POST / — batch translate
   router.post('/', async (req, res, next) => {
@@ -119,7 +104,7 @@ export function translateRouter(
   router.get('/status', async (_req, res, next) => {
     try {
       const available = await translateService.isAvailable();
-      res.json({ available, languages: available ? SUPPORTED_LANGS : [] });
+      res.json({ available, languages: available ? supportedLanguages : [] });
     } catch (err) {
       next(err);
     }

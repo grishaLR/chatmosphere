@@ -1,0 +1,110 @@
+{
+  "appName": "proto instant messenger",
+
+  "status": {
+    "online": "Ar Líne",
+    "away": "As Láthair",
+    "idle": "Díomhaoin"
+  },
+
+  "visibility": {
+    "everyone": "Gach Duine",
+    "community": "Pobal",
+    "innerCircle": "Ciorcal Inmheánach",
+    "noOne": "Duine ar Bith"
+  },
+
+  "theme": {
+    "aim": "AIM Clasaiceach",
+    "nytLight": "Íosta Geal",
+    "nytDark": "Íosta Dorcha",
+    "dracula": "Dracula",
+    "valentine": "Vailintín",
+    "garden": "Gairdín",
+    "coffee": "Caife",
+    "fantasy": "Fantaisíocht",
+    "nord": "Nord",
+    "retro": "Reiteo",
+    "black": "Dubh",
+    "wireframe": "Wireframe"
+  },
+
+  "nav": {
+    "community": "Pobal",
+    "rooms": "Seomraí",
+    "feed": "Fotha"
+  },
+
+  "header": {
+    "menu": "Roghchlár",
+    "awayMessage": {
+      "label": "Teachtaireacht as láthair",
+      "placeholder": "m.sh. Ar ais go gairid, ag fáil caife"
+    },
+    "visibility": {
+      "label": "Cé a fheiceann mé"
+    },
+    "settings": "Socruithe",
+    "minimize": "Íoslaghdaigh",
+    "signOut": "Sínigh Amach"
+  },
+
+  "statusSelector": {
+    "awayMessage": {
+      "label": "Teachtaireacht as láthair",
+      "placeholder": "m.sh. Ar ais go gairid, ag fáil caife"
+    },
+    "visibility": {
+      "label": "Cé a fheiceann mé"
+    }
+  },
+
+  "connectionBanner": {
+    "message": "Ceangal caillte — ag athcheangal..."
+  },
+
+  "errorBoundary": {
+    "title": "Chuaigh rud éigin mícheart",
+    "fallbackMessage": "Tharla earráid gan choinne",
+    "tryAgain": "Bain triail eile as"
+  },
+
+  "button": {
+    "back": "Ar Ais",
+    "cancel": "Cealaigh",
+    "send": "Seol",
+    "close": "Dún",
+    "save": "Sábháil",
+    "settings": "Socruithe"
+  },
+
+  "aria": {
+    "expand": "Leathnaigh",
+    "collapse": "Laghdaigh"
+  },
+
+  "serverError": {
+    "unknown": "Tharla earráid anaithnid",
+    "unauthorized": "Caithfidh tú a bheith sínithe isteach",
+    "invalidSession": "Tá do sheisiún éagtha. Sínigh isteach arís, le do thoil.",
+    "invalidChallenge": "Tá an dúshlán fíordheimhnithe éagtha. Bain triail eile as, le do thoil.",
+    "handleMismatch": "Theip ar fhíorú an ainm láimhseála",
+    "authVerificationFailed": "Theip ar fhíorú an fhíordheimhnithe",
+    "authTimeout": "Tháinig an fíordheimhniú as am",
+    "authRequired": "Tá fíordheimhniú ag teastáil",
+    "forbidden": "Níl cead agat é sin a dhéanamh",
+    "banned": "Níl cead ag an gcuntas seo an tseirbhís seo a úsáid",
+    "accessDenied": "Rochtain diúltaithe",
+    "notParticipant": "Ní rannpháirtí thú sa chomhrá seo",
+    "blockedUser": "Ní féidir teachtaireacht a chur chuig an úsáideoir seo",
+    "selfDm": "Ní féidir leat teachtaireacht a sheoladh chugat féin",
+    "notFound": "Gan aimsiú",
+    "rateLimited": "An iomarca iarratas. Fan agus bain triail eile as, le do thoil.",
+    "serverError": "Chuaigh rud éigin mícheart ar ár dtaobh",
+    "networkError": "Earráid líonra. Seiceáil do cheangal.",
+    "invalidInput": "Ionchur neamhbhailí",
+    "messageTooLong": "Tá an teachtaireacht rófhada",
+    "contentFiltered": "Chuir scagaire inneachair bac ar an teachtaireacht",
+    "alreadyExists": "Ann cheana féin"
+  }
+}

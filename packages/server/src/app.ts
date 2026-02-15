@@ -35,6 +35,7 @@ export function createApp(
   challenges: ChallengeStoreInterface,
   translateService?: TranslateService | null,
   translateRateLimiter?: RateLimiterStore | null,
+  supportedLanguages?: string[],
 ): Express {
   const app = express();
   const requireAuth = createRequireAuth(sessions);
@@ -67,7 +68,11 @@ export function createApp(
 
   // Translation routes (optional — only mounted when TRANSLATE_ENABLED=true)
   if (translateService && translateRateLimiter) {
-    app.use('/api/translate', requireAuth, translateRouter(translateService, translateRateLimiter));
+    app.use(
+      '/api/translate',
+      requireAuth,
+      translateRouter(translateService, translateRateLimiter, supportedLanguages ?? []),
+    );
   }
 
   // Error handler (must be last)
