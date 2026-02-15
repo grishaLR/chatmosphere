@@ -19,6 +19,8 @@ export function DmPopoverContainer() {
     dismissNotification,
     openFromNotification,
     makeCall,
+    acceptCall,
+    rejectCall,
   } = useDm();
   const { did } = useAuth();
 
@@ -49,8 +51,14 @@ export function DmPopoverContainer() {
           onTogglePersist={(persist) => {
             togglePersist(convo.conversationId, persist);
           }}
-          onMakeCall={() => {
-            makeCall(convo.conversationId, ''); // TODO: pass actual text or call data
+          onMakeCall={async () => {
+            await makeCall(convo.conversationId, ''); // TODO: pass actual text or call data
+          }}
+          onAcceptCall={async () => {
+            await acceptCall(convo.conversationId);
+          }}
+          onRejectCall={() => {
+            rejectCall(convo.conversationId);
           }}
         />
       ))}
