@@ -14,6 +14,7 @@ import { playImNotify } from '../lib/sounds';
 import { IS_TAURI } from '../lib/config';
 import type { DmMessageView } from '../types';
 import type { ServerMessage } from '@protoimsg/shared';
+import PeerManager from '../lib/peerconnection';
 
 const MAX_OPEN_POPOVERS = 4;
 const MAX_MESSAGES = 200;
@@ -28,6 +29,7 @@ export interface DmConversation {
   minimized: boolean;
   typing: boolean;
   unreadCount: number;
+  incomingCall: boolean;
 }
 
 export interface DmNotification {
@@ -49,7 +51,9 @@ interface DmContextValue {
   togglePersist: (conversationId: string, persist: boolean) => void;
   dismissNotification: (conversationId: string) => void;
   openFromNotification: (notification: DmNotification) => void;
-  makeCall: (conversationId: string, text: string) => void;
+  makeCall: (conversationId: string, text: string) => Promise<void>;
+  acceptCall: (conversationId: string) => Promise<void>;
+  rejectCall: (conversationId: string) => void;
 }
 
 const DmContext = createContext<DmContextValue | null>(null);
@@ -65,9 +69,33 @@ export function DmProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<DmConversation[]>([]);
   const [notifications, setNotifications] = useState<DmNotification[]>([]);
   const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const incomingCallTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastTypingSent = useRef<Map<string, number>>(new Map());
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const localStream = useRef<MediaStream | null>(null);
+  const peerConnections = useRef<Map<string, PeerManager>>(new Map());
+  const incomingOffers = useRef<Map<string, string>>(new Map());
 
+  async function getStunServers() {
+    const HOSTS =
+      'https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt';
+
+    try {
+      const response = await fetch(HOSTS);
+      const text = await response.text();
+      const hosts = text.split('\n').filter((line) => line.trim() !== '');
+      return hosts.map((host) => ({ urls: `stun:${host}` }));
+    } catch (error) {
+      console.error('Fallback to Google STUN', error);
+      return [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+      ];
+    }
+  }
   // M24: pendingMinimized — ref to track "open minimized" intent across async boundary.
   // When openDmMinimized(recipientDid) is called before the server responds, we can't
   // add the conversation to state yet. We store recipientDid here; when dm_opened
@@ -221,15 +249,100 @@ export function DmProvider({ children }: { children: ReactNode }) {
   );
 
   const makeCall = useCallback(
+    async (conversationId: string) => {
+      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
+
+      if (!localStream.current) {
+        try {
+          localStream.current = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          });
+        } catch (err) {
+          console.error('Failed to get media stream', err);
+          return;
+        }
+      }
+
+      const pm = new PeerManager({ config: { iceServers: await getStunServers() }, send });
+
+      if (peerConnections.current.has(conversationId)) {
+        peerConnections.current.get(conversationId)?.pc.close();
+      }
+
+      peerConnections.current.set(conversationId, pm);
+
+      try {
+        // Add local tracks to peer connection
+        localStream.current.getTracks().forEach((track) => {
+          if (!localStream.current) throw new Error('Local stream is null');
+          pm.pc.addTrack(track, localStream.current);
+        });
+        const offer = await pm.pc.createOffer();
+        await pm.pc.setLocalDescription(offer);
+
+        if (!offer.sdp) {
+          throw new Error('Offer SDP is undefined');
+        }
+
+        send({ type: 'make_call', conversationId: conversationId, offer: offer.sdp });
+      } catch (err) {
+        console.error('Failed to create offer', err);
+        return;
+      }
+    },
+    [send, did],
+  );
+
+  const acceptCall = useCallback(
+    async (conversationId: string) => {
+      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
+
+      const pm = new PeerManager({ config: { iceServers: await getStunServers() }, send });
+      peerConnections.current.set(conversationId, pm);
+      const offer = incomingOffers.current.get(conversationId);
+
+      if (!offer) {
+        console.error('No incoming offer found for conversation', conversationId);
+        return;
+      }
+
+      try {
+        await pm.pc.setRemoteDescription({ type: 'offer', sdp: offer });
+
+        if (!localStream.current) {
+          localStream.current = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true,
+          });
+        }
+        // Add local tracks to peer connection
+        localStream.current.getTracks().forEach((track) => {
+          if (!localStream.current) throw new Error('Local stream is null');
+          pm.pc.addTrack(track, localStream.current);
+        });
+
+        const answer = await pm.pc.createAnswer();
+        await pm.pc.setLocalDescription(answer);
+
+        if (!answer.sdp) {
+          throw new Error('Answer SDP is undefined');
+        }
+
+        send({ type: 'accept_call', conversationId: conversationId, answer: answer.sdp });
+      } catch (err) {
+        console.error('Failed to accept call', err);
+        return;
+      }
+    },
+    [send, did],
+  );
+
+  const rejectCall = useCallback(
     (conversationId: string) => {
       if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
-      send({ type: 'make_call', conversationId });
-
-      console.warn('Making call feature coming soon!');
-      // TODO: implement call UI and flow. For now we just send the message and show an alert on incoming_call.
-      // The text parameter is intended for passing call data (e.g. offer/answer in a WebRTC flow)
-      // once the feature is implemented.
-      // H5: Timeout pending messages — mark as failed after 15s
+      send({ type: 'reject_call', conversationId });
+      // TODO: clean up incoming offer and timers for this call
     },
     [send, did],
   );
@@ -263,6 +376,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
               minimized: shouldMinimize,
               typing: false,
               unreadCount: 0,
+              incomingCall: false,
             };
 
             const updated = [...prev, newConvo];
@@ -419,7 +533,25 @@ export function DmProvider({ children }: { children: ReactNode }) {
           break;
         }
         case 'incoming_call': {
-          console.warn('Incoming call feature coming soon!');
+          const { conversationId, offer } = msg.data;
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.conversationId === conversationId ? { ...c, incomingCall: true } : c,
+            ),
+          );
+
+          incomingOffers.current.set(conversationId, offer);
+
+          const timer = setTimeout(() => {
+            setConversations((prev) =>
+              prev.map((c) =>
+                c.conversationId === conversationId ? { ...c, incomingCall: false } : c,
+              ),
+            );
+            incomingCallTimers.current.delete(conversationId);
+            incomingOffers.current.delete(conversationId);
+          }, 10000);
+          incomingCallTimers.current.set(conversationId, timer);
           break;
         }
       }
@@ -431,6 +563,10 @@ export function DmProvider({ children }: { children: ReactNode }) {
         clearTimeout(timer);
       }
       typingTimers.current.clear();
+      for (const timer of incomingCallTimers.current.values()) {
+        clearTimeout(timer);
+      }
+      incomingCallTimers.current.clear();
     };
   }, [subscribe, did]);
 
@@ -504,6 +640,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
       dismissNotification,
       openFromNotification,
       makeCall,
+      acceptCall,
+      rejectCall,
     }),
     [
       conversations,
@@ -518,6 +656,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
       dismissNotification,
       openFromNotification,
       makeCall,
+      acceptCall,
+      rejectCall,
     ],
   );
 

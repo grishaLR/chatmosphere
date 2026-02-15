@@ -421,17 +421,19 @@ export async function handleClientMessage(
     }
 
     case 'make_call': {
-      const isParticipant = await dmService.isParticipant(data.conversationId, did);
+      const { conversationId, offer } = data;
+      const isParticipant = await dmService.isParticipant(conversationId, did);
       if (!isParticipant) {
         ws.send(JSON.stringify({ type: 'error', message: 'Not a participant' }));
         break;
       }
+
       try {
         dmSubs.broadcast(
           data.conversationId,
           {
             type: 'incoming_call',
-            data: { conversationId: data.conversationId, senderDid: did },
+            data: { conversationId: conversationId, senderDid: did, offer: offer },
           },
           ws, // exclude sender
         );

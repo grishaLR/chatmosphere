@@ -14,7 +14,9 @@ interface DmPopoverProps {
   onSend: (text: string) => void;
   onTyping: () => void;
   onTogglePersist: (persist: boolean) => void;
-  onMakeCall: () => void;
+  onMakeCall: () => Promise<void>;
+  onAcceptCall: () => Promise<void>;
+  onRejectCall: () => void;
 }
 
 export function DmPopover({
@@ -26,6 +28,8 @@ export function DmPopover({
   onTyping,
   onTogglePersist,
   onMakeCall,
+  onAcceptCall,
+  onRejectCall,
 }: DmPopoverProps) {
   const { t } = useTranslation('dm');
   const { recipientDid, messages, persist, minimized, typing, unreadCount } = conversation;
@@ -83,16 +87,18 @@ export function DmPopover({
         )}
         <div className={styles.headerActions}>
           <button
-            className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
+            className={styles.headerBtn}
             onClick={(e) => {
               e.stopPropagation();
-              onMakeCall();
+              // TODO: This should ideally be handled in DmContext so that we can show the call UI immediately instead of waiting for the round trip to the server
+              onMakeCall().catch((err: unknown) => {
+                console.error('Failed to make call', err);
+              });
             }}
-            title={persist ? 'Messages saved (7 days)' : 'Messages ephemeral — click to save'}
-            aria-label={persist ? 'Disable message saving' : 'Enable message saving'}
-            aria-pressed={persist}
+            title={'Start video call'}
+            aria-label={'Start video call'}
           >
-            📹
+            {'\uD83D\uDCF9'}
           </button>
           <button
             className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
@@ -140,7 +146,38 @@ export function DmPopover({
           </button>
         </div>
       </div>
-
+      {conversation.incomingCall && (
+        <div className={styles.header} onClick={onToggleMinimize}>
+          <span className={styles.headerIdentity}>Incoming call</span>
+          <div className={styles.headerActions}>
+            <button
+              className={styles.headerBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                // TODO: This should ideally be handled in DmContext so that we can show the call UI immediately instead of waiting for the round trip to the server
+                onAcceptCall().catch((err: unknown) => {
+                  console.error('Failed to accept call', err);
+                });
+              }}
+              title={'Accept call'}
+              aria-label={'Accept incoming call'}
+            >
+              {'\uD83D\uDFE2'}
+            </button>
+            <button
+              className={styles.headerBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRejectCall();
+              }}
+              title={'Reject call'}
+              aria-label={'Reject incoming call'}
+            >
+              {'\uD83D\uDEAB'}
+            </button>
+          </div>
+        </div>
+      )}
       {/* L4/M3: Use CSS class instead of unmounting to preserve draft text and scroll */}
       <div className={minimized ? `${styles.body} ${styles.bodyHidden}` : styles.body}>
         <DmMessageList messages={messages} currentDid={currentDid} typing={typing} />

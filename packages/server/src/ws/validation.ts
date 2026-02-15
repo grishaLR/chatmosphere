@@ -89,6 +89,7 @@ const dmTogglePersist = z.object({
 const makeCall = z.object({
   type: z.literal('make_call'),
   conversationId: z.string().min(1),
+  offer: z.string().min(1),
 });
 
 const clientMessage = z.discriminatedUnion('type', [

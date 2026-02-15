@@ -9,7 +9,8 @@
   border: none;
   border-radius: var(--cm-radius-lg);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
-  overflow: hidden; /* respects rounded corners on header */
+  overflow: hidden;
+  /* respects rounded corners on header */
 }
 
 .minimized {
@@ -37,6 +38,18 @@
   white-space: nowrap;
   font-size: var(--cm-text-base);
   font-weight: 700;
+}
+
+.incomingCallBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-3);
+  padding: 0 var(--cm-space-3);
+  height: var(--cm-header-h);
+  background: var(--cm-titlebar);
+  color: var(--cm-chrome-text);
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .headerActions {

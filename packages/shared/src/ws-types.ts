@@ -88,6 +88,24 @@ export interface SyncCommunityMessage extends WsMessageBase {
 export interface MakeCall extends WsMessageBase {
   type: 'make_call';
   conversationId: string;
+  offer: string;
+}
+
+export interface AcceptCallMessage extends WsMessageBase {
+  type: 'accept_call';
+  conversationId: string;
+  answer: string;
+}
+
+export interface RejectCallMessage extends WsMessageBase {
+  type: 'reject_call';
+  conversationId: string;
+}
+
+export interface NewIceCandidateMessage extends WsMessageBase {
+  type: 'new_ice_candidate';
+  target: string;
+  candidate: RTCIceCandidate;
 }
 
 export type ClientMessage =
@@ -105,7 +123,10 @@ export type ClientMessage =
   | DmSendMessage
   | DmTypingMessage
   | DmTogglePersistMessage
-  | MakeCall;
+  | MakeCall
+  | AcceptCallMessage
+  | RejectCallMessage
+  | NewIceCandidateMessage;
 
 // Server → Client messages
 
@@ -261,6 +282,7 @@ export interface IncomingCall extends WsMessageBase {
   data: {
     conversationId: string;
     senderDid: string;
+    offer: string;
   };
 }
 
