@@ -277,6 +277,21 @@ export interface PollVoteEvent extends WsMessageBase {
   }
 }
 
+export interface AcceptCallEvent extends WsMessageBase {
+  type: 'accept_call';
+  data: {
+    conversationId: string;
+    answer: string;
+  };
+}
+
+export interface RejectCallEvent extends WsMessageBase {
+  type: 'reject_call';
+  data: {
+    conversationId: string;
+  };
+}
+
 export interface IncomingCall extends WsMessageBase {
   type: 'incoming_call';
   data: {
@@ -315,4 +330,6 @@ export type ServerMessage =
   | MentionNotificationEvent
   | PollCreatedEvent
   | PollVoteEvent
-  | IncomingCall;
+  | IncomingCall
+  | RejectCallEvent
+  | AcceptCallEvent;

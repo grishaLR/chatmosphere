@@ -342,7 +342,15 @@ export function DmProvider({ children }: { children: ReactNode }) {
     (conversationId: string) => {
       if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
       send({ type: 'reject_call', conversationId });
-      // TODO: clean up incoming offer and timers for this call
+      const incomingTimer = incomingCallTimers.current.get(conversationId);
+      if (incomingTimer) {
+        clearTimeout(incomingTimer);
+        incomingCallTimers.current.delete(conversationId);
+      }
+      incomingOffers.current.delete(conversationId);
+      setConversations((prev) =>
+        prev.map((c) => (c.conversationId === conversationId ? { ...c, incomingCall: false } : c)),
+      );
     },
     [send, did],
   );
@@ -529,6 +537,33 @@ export function DmProvider({ children }: { children: ReactNode }) {
                   : updated;
               });
             }
+          }
+          break;
+        }
+        case 'accept_call': {
+          // callee accepted the call — set remote description to establish connection
+          const { conversationId, answer } = msg.data;
+          const pm = peerConnections.current.get(conversationId);
+
+          if (!pm) {
+            console.error('No peer connection found for conversation', conversationId);
+            return;
+          }
+
+          pm.pc.setRemoteDescription({ type: 'answer', sdp: answer }).catch((err: unknown) => {
+            console.error('Failed to set remote description', err);
+          });
+
+          break;
+        }
+        case 'reject_call': {
+          // callee rejected the call — clean up peer connection
+          const { conversationId } = msg.data;
+          const pm = peerConnections.current.get(conversationId);
+
+          if (pm) {
+            pm.pc.close();
+            peerConnections.current.delete(conversationId);
           }
           break;
         }

@@ -92,6 +92,17 @@ const makeCall = z.object({
   offer: z.string().min(1),
 });
 
+const rejectCall = z.object({
+  type: z.literal('reject_call'),
+  conversationId: z.string().min(1),
+});
+
+const acceptCall = z.object({
+  type: z.literal('accept_call'),
+  conversationId: z.string().min(1),
+  answer: z.string().min(1),
+});
+
 const clientMessage = z.discriminatedUnion('type', [
   joinRoom,
   leaveRoom,
@@ -107,6 +118,8 @@ const clientMessage = z.discriminatedUnion('type', [
   dmTyping,
   dmTogglePersist,
   makeCall,
+  rejectCall,
+  acceptCall,
 ]);
 
 export type ValidatedClientMessage = z.infer<typeof clientMessage>;
