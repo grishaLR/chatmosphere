@@ -264,7 +264,11 @@ export function DmProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      const pm = new PeerManager({ config: { iceServers: await getStunServers() }, send });
+      const pm = new PeerManager({
+        config: { iceServers: await getStunServers() },
+        conversationId,
+        send,
+      });
 
       if (peerConnections.current.has(conversationId)) {
         peerConnections.current.get(conversationId)?.pc.close();
@@ -298,7 +302,11 @@ export function DmProvider({ children }: { children: ReactNode }) {
     async (conversationId: string) => {
       if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
 
-      const pm = new PeerManager({ config: { iceServers: await getStunServers() }, send });
+      const pm = new PeerManager({
+        config: { iceServers: await getStunServers() },
+        conversationId,
+        send,
+      });
       peerConnections.current.set(conversationId, pm);
       const offer = incomingOffers.current.get(conversationId);
 
@@ -565,6 +573,22 @@ export function DmProvider({ children }: { children: ReactNode }) {
             pm.pc.close();
             peerConnections.current.delete(conversationId);
           }
+          break;
+        }
+
+        case 'new_ice_candidate': {
+          const { conversationId, candidate } = msg.data;
+          const pm = peerConnections.current.get(conversationId);
+
+          if (!pm) {
+            console.error('No peer connection found for conversation', conversationId);
+            return;
+          }
+
+          pm.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
+            console.error('Failed to add ICE candidate', err);
+          });
+
           break;
         }
         case 'incoming_call': {
