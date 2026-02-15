@@ -121,9 +121,14 @@ export function floresToIso(flores: string): string | undefined {
  * Returns an ISO 639-1 code. Falls back to 'en' for short or ambiguous text.
  */
 export function detectLanguage(text: string): string {
-  if (text.trim().length < 20) return 'en';
+  // Strip URLs — they confuse franc (e.g. ".com" → Portuguese)
+  const stripped = text
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/www\.\S+/g, '')
+    .trim();
+  if (stripped.length < 20) return 'en';
 
-  const iso3 = franc(text);
+  const iso3 = franc(stripped);
   if (iso3 === 'und') return 'en';
 
   return ISO3_TO_ISO1[iso3] ?? 'en';

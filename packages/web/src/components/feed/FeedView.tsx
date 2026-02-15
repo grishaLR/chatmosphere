@@ -14,6 +14,7 @@ const SCROLL_BOTTOM_THRESHOLD = 200;
 const SCROLL_DOWN_THRESHOLD = 300;
 const IDLE_SHOW_DELAY_MS = 8000;
 const TRANSLATE_DEBOUNCE_MS = 300;
+const TRANSLATE_BATCH_SIZE = 3;
 
 /** Module-level cache: feed URI → scrollTop. Survives component unmount/remount. */
 const scrollPositionCache = new Map<string, number>();
@@ -40,7 +41,6 @@ export function FeedView({
   const { autoTranslate, requestBatchTranslation, available } = useContentTranslation();
   const [showRefresh, setShowRefresh] = useState(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const translateBufferRef = useRef(new Set<string>());
   const translateTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const {
@@ -76,7 +76,8 @@ export function FeedView({
     };
   }, [posts.length]);
 
-  // Debounced viewport translation — collect texts while scrolling, flush as one batch
+  // Debounced viewport translation — visible posts first, then nearby prefetch.
+  // Batches queue sequentially via TranslationContext to avoid overwhelming NLLB.
   useEffect(() => {
     if (!autoTranslate || !available || virtualItems.length === 0) return;
 
@@ -84,33 +85,48 @@ export function FeedView({
     const last = virtualItems[virtualItems.length - 1];
     if (!first || !last) return;
 
-    // Collect visible + nearby texts into the buffer
-    for (const vi of virtualItems) {
-      const post = data[vi.index];
-      if (!post) continue;
-      const text = ((post.post.record as Record<string, unknown>).text as string) || '';
-      if (text) translateBufferRef.current.add(text);
-    }
-
-    const firstVisible = first.index;
-    const lastVisible = last.index;
-    const prefetchStart = Math.max(0, firstVisible - 5);
-    const prefetchEnd = Math.min(posts.length - 1, lastVisible + 5);
-    for (let i = prefetchStart; i <= prefetchEnd; i++) {
-      if (i < firstVisible || i > lastVisible) {
-        const p = posts[i];
-        if (!p) continue;
-        const text = ((p.post.record as Record<string, unknown>).text as string) || '';
-        if (text) translateBufferRef.current.add(text);
-      }
-    }
-
     // Debounce: reset timer on each scroll tick, flush after settling
     clearTimeout(translateTimerRef.current);
     translateTimerRef.current = setTimeout(() => {
-      const texts = [...translateBufferRef.current];
-      translateBufferRef.current.clear();
-      if (texts.length > 0) requestBatchTranslation(texts);
+      const seen = new Set<string>();
+
+      // Visible posts first — these are what the user is looking at
+      const visibleTexts: string[] = [];
+      for (const vi of virtualItems) {
+        const post = data[vi.index];
+        if (!post) continue;
+        const text = ((post.post.record as Record<string, unknown>).text as string) || '';
+        if (text && !seen.has(text)) {
+          seen.add(text);
+          visibleTexts.push(text);
+        }
+      }
+
+      // Nearby posts for prefetch — translated after visible ones
+      const prefetchTexts: string[] = [];
+      const firstVisible = first.index;
+      const lastVisible = last.index;
+      const prefetchStart = Math.max(0, firstVisible - 5);
+      const prefetchEnd = Math.min(posts.length - 1, lastVisible + 5);
+      for (let i = prefetchStart; i <= prefetchEnd; i++) {
+        if (i < firstVisible || i > lastVisible) {
+          const p = posts[i];
+          if (!p) continue;
+          const text = ((p.post.record as Record<string, unknown>).text as string) || '';
+          if (text && !seen.has(text)) {
+            seen.add(text);
+            prefetchTexts.push(text);
+          }
+        }
+      }
+
+      // Send visible texts first, then prefetch — each batch queues sequentially
+      for (let i = 0; i < visibleTexts.length; i += TRANSLATE_BATCH_SIZE) {
+        requestBatchTranslation(visibleTexts.slice(i, i + TRANSLATE_BATCH_SIZE));
+      }
+      for (let i = 0; i < prefetchTexts.length; i += TRANSLATE_BATCH_SIZE) {
+        requestBatchTranslation(prefetchTexts.slice(i, i + TRANSLATE_BATCH_SIZE));
+      }
     }, TRANSLATE_DEBOUNCE_MS);
 
     return () => {

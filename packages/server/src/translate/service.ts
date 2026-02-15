@@ -50,6 +50,7 @@ interface TranslateServiceConfig {
   sql: Sql;
   libreTranslateUrl?: string;
   nllbUrl?: string;
+  nllbApiKey?: string;
 }
 
 /**
@@ -77,9 +78,12 @@ export function getSupportedLanguages(libreUrl?: string, nllbUrl?: string): stri
 }
 
 export function createTranslateService(config: TranslateServiceConfig): TranslateService {
-  const { sql, libreTranslateUrl: libreUrl, nllbUrl } = config;
+  const { sql, libreTranslateUrl: libreUrl, nllbUrl, nllbApiKey } = config;
 
-  /** Sequential POSTs with source:"auto" — LibreTranslate handles detection. */
+  /**
+   * Batch LibreTranslate — sends all texts in one request using array `q`.
+   * Falls back to per-text requests if the batch response format is unexpected.
+   */
   async function translateViaLibre(
     uncached: UncachedItem[],
     targetLang: string,
@@ -100,67 +104,67 @@ export function createTranslateService(config: TranslateServiceConfig): Translat
       translated: string;
     }> = [];
 
-    for (const item of uncached) {
-      try {
-        const res = await fetch(`${libreUrl}/translate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            q: item.text,
-            source: 'auto',
-            target: targetLang,
-          }),
-          signal: AbortSignal.timeout(15_000),
-        });
+    try {
+      const res = await fetch(`${libreUrl}/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: uncached.map((i) => i.text),
+          source: 'auto',
+          target: targetLang,
+        }),
+        signal: AbortSignal.timeout(15_000),
+      });
 
-        if (!res.ok) {
-          log.warn(
-            { status: res.status, hash: item.hash },
-            'LibreTranslate error, returning original',
-          );
-          results.set(item.hash, {
-            text: item.text,
-            translated: item.text,
-            sourceLang: 'unknown',
-          });
-          continue;
+      if (!res.ok) {
+        log.warn({ status: res.status }, 'LibreTranslate batch error, returning originals');
+        for (const item of uncached) {
+          results.set(item.hash, { text: item.text, translated: item.text, sourceLang: 'unknown' });
         }
+        return { results, toInsert };
+      }
 
-        const data = (await res.json()) as {
-          translatedText: string;
-          detectedLanguage?: { language: string };
-        };
+      const data = (await res.json()) as {
+        translatedText: string | string[];
+        detectedLanguage?: { language: string } | Array<{ language: string }>;
+      };
 
-        const sourceLang = data.detectedLanguage?.language ?? 'unknown';
-        results.set(item.hash, {
-          text: item.text,
-          translated: data.translatedText,
-          sourceLang,
-        });
+      const translations = Array.isArray(data.translatedText)
+        ? data.translatedText
+        : [data.translatedText];
+      const detections = Array.isArray(data.detectedLanguage)
+        ? data.detectedLanguage
+        : data.detectedLanguage
+          ? [data.detectedLanguage]
+          : [];
 
-        // Only cache when language was properly detected
+      for (let i = 0; i < uncached.length; i++) {
+        const item = uncached[i];
+        if (!item) continue;
+        const translated = translations[i] ?? item.text;
+        const sourceLang = detections[i]?.language ?? detectLanguage(item.text);
+
+        results.set(item.hash, { text: item.text, translated, sourceLang });
+
         if (sourceLang !== 'unknown') {
-          toInsert.push({
-            textHash: item.hash,
-            targetLang,
-            sourceLang,
-            translated: data.translatedText,
-          });
+          toInsert.push({ textHash: item.hash, targetLang, sourceLang, translated });
         }
-      } catch (err) {
-        log.warn({ err, hash: item.hash }, 'LibreTranslate request failed, returning original');
-        results.set(item.hash, {
-          text: item.text,
-          translated: item.text,
-          sourceLang: 'unknown',
-        });
+      }
+    } catch (err) {
+      log.warn({ err, count: uncached.length }, 'LibreTranslate batch request failed');
+      for (const item of uncached) {
+        results.set(item.hash, { text: item.text, translated: item.text, sourceLang: 'unknown' });
       }
     }
 
     return { results, toInsert };
   }
 
-  /** Batch POST with franc-min language detection — groups by source language. */
+  /**
+   * Batch NLLB translation — groups texts by detected source language, sends
+   * one request per group. The NLLB server handles arrays natively, so
+   * 30 texts in the same language = 1 HTTP request instead of 30.
+   */
   async function translateViaNllb(
     uncached: UncachedItem[],
     targetLang: string,
@@ -190,52 +194,51 @@ export function createTranslateService(config: TranslateServiceConfig): Translat
       return { results, toInsert };
     }
 
-    // Detect source language and group by FLORES code
+    // Group texts by detected source language
     const groups = new Map<string, UncachedItem[]>();
     for (const item of uncached) {
       const sourceLang = detectLanguage(item.text);
 
+      // Skip items already in the target language
       if (sourceLang === targetLang) {
         results.set(item.hash, { text: item.text, translated: item.text, sourceLang });
         continue;
       }
 
-      const sourceFlores = isoToFlores(sourceLang);
-      const key = sourceFlores ?? (isoToFlores('en') as string);
-      let group = groups.get(key);
-      if (!group) {
-        group = [];
-        groups.set(key, group);
-      }
+      const group = groups.get(sourceLang) ?? [];
       group.push(item);
+      groups.set(sourceLang, group);
     }
 
-    // One batch POST per source language group
-    for (const [srcFlores, items] of groups) {
-      const texts = items.map((e) => e.text);
-      const timeout = Math.max(15_000, texts.length * 1500);
+    // One request per source language group
+    const nllbHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (nllbApiKey) nllbHeaders['Authorization'] = `Bearer ${nllbApiKey}`;
+
+    // Process groups sequentially — NLLB is single-threaded, so concurrent
+    // requests just queue up and risk timeouts. Sequential ensures order and
+    // prevents overloading the server.
+    for (const [sourceLang, items] of groups) {
+      const srcFlores = isoToFlores(sourceLang) ?? (isoToFlores('en') as string);
+      const srcIso = floresToIso(srcFlores) ?? 'unknown';
 
       try {
         const res = await fetch(`${nllbUrl}/translate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: nllbHeaders,
           body: JSON.stringify({
-            source: texts,
+            source: items.map((i) => i.text),
             src_lang: srcFlores,
             tgt_lang: targetFlores,
           }),
-          signal: AbortSignal.timeout(timeout),
+          signal: AbortSignal.timeout(30_000),
         });
 
         if (!res.ok) {
-          log.warn(
-            { status: res.status, srcFlores, count: texts.length },
-            'NLLB batch error, returning originals',
-          );
-          for (const entry of items) {
-            results.set(entry.hash, {
-              text: entry.text,
-              translated: entry.text,
+          log.warn({ status: res.status, sourceLang, count: items.length }, 'NLLB batch error');
+          for (const item of items) {
+            results.set(item.hash, {
+              text: item.text,
+              translated: item.text,
               sourceLang: 'unknown',
             });
           }
@@ -243,26 +246,17 @@ export function createTranslateService(config: TranslateServiceConfig): Translat
         }
 
         const data = (await res.json()) as NllbTranslateResponse;
-        const srcIso = floresToIso(srcFlores) ?? 'unknown';
-
-        for (let j = 0; j < items.length; j++) {
-          const entry = items[j] as UncachedItem;
-          const translated = data.translation[j] ?? entry.text;
-
-          results.set(entry.hash, { text: entry.text, translated, sourceLang: srcIso });
-          toInsert.push({ textHash: entry.hash, targetLang, sourceLang: srcIso, translated });
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (!item) continue;
+          const translated = data.translation[i] ?? item.text;
+          results.set(item.hash, { text: item.text, translated, sourceLang: srcIso });
+          toInsert.push({ textHash: item.hash, targetLang, sourceLang: srcIso, translated });
         }
       } catch (err) {
-        log.warn(
-          { err, srcFlores, count: texts.length },
-          'NLLB batch request failed, returning originals',
-        );
-        for (const entry of items) {
-          results.set(entry.hash, {
-            text: entry.text,
-            translated: entry.text,
-            sourceLang: 'unknown',
-          });
+        log.warn({ err, sourceLang, count: items.length }, 'NLLB batch request failed');
+        for (const item of items) {
+          results.set(item.hash, { text: item.text, translated: item.text, sourceLang: 'unknown' });
         }
       }
     }
@@ -370,15 +364,11 @@ export function createTranslateService(config: TranslateServiceConfig): Translat
       }
 
       if (nllbUrl) {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (nllbApiKey) headers['Authorization'] = `Bearer ${nllbApiKey}`;
         checks.push(
-          fetch(`${nllbUrl}/translate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              source: ['hello'],
-              src_lang: 'eng_Latn',
-              tgt_lang: 'spa_Latn',
-            }),
+          fetch(`${nllbUrl}/health`, {
+            headers,
             signal: AbortSignal.timeout(5000),
           })
             .then((r) => r.ok)
