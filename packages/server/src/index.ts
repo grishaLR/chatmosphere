@@ -17,7 +17,7 @@ import { RedisRateLimiter } from './moderation/rate-limiter-redis.js';
 import { BlockService } from './moderation/block-service.js';
 import { GlobalBanService } from './moderation/global-ban-service.js';
 import { createDmService } from './dms/service.js';
-import { createTranslateService } from './translate/service.js';
+import { createTranslateService, getSupportedLanguages } from './translate/service.js';
 import { ChallengeStore } from './auth/challenge.js';
 import { RedisChallengeStore } from './auth/challenge-redis.js';
 import { LIMITS } from '@protoimsg/shared';
@@ -63,10 +63,18 @@ async function main() {
   // Auth challenge store (Redis when available, else in-memory)
   const challenges = redis ? new RedisChallengeStore(redis) : new ChallengeStore();
 
-  // Translation service (optional — requires LibreTranslate)
+  // Translation service (optional — requires at least one backend)
   const translateService = config.TRANSLATE_ENABLED
-    ? createTranslateService(db, config.LIBRETRANSLATE_URL)
+    ? createTranslateService({
+        sql: db,
+        libreTranslateUrl: config.LIBRETRANSLATE_URL,
+        nllbUrl: config.NLLB_URL,
+        nllbApiKey: config.NLLB_API_KEY,
+      })
     : null;
+  const supportedLanguages = config.TRANSLATE_ENABLED
+    ? getSupportedLanguages(config.LIBRETRANSLATE_URL, config.NLLB_URL)
+    : [];
   const translateRateLimiter = config.TRANSLATE_ENABLED
     ? redis
       ? new RedisRateLimiter(redis, { windowMs: 60_000, maxRequests: config.TRANSLATE_RATE_LIMIT })
@@ -74,7 +82,14 @@ async function main() {
     : null;
 
   if (translateService) {
-    log.info({ url: config.LIBRETRANSLATE_URL }, 'Translation service enabled');
+    log.info(
+      {
+        libreUrl: config.LIBRETRANSLATE_URL,
+        nllbUrl: config.NLLB_URL,
+        languages: supportedLanguages.length,
+      },
+      'Translation service enabled',
+    );
   }
 
   const app = createApp(
@@ -89,6 +104,7 @@ async function main() {
     challenges,
     translateService,
     translateRateLimiter,
+    supportedLanguages,
   );
   const httpServer = createServer(app);
 

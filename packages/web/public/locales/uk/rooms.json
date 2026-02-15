@@ -1,0 +1,55 @@
+{
+  "createRoom": {
+    "title": "Створити кімнату",
+    "nameLabel": "Назва",
+    "namePlaceholder": "Назва кімнати",
+    "descriptionLabel": "Опис",
+    "descriptionPlaceholder": "Про що ця кімната?",
+    "topicLabel": "Тема",
+    "topicPlaceholder": "Поточна тема обговорення",
+    "purposeLabel": "Призначення",
+    "purpose": {
+      "discussion": "Обговорення",
+      "event": "Подія",
+      "community": "Спільнота",
+      "support": "Підтримка"
+    },
+    "visibilityLabel": "Видимість",
+    "visibility": {
+      "public": "Публічна",
+      "unlisted": "Непублічна",
+      "private": "Приватна"
+    },
+    "error": {
+      "default": "Не вдалося створити кімнату"
+    },
+    "cancel": "Скасувати",
+    "submitting": "Створення...",
+    "submit": "Створити"
+  },
+
+  "roomList": {
+    "empty": "Кімнат не знайдено. Створіть першу!"
+  },
+
+  "roomCard": {
+    "createdDate": "Створено {{date}}",
+    "translate": "Перекласти",
+    "translating": "Переклад...",
+    "translatedTo": "Перекладено на {{lang}}",
+    "showOriginal": "Показати оригінал"
+  },
+
+  "directory": {
+    "searchPlaceholder": "Пошук кімнат...",
+    "createButton": "Створити кімнату",
+    "loading": "Завантаження кімнат..."
+  },
+
+  "chatRoom": {
+    "invalidId": "Недійсний ID кімнати",
+    "loading": "Кімната налаштовується...",
+    "notFound": "Кімнату не знайдено",
+    "backToRooms": "Кімнати"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "composer": {
+    "collapsed": "Про що думаєте?",
+    "replyingTo": "Відповідь на @{{handle}}",
+    "placeholder": "Напишіть пост...",
+    "charCount": "{{count}}/{{max}}",
+    "attachImage": "Додати зображення",
+    "cancel": "Скасувати",
+    "posting": "Публікація...",
+    "post": "Опублікувати"
+  },
+
+  "post": {
+    "pinned": "Закріплено",
+    "repostedBy": "Репост від",
+    "replyTo": "Відповідь на @{{handle}}",
+    "relativeTime": {
+      "seconds": "{{count}}с",
+      "minutes": "{{count}}хв",
+      "hours": "{{count}}год",
+      "days": "{{count}}д",
+      "months": "{{count}}міс"
+    },
+    "translate": "Перекласти",
+    "translatedTo": "Перекладено на {{lang}}",
+    "showOriginal": "Показати оригінал",
+    "translating": "Переклад..."
+  },
+
+  "feedView": {
+    "loading": "Завантаження стрічки...",
+    "empty": "Немає постів для показу",
+    "loadingMore": "Завантаження ще...",
+    "refresh": "Оновити стрічку"
+  },
+
+  "profileView": {
+    "back": "Назад",
+    "loading": "Завантаження профілю...",
+    "error": "Не вдалося завантажити профіль",
+    "followers": "підписників",
+    "following": "підписок",
+    "posts": "постів",
+    "loadingMore": "Завантаження ще...",
+    "translateBio": "Перекласти біографію",
+    "translating": "Переклад...",
+    "translatedTo": "Перекладено на {{lang}}",
+    "showOriginal": "Показати оригінал"
+  },
+
+  "threadView": {
+    "back": "Назад",
+    "loading": "Завантаження гілки...",
+    "notFound": "Гілку не знайдено",
+    "viewReplies_one": "Переглянути {{count}} відповідь",
+    "viewReplies_other": "Переглянути {{count}} відповідей"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "composer": {
+    "collapsed": "Una nini akilini?",
+    "replyingTo": "Unajibu @{{handle}}",
+    "placeholder": "Andika chapisho lako...",
+    "charCount": "{{count}}/{{max}}",
+    "attachImage": "Ambatisha Picha",
+    "cancel": "Ghairi",
+    "posting": "Inachapisha...",
+    "post": "Chapisha"
+  },
+
+  "post": {
+    "pinned": "Imebandikwa",
+    "repostedBy": "Imeshirikiwa na",
+    "replyTo": "Jibu kwa @{{handle}}",
+    "relativeTime": {
+      "seconds": "{{count}}s",
+      "minutes": "{{count}}d",
+      "hours": "{{count}}s",
+      "days": "{{count}}sk",
+      "months": "{{count}}mw"
+    },
+    "translate": "Tafsiri",
+    "translatedTo": "Imetafsiriwa kwa {{lang}}",
+    "showOriginal": "Onyesha asili",
+    "translating": "Inatafsiri..."
+  },
+
+  "feedView": {
+    "loading": "Inapakia mlisho...",
+    "empty": "Hakuna machapisho ya kuonyesha",
+    "loadingMore": "Inapakia zaidi...",
+    "refresh": "Sasisha mlisho"
+  },
+
+  "profileView": {
+    "back": "Rudi",
+    "loading": "Inapakia wasifu...",
+    "error": "Imeshindwa kupakia wasifu",
+    "followers": "wafuasi",
+    "following": "anafuata",
+    "posts": "machapisho",
+    "loadingMore": "Inapakia zaidi...",
+    "translateBio": "Tafsiri wasifu",
+    "translating": "Inatafsiri...",
+    "translatedTo": "Imetafsiriwa kwa {{lang}}",
+    "showOriginal": "Onyesha asili"
+  },
+
+  "threadView": {
+    "back": "Rudi",
+    "loading": "Inapakia mfuatano...",
+    "notFound": "Mfuatano haujapatikana",
+    "viewReplies_one": "Tazama jibu {{count}}",
+    "viewReplies_other": "Tazama majibu {{count}}"
+  }
+}

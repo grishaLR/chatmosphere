@@ -1,0 +1,120 @@
+{
+  "buddyList": {
+    "searchPlaceholder": "Пошук друзів...",
+    "loading": "Завантаження...",
+    "empty": "Друзів ще немає",
+    "createGroup": {
+      "placeholder": "Назва групи...",
+      "button": "+ Створити групу"
+    },
+    "footer": {
+      "chatRooms": "Чат-кімнати",
+      "feed": "Стрічка"
+    },
+    "groups": {
+      "innerCircle": "Близьке коло",
+      "community": "Спільнота",
+      "offline": "Офлайн",
+      "blocked": "Заблоковані"
+    }
+  },
+
+  "buddyMenu": {
+    "button": {
+      "title": "Опції",
+      "ariaLabel": "Опції друга"
+    },
+    "sendIm": "Надіслати повідомлення",
+    "addToInnerCircle": "Додати до близького кола",
+    "removeFromInnerCircle": "Видалити з близького кола",
+    "moveTo": "Перемістити до...",
+    "block": "Заблокувати",
+    "unblock": "Розблокувати",
+    "remove": "Видалити"
+  },
+
+  "memberMenu": {
+    "button": {
+      "title": "Опції",
+      "ariaLabel": "Опції учасника"
+    },
+    "addToBuddyList": "Додати до списку друзів",
+    "block": "Заблокувати",
+    "unblock": "Розблокувати",
+    "feedback": {
+      "added": "Додано!",
+      "alreadyInList": "Вже у списку друзів",
+      "error": "Помилка додавання друга"
+    }
+  },
+
+  "messageInput": {
+    "placeholder": {
+      "default": "Напишіть повідомлення... (Enter — надіслати, Shift+Enter — новий рядок)",
+      "reply": "Відповідь... (Enter — надіслати, Esc — скасувати)"
+    },
+    "replyingTo": "Відповідь на",
+    "cancelReply": {
+      "ariaLabel": "Скасувати відповідь"
+    },
+    "ariaLabel": {
+      "default": "Напишіть повідомлення",
+      "reply": "Напишіть відповідь"
+    },
+    "send": "Надіслати"
+  },
+
+  "messageItem": {
+    "contentWarning": "Попередження про вміст",
+    "clickToReveal": "Натисніть, щоб показати",
+    "replyCount_one": "{{count}} відповідь",
+    "replyCount_other": "{{count}} відповідей",
+    "replyButton": "Відповісти",
+    "translate": "Перекласти",
+    "translating": "Переклад...",
+    "translatedTo": "Перекладено на {{lang}}",
+    "showOriginal": "Показати оригінал"
+  },
+
+  "messageList": {
+    "loading": "Завантаження повідомлень...",
+    "empty": "Повідомлень ще немає. Почніть розмову!",
+    "typing": {
+      "one": "друкує...",
+      "twoAnd": "та",
+      "twoSuffix": "друкують...",
+      "many": "{{count}} людей друкують..."
+    }
+  },
+
+  "threadPanel": {
+    "ariaLabel": "Гілка",
+    "title": "Гілка",
+    "backAriaLabel": "Повернутися до батьківського повідомлення",
+    "closeAriaLabel": "Закрити гілку",
+    "loading": "Завантаження гілки...",
+    "notFound": "Гілку не знайдено",
+    "replyCount_one": "{{count}} відповідь",
+    "replyCount_other": "{{count}} відповідей",
+    "inputPlaceholder": "Відповісти в гілці..."
+  },
+
+  "formattingToolbar": {
+    "bold": "Жирний",
+    "italic": "Курсив",
+    "strikethrough": "Закреслений",
+    "code": "Код",
+    "blockquote": "Цитата"
+  },
+
+  "memberList": {
+    "heading": "Учасники ({{count}})"
+  },
+
+  "groupHeader": {
+    "renameGroup": "Перейменувати групу",
+    "deleteGroup": "Видалити групу",
+    "expand": "Розгорнути",
+    "collapse": "Згорнути"
+  }
+}

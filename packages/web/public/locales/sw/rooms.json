@@ -1,0 +1,55 @@
+{
+  "createRoom": {
+    "title": "Unda Chumba",
+    "nameLabel": "Jina",
+    "namePlaceholder": "Jina la chumba",
+    "descriptionLabel": "Maelezo",
+    "descriptionPlaceholder": "Chumba hiki kinahusu nini?",
+    "topicLabel": "Mada",
+    "topicPlaceholder": "Mada ya sasa ya mazungumzo",
+    "purposeLabel": "Kusudi",
+    "purpose": {
+      "discussion": "Mazungumzo",
+      "event": "Tukio",
+      "community": "Jamii",
+      "support": "Msaada"
+    },
+    "visibilityLabel": "Kuonekana",
+    "visibility": {
+      "public": "Hadharani",
+      "unlisted": "Isiyoorodheshwa",
+      "private": "Binafsi"
+    },
+    "error": {
+      "default": "Imeshindwa kuunda chumba"
+    },
+    "cancel": "Ghairi",
+    "submitting": "Inaunda...",
+    "submit": "Unda"
+  },
+
+  "roomList": {
+    "empty": "Hakuna vyumba vilivyopatikana. Unda kimoja kuanza!"
+  },
+
+  "roomCard": {
+    "createdDate": "Iliundwa {{date}}",
+    "translate": "Tafsiri",
+    "translating": "Inatafsiri...",
+    "translatedTo": "Imetafsiriwa kwa {{lang}}",
+    "showOriginal": "Onyesha asili"
+  },
+
+  "directory": {
+    "searchPlaceholder": "Tafuta vyumba...",
+    "createButton": "Unda Chumba",
+    "loading": "Inapakia vyumba..."
+  },
+
+  "chatRoom": {
+    "invalidId": "Kitambulisho batili cha chumba",
+    "loading": "Chumba kinaandaliwa...",
+    "notFound": "Chumba hakijapatikana",
+    "backToRooms": "Vyumba"
+  }
+}
