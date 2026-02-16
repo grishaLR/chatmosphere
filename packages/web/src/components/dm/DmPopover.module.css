@@ -1,3 +1,25 @@
+.container {
+  display: flex;
+  gap: var(--cm-space-4);
+  align-items: flex-start;
+}
+
+.videosContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-3);
+  flex-shrink: 0;
+}
+
+.video {
+  width: 240px;
+  height: 180px;
+  background: var(--cm-titlebar);
+  border-radius: var(--cm-radius-lg);
+  border: 1px solid var(--cm-surface);
+  object-fit: cover;
+}
+
 .popover {
   width: var(--cm-panel-width-dm);
   max-width: calc(100vw - var(--cm-space-16));

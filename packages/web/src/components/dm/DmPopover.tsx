@@ -34,6 +34,20 @@ export function DmPopover({
   const { t } = useTranslation('dm');
   const { recipientDid, messages, persist, minimized, typing, unreadCount } = conversation;
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (conversation.localVideoSrc && localVideoRef.current) {
+      localVideoRef.current.srcObject = conversation.localVideoSrc;
+    }
+  }, [conversation.localVideoSrc]);
+
+  useEffect(() => {
+    if (conversation.remoteVideoSrc && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = conversation.remoteVideoSrc;
+    }
+  }, [conversation.remoteVideoSrc]);
 
   // H7: Focus the input when popover expands
   useEffect(() => {
@@ -51,137 +65,156 @@ export function DmPopover({
   const displayUnread = unreadCount > 99 ? t('popover.unreadOverflow') : String(unreadCount);
 
   return (
-    <div
-      className={`${styles.popover} ${minimized ? styles.minimized : ''}`}
-      role="log"
-      aria-label={t('popover.ariaLabel', { recipientDid })}
-    >
-      <div
-        className={styles.header}
-        onClick={onToggleMinimize}
-        role="button"
-        tabIndex={0}
-        aria-expanded={!minimized}
-        aria-label={
-          minimized
-            ? t('popover.header.ariaLabel.expand', { recipientDid })
-            : t('popover.header.ariaLabel.minimize', { recipientDid })
-        }
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onToggleMinimize();
-          }
-        }}
-      >
-        <span className={styles.headerIdentity}>
-          <UserIdentity did={recipientDid} showAvatar size="sm" />
-        </span>
-        {minimized && unreadCount > 0 && (
-          <span
-            className={styles.unreadBadge}
-            aria-label={t('popover.unreadAriaLabel', { count: unreadCount })}
-          >
-            {displayUnread}
-          </span>
-        )}
-        <div className={styles.headerActions}>
-          <button
-            className={styles.headerBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              // TODO: This should ideally be handled in DmContext so that we can show the call UI immediately instead of waiting for the round trip to the server
-              onMakeCall().catch((err: unknown) => {
-                console.error('Failed to make call', err);
-              });
-            }}
-            title={'Start video call'}
-            aria-label={'Start video call'}
-          >
-            {'\uD83D\uDCF9'}
-          </button>
-          <button
-            className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onTogglePersist(!persist);
-            }}
-            title={persist ? t('popover.persist.titleActive') : t('popover.persist.titleInactive')}
-            aria-label={
-              persist
-                ? t('popover.persist.ariaLabel.disable')
-                : t('popover.persist.ariaLabel.enable')
-            }
-            aria-pressed={persist}
-          >
-            {persist ? '\uD83D\uDCBE' : '\u2601\uFE0F'}
-          </button>
-          <button
-            className={styles.headerBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleMinimize();
-            }}
-            title={
-              minimized ? t('popover.minimize.titleExpand') : t('popover.minimize.titleMinimize')
-            }
-            aria-label={
-              minimized
-                ? t('popover.minimize.ariaLabel.expand')
-                : t('popover.minimize.ariaLabel.minimize')
-            }
-          >
-            {minimized ? '\u25B2' : '\u2013'}
-          </button>
-          <button
-            className={styles.headerBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            title={t('popover.close.title')}
-            aria-label={t('popover.close.ariaLabel')}
-          >
-            {'\u2715'}
-          </button>
-        </div>
+    <div className={styles.container}>
+      <div className={styles.videosContainer}>
+        <video
+          className={styles.video}
+          aria-label="Local video stream"
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+        />
+        <video
+          className={styles.video}
+          aria-label="Remote video stream"
+          ref={remoteVideoRef}
+          playsInline
+          muted
+        />
       </div>
-      {conversation.incomingCall && (
-        <div className={styles.header} onClick={onToggleMinimize}>
-          <span className={styles.headerIdentity}>Incoming call</span>
+      <div
+        className={`${styles.popover} ${minimized ? styles.minimized : ''}`}
+        role="log"
+        aria-label={t('popover.ariaLabel', { recipientDid })}
+      >
+        <div
+          className={styles.header}
+          onClick={onToggleMinimize}
+          role="button"
+          tabIndex={0}
+          aria-expanded={!minimized}
+          aria-label={
+            minimized
+              ? t('popover.header.ariaLabel.expand', { recipientDid })
+              : t('popover.header.ariaLabel.minimize', { recipientDid })
+          }
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleMinimize();
+            }
+          }}
+        >
+          <span className={styles.headerIdentity}>
+            <UserIdentity did={recipientDid} showAvatar size="sm" />
+          </span>
+          {minimized && unreadCount > 0 && (
+            <span
+              className={styles.unreadBadge}
+              aria-label={t('popover.unreadAriaLabel', { count: unreadCount })}
+            >
+              {displayUnread}
+            </span>
+          )}
           <div className={styles.headerActions}>
             <button
               className={styles.headerBtn}
               onClick={(e) => {
                 e.stopPropagation();
                 // TODO: This should ideally be handled in DmContext so that we can show the call UI immediately instead of waiting for the round trip to the server
-                onAcceptCall().catch((err: unknown) => {
-                  console.error('Failed to accept call', err);
+                onMakeCall().catch((err: unknown) => {
+                  console.error('Failed to make call', err);
                 });
               }}
-              title={'Accept call'}
-              aria-label={'Accept incoming call'}
+              title={'Start video call'}
+              aria-label={'Start video call'}
             >
-              {'\uD83D\uDFE2'}
+              {'\uD83D\uDCF9'}
+            </button>
+            <button
+              className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePersist(!persist);
+              }}
+              title={persist ? t('popover.persist.titleActive') : t('popover.persist.titleInactive')}
+              aria-label={
+                persist
+                  ? t('popover.persist.ariaLabel.disable')
+                  : t('popover.persist.ariaLabel.enable')
+              }
+              aria-pressed={persist}
+            >
+              {persist ? '\uD83D\uDCBE' : '\u2601\uFE0F'}
             </button>
             <button
               className={styles.headerBtn}
               onClick={(e) => {
                 e.stopPropagation();
-                onRejectCall();
+                onToggleMinimize();
               }}
-              title={'Reject call'}
-              aria-label={'Reject incoming call'}
+              title={
+                minimized ? t('popover.minimize.titleExpand') : t('popover.minimize.titleMinimize')
+              }
+              aria-label={
+                minimized
+                  ? t('popover.minimize.ariaLabel.expand')
+                  : t('popover.minimize.ariaLabel.minimize')
+              }
             >
-              {'\uD83D\uDEAB'}
+              {minimized ? '\u25B2' : '\u2013'}
+            </button>
+            <button
+              className={styles.headerBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              title={t('popover.close.title')}
+              aria-label={t('popover.close.ariaLabel')}
+            >
+              {'\u2715'}
             </button>
           </div>
         </div>
-      )}
-      {/* L4/M3: Use CSS class instead of unmounting to preserve draft text and scroll */}
-      <div className={minimized ? `${styles.body} ${styles.bodyHidden}` : styles.body}>
-        <DmMessageList messages={messages} currentDid={currentDid} typing={typing} />
-        <DmInput onSend={onSend} onTyping={onTyping} ref={inputRef} />
+        {conversation.incomingCall && (
+          <div className={styles.header} onClick={onToggleMinimize}>
+            <span className={styles.headerIdentity}>Incoming call</span>
+            <div className={styles.headerActions}>
+              <button
+                className={styles.headerBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // TODO: This should ideally be handled in DmContext so that we can show the call UI immediately instead of waiting for the round trip to the server
+                  onAcceptCall().catch((err: unknown) => {
+                    console.error('Failed to accept call', err);
+                  });
+                }}
+                title={'Accept call'}
+                aria-label={'Accept incoming call'}
+              >
+                {'\uD83D\uDFE2'}
+              </button>
+              <button
+                className={styles.headerBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRejectCall();
+                }}
+                title={'Reject call'}
+                aria-label={'Reject incoming call'}
+              >
+                {'\uD83D\uDEAB'}
+              </button>
+            </div>
+          </div>
+        )}
+        {/* L4/M3: Use CSS class instead of unmounting to preserve draft text and scroll */}
+        <div className={minimized ? `${styles.body} ${styles.bodyHidden}` : styles.body}>
+          <DmMessageList messages={messages} currentDid={currentDid} typing={typing} />
+          <DmInput onSend={onSend} onTyping={onTyping} ref={inputRef} />
+        </div>
       </div>
     </div>
   );
