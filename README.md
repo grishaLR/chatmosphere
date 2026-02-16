@@ -2,9 +2,9 @@
 
 ## What this is
 
-protoimsg is **not a feed-first app**. The main pillars are your **buddy list** and **topic-based group chat**.
+protoimsg is **not a feed-first app**. The main pillars are your **buddy list**, **topic-based group chat**, **consent**, and **peer-to-peer, ephemeral direct communication**.
 
-**Group chat** — Rooms have topics, descriptions, and purposes (discussion, event, community, support). Browse the directory, find people interested in the same thing, join, and chat in real time. Like what someone says? Follow them. Now they're in your feed — Bluesky, Blacksky, North Sky, whatever you use. protoimsg is how you _build_ your feed: discover people through topic chat, connect, follow. Beyond just scrolling and replying. Rooms are AT Proto records in the creator's repo, so they're portable and user-owned.
+**Group chat** — Rooms have topics, descriptions, and purposes (discussion, event, mutual aid, community, support). Browse the directory, find people interested in the same thing, join, and chat in real time. Like what someone says? Follow them. Now they're in your feed — Blacksky, North Sky, Bluesky, whatever you use. protoimsg is antoher way to _build_ your feed: discover people through topic chat, connect, follow. Beyond just scrolling and replying. Rooms are AT Proto records in the creator's repo, so they're portable and user-owned.
 
 The buddy list is about **consent**. You choose who can see you online and who can start a conversation with you. If you're not in someone's circle, you can't message that person and vice versa.
 
@@ -19,13 +19,11 @@ Your buddy list is organized into groups: **Everyone**, **Community**, **Inner C
 
 **Inner Circle is special:** when you're "offline to everyone" (`no-one`), your inner circle can still reach you. You can be invisible to the world and still chat with the people who matter.
 
+**IMs will be peer-to-peer and ephemeral.** Powered by WebRTC, direct messages go device-to-device — nobody owns them. Even E2E encrypted apps store ciphertext; we aim for conversations that never hit our servers at all. If P2P fails, we fall back to the server, but still ephemeral (in-memory only). We'll alert you if that happens so you can kill the conversation before anything is stored. Want persistent DMs? We'll point you to [Germ](https://germnetwork.com) — E2E encrypted, works with your AT Proto handle.
+
 **What's private:** Your presence (who can see you online, your away message) and your instant messages — ephemeral by default, or saved for up to 7 days only if both parties consent. That's it.
 
-On top of that, **you own your data**. All records live in your AT Protocol repository. We don't host them. If you leave protoimsg, you take your account — your DID, your handles, your content — to Bluesky, Blacksky, or any other AT Proto app. The worst outcome is that you end up with a portable identity you can use anywhere.
-
-**DMs will be peer-to-peer and ephemeral.** Powered by WebRTC, direct messages go device-to-device — nobody owns them. Even E2E encrypted apps store ciphertext; we aim for conversations that never hit our servers at all. If P2P fails, we fall back to the server, but still ephemeral (in-memory only). We'll alert you if that happens so you can kill the conversation before anything is stored. Want persistent DMs? We'll point you to [Germ](https://germnetwork.com) — E2E encrypted, works with your AT Proto handle.
-
----
+## On top of that, **you own your data**. All records live in your AT Protocol repository. We don't host them. If you leave protoimsg, you take your account — your DID, your handles, your content — to Bluesky, Blacksky, or any other AT Proto app. The worst outcome is that you end up with a portable identity you can use anywhere.
 
 **Not yet beta / not ready for public use.** We’re shipping when the planned features below are done.
 
