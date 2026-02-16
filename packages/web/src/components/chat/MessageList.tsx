@@ -51,19 +51,16 @@ export function MessageList({
     );
   }, [messages, polls]);
 
-  const {
-    virtualItems,
-    totalSize,
-    containerRef,
-    measureElement,
-    handleScroll,
-    scrollToIndex,
-    data,
-  } = useVirtualList({
-    data: timeline,
-    getItemId: (item) => item.id,
-    estimatedItemHeight: 40,
-  });
+  const { virtualItems, totalSize, containerRef, measureElement, handleScroll, data } =
+    useVirtualList({
+      data: timeline,
+      getItemId: (item) => item.id,
+      estimatedItemHeight: 40,
+    });
+
+  const scrollToBottom = useCallback(() => {
+    containerRef.current.scrollTop = containerRef.current.scrollHeight;
+  }, [containerRef]);
 
   const onScroll = useCallback(() => {
     handleScroll();
@@ -71,11 +68,22 @@ export function MessageList({
     isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
   }, [handleScroll, containerRef]);
 
+  // Scroll to bottom on initial load
+  const didInitialScroll = useRef(false);
+  useEffect(() => {
+    if (!didInitialScroll.current && !loading && timeline.length > 0) {
+      didInitialScroll.current = true;
+      // Wait a frame for virtualizer to measure
+      requestAnimationFrame(scrollToBottom);
+    }
+  }, [loading, timeline.length, scrollToBottom]);
+
+  // Scroll to bottom when new messages arrive (if user is near bottom)
   useEffect(() => {
     if (isNearBottomRef.current && timeline.length > 0) {
-      scrollToIndex(timeline.length - 1);
+      scrollToBottom();
     }
-  }, [timeline.length, scrollToIndex]);
+  }, [timeline.length, scrollToBottom]);
 
   return (
     <div className={styles.container} ref={containerRef} onScroll={onScroll}>
