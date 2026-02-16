@@ -1,30 +1,42 @@
 import { ClientMessage } from '@protoimsg/shared';
+import { DmConversation } from '../contexts/DmContext';
+
+export enum PeerConnectionType {
+  Caller = 'caller',
+  Callee = 'callee',
+}
 
 interface PeerConnectionConfig {
   config: RTCConfiguration;
   send: (msg: ClientMessage) => void;
   conversationId: string;
+  setConversations: React.Dispatch<React.SetStateAction<DmConversation[]>>;
+  type: PeerConnectionType;
 }
 
-export default class PeerManager {
+export class PeerManager {
   public pc: RTCPeerConnection;
-  send: (msg: ClientMessage) => void;
-  public conversationId: string;
+  private send: (msg: ClientMessage) => void;
+  private conversationId: string;
+  private setConversations: React.Dispatch<React.SetStateAction<DmConversation[]>>;
 
   constructor(peerConfig: PeerConnectionConfig) {
     this.send = peerConfig.send;
     this.pc = new RTCPeerConnection(peerConfig.config);
     this.conversationId = peerConfig.conversationId;
+    this.setConversations = peerConfig.setConversations;
 
     this.pc.onicecandidate = this.handleICECandidateEvent.bind(this);
     this.pc.ontrack = this.handleTrackEvent.bind(this);
+
     this.pc.onnegotiationneeded = this.handleNegotiationNeededEvent.bind(this);
     this.pc.oniceconnectionstatechange = this.handleICEConnectionStateChangeEvent.bind(this);
     this.pc.onicegatheringstatechange = this.handleICEGatheringStateChangeEvent.bind(this);
     this.pc.onsignalingstatechange = this.handleSignalingStateChangeEvent.bind(this);
+    this.pc.onnegotiationneeded = this.handleNegotiationNeededEvent.bind(this);
   }
 
-  handleICECandidateEvent(event: RTCPeerConnectionIceEvent): void {
+  private handleICECandidateEvent(event: RTCPeerConnectionIceEvent): void {
     if (event.candidate) {
       this.send({
         type: 'new_ice_candidate',
@@ -34,32 +46,52 @@ export default class PeerManager {
     }
   }
 
-  handleTrackEvent(_: RTCTrackEvent): void {
-    // Handle track event
-  }
-
-  handleNegotiationNeededEvent(_: Event): void {
-    console.warn(
-      'Negotiation needed - this should be handled in DmContext, not PeerConnectionImpl',
+  private handleTrackEvent(t: RTCTrackEvent): void {
+    this.setConversations((prev) =>
+      prev.map((c) =>
+        c.conversationId === this.conversationId ? { ...c, remoteVideoSrc: t.streams[0] } : c,
+      ),
     );
-    // Handle negotiation needed event
   }
 
-  handleICEConnectionStateChangeEvent(_: Event): void {
+  private handleNegotiationNeededEvent(_: Event): void {
+    void this.pc
+      .createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+      })
+      .then(
+        (offer): Promise<RTCSessionDescriptionInit> =>
+          this.pc.setLocalDescription(offer).then(() => offer),
+      )
+      .then((offer): void => {
+        if (!offer.sdp) {
+          throw new Error('Offer SDP is undefined');
+        }
+        this.send({ type: 'make_call', conversationId: this.conversationId, offer: offer.sdp });
+      })
+      .catch((err: unknown) => {
+        console.error('Error during negotiation', err);
+      });
+  }
+
+  private handleICEConnectionStateChangeEvent(e: Event): void {
     console.warn(
       'ICE connection state change - this should be handled in DmContext, not PeerConnectionImpl',
+      e,
     );
     // Handle ICE connection state change event
   }
 
-  handleICEGatheringStateChangeEvent(_: Event): void {
+  private handleICEGatheringStateChangeEvent(e: Event): void {
     console.warn(
       'ICE gathering state change - this should be handled in DmContext, not PeerConnectionImpl',
+      e,
     );
     // Handle ICE gathering state change event
   }
 
-  handleSignalingStateChangeEvent(_: Event): void {
+  private handleSignalingStateChangeEvent(_: Event): void {
     console.warn(
       'Signaling state change - this should be handled in DmContext, not PeerConnectionImpl',
     );

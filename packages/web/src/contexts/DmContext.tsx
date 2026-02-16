@@ -14,7 +14,7 @@ import { playImNotify } from '../lib/sounds';
 import { IS_TAURI } from '../lib/config';
 import type { DmMessageView } from '../types';
 import type { ServerMessage } from '@protoimsg/shared';
-import PeerManager from '../lib/peerconnection';
+import { PeerManager, PeerConnectionType } from '../lib/peerconnection';
 
 const MAX_OPEN_POPOVERS = 4;
 const MAX_MESSAGES = 200;
@@ -30,6 +30,8 @@ export interface DmConversation {
   typing: boolean;
   unreadCount: number;
   incomingCall: boolean;
+  localVideoSrc: MediaStream | null;
+  remoteVideoSrc: MediaStream | undefined;
 }
 
 export interface DmNotification {
@@ -81,6 +83,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
       'https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt';
 
     try {
+      throw new Error('Using fallback STUN servers'); // Force fallback for now while we test the new server list
       const response = await fetch(HOSTS);
       const text = await response.text();
       const hosts = text.split('\n').filter((line) => line.trim() !== '');
@@ -258,6 +261,13 @@ export function DmProvider({ children }: { children: ReactNode }) {
             audio: true,
             video: true,
           });
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.conversationId === conversationId
+                ? { ...c, localVideoSrc: localStream.current }
+                : c,
+            ),
+          );
         } catch (err) {
           console.error('Failed to get media stream', err);
           return;
@@ -268,6 +278,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
         config: { iceServers: await getStunServers() },
         conversationId,
         send,
+        setConversations: setConversations,
+        type: PeerConnectionType.Caller,
       });
 
       if (peerConnections.current.has(conversationId)) {
@@ -282,14 +294,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
           if (!localStream.current) throw new Error('Local stream is null');
           pm.pc.addTrack(track, localStream.current);
         });
-        const offer = await pm.pc.createOffer();
-        await pm.pc.setLocalDescription(offer);
-
-        if (!offer.sdp) {
-          throw new Error('Offer SDP is undefined');
-        }
-
-        send({ type: 'make_call', conversationId: conversationId, offer: offer.sdp });
       } catch (err) {
         console.error('Failed to create offer', err);
         return;
@@ -306,7 +310,10 @@ export function DmProvider({ children }: { children: ReactNode }) {
         config: { iceServers: await getStunServers() },
         conversationId,
         send,
+        setConversations: setConversations,
+        type: PeerConnectionType.Callee,
       });
+
       peerConnections.current.set(conversationId, pm);
       const offer = incomingOffers.current.get(conversationId);
 
@@ -324,13 +331,23 @@ export function DmProvider({ children }: { children: ReactNode }) {
             video: true,
           });
         }
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.conversationId === conversationId ? { ...c, localVideoSrc: localStream.current } : c,
+          ),
+        );
+
         // Add local tracks to peer connection
         localStream.current.getTracks().forEach((track) => {
           if (!localStream.current) throw new Error('Local stream is null');
           pm.pc.addTrack(track, localStream.current);
         });
 
-        const answer = await pm.pc.createAnswer();
+        const answer = await pm.pc.createAnswer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        });
         await pm.pc.setLocalDescription(answer);
 
         if (!answer.sdp) {
@@ -393,6 +410,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
               typing: false,
               unreadCount: 0,
               incomingCall: false,
+              localVideoSrc: null,
+              remoteVideoSrc: undefined,
             };
 
             const updated = [...prev, newConvo];
