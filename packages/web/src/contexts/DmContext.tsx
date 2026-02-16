@@ -14,7 +14,6 @@ import { playImNotify } from '../lib/sounds';
 import { IS_TAURI } from '../lib/config';
 import type { DmMessageView } from '../types';
 import type { ServerMessage } from '@protoimsg/shared';
-import { PeerManager, PeerConnectionType } from '../lib/peerconnection';
 
 const MAX_OPEN_POPOVERS = 4;
 const MAX_MESSAGES = 200;
@@ -29,9 +28,6 @@ export interface DmConversation {
   minimized: boolean;
   typing: boolean;
   unreadCount: number;
-  incomingCall: boolean;
-  localVideoSrc: MediaStream | null;
-  remoteVideoSrc: MediaStream | undefined;
 }
 
 export interface DmNotification {
@@ -53,9 +49,6 @@ interface DmContextValue {
   togglePersist: (conversationId: string, persist: boolean) => void;
   dismissNotification: (conversationId: string) => void;
   openFromNotification: (notification: DmNotification) => void;
-  makeCall: (conversationId: string, text: string) => Promise<void>;
-  acceptCall: (conversationId: string) => Promise<void>;
-  rejectCall: (conversationId: string) => void;
 }
 
 const DmContext = createContext<DmContextValue | null>(null);
@@ -71,34 +64,9 @@ export function DmProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<DmConversation[]>([]);
   const [notifications, setNotifications] = useState<DmNotification[]>([]);
   const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const incomingCallTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastTypingSent = useRef<Map<string, number>>(new Map());
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const localStream = useRef<MediaStream | null>(null);
-  const peerConnections = useRef<Map<string, PeerManager>>(new Map());
-  const incomingOffers = useRef<Map<string, string>>(new Map());
 
-  async function getStunServers() {
-    const HOSTS =
-      'https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt';
-
-    try {
-      throw new Error('Using fallback STUN servers'); // Force fallback for now while we test the new server list
-      const response = await fetch(HOSTS);
-      const text = await response.text();
-      const hosts = text.split('\n').filter((line) => line.trim() !== '');
-      return hosts.map((host) => ({ urls: `stun:${host}` }));
-    } catch (error) {
-      console.error('Fallback to Google STUN', error);
-      return [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' },
-      ];
-    }
-  }
   // M24: pendingMinimized — ref to track "open minimized" intent across async boundary.
   // When openDmMinimized(recipientDid) is called before the server responds, we can't
   // add the conversation to state yet. We store recipientDid here; when dm_opened
@@ -251,135 +219,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
     [dismissNotification, openDm],
   );
 
-  const makeCall = useCallback(
-    async (conversationId: string) => {
-      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
-
-      if (!localStream.current) {
-        try {
-          localStream.current = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: true,
-          });
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.conversationId === conversationId
-                ? { ...c, localVideoSrc: localStream.current }
-                : c,
-            ),
-          );
-        } catch (err) {
-          console.error('Failed to get media stream', err);
-          return;
-        }
-      }
-
-      const pm = new PeerManager({
-        config: { iceServers: await getStunServers() },
-        conversationId,
-        send,
-        setConversations: setConversations,
-        type: PeerConnectionType.Caller,
-      });
-
-      if (peerConnections.current.has(conversationId)) {
-        peerConnections.current.get(conversationId)?.pc.close();
-      }
-
-      peerConnections.current.set(conversationId, pm);
-
-      try {
-        // Add local tracks to peer connection
-        localStream.current.getTracks().forEach((track) => {
-          if (!localStream.current) throw new Error('Local stream is null');
-          pm.pc.addTrack(track, localStream.current);
-        });
-      } catch (err) {
-        console.error('Failed to create offer', err);
-        return;
-      }
-    },
-    [send, did],
-  );
-
-  const acceptCall = useCallback(
-    async (conversationId: string) => {
-      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
-
-      const pm = new PeerManager({
-        config: { iceServers: await getStunServers() },
-        conversationId,
-        send,
-        setConversations: setConversations,
-        type: PeerConnectionType.Callee,
-      });
-
-      peerConnections.current.set(conversationId, pm);
-      const offer = incomingOffers.current.get(conversationId);
-
-      if (!offer) {
-        console.error('No incoming offer found for conversation', conversationId);
-        return;
-      }
-
-      try {
-        await pm.pc.setRemoteDescription({ type: 'offer', sdp: offer });
-
-        if (!localStream.current) {
-          localStream.current = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: true,
-          });
-        }
-
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.conversationId === conversationId ? { ...c, localVideoSrc: localStream.current } : c,
-          ),
-        );
-
-        // Add local tracks to peer connection
-        localStream.current.getTracks().forEach((track) => {
-          if (!localStream.current) throw new Error('Local stream is null');
-          pm.pc.addTrack(track, localStream.current);
-        });
-
-        const answer = await pm.pc.createAnswer({
-          offerToReceiveAudio: true,
-          offerToReceiveVideo: true,
-        });
-        await pm.pc.setLocalDescription(answer);
-
-        if (!answer.sdp) {
-          throw new Error('Answer SDP is undefined');
-        }
-
-        send({ type: 'accept_call', conversationId: conversationId, answer: answer.sdp });
-      } catch (err) {
-        console.error('Failed to accept call', err);
-        return;
-      }
-    },
-    [send, did],
-  );
-
-  const rejectCall = useCallback(
-    (conversationId: string) => {
-      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
-      send({ type: 'reject_call', conversationId });
-      const incomingTimer = incomingCallTimers.current.get(conversationId);
-      if (incomingTimer) {
-        clearTimeout(incomingTimer);
-        incomingCallTimers.current.delete(conversationId);
-      }
-      incomingOffers.current.delete(conversationId);
-      setConversations((prev) =>
-        prev.map((c) => (c.conversationId === conversationId ? { ...c, incomingCall: false } : c)),
-      );
-    },
-    [send, did],
-  );
-
   // WS event handler
   useEffect(() => {
     const unsub = subscribe((msg: ServerMessage) => {
@@ -409,9 +248,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
               minimized: shouldMinimize,
               typing: false,
               unreadCount: 0,
-              incomingCall: false,
-              localVideoSrc: null,
-              remoteVideoSrc: undefined,
             };
 
             const updated = [...prev, newConvo];
@@ -567,71 +403,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
           }
           break;
         }
-        case 'accept_call': {
-          // callee accepted the call — set remote description to establish connection
-          const { conversationId, answer } = msg.data;
-          const pm = peerConnections.current.get(conversationId);
-
-          if (!pm) {
-            console.error('No peer connection found for conversation', conversationId);
-            return;
-          }
-
-          pm.pc.setRemoteDescription({ type: 'answer', sdp: answer }).catch((err: unknown) => {
-            console.error('Failed to set remote description', err);
-          });
-
-          break;
-        }
-        case 'reject_call': {
-          // callee rejected the call — clean up peer connection
-          const { conversationId } = msg.data;
-          const pm = peerConnections.current.get(conversationId);
-
-          if (pm) {
-            pm.pc.close();
-            peerConnections.current.delete(conversationId);
-          }
-          break;
-        }
-
-        case 'new_ice_candidate': {
-          const { conversationId, candidate } = msg.data;
-          const pm = peerConnections.current.get(conversationId);
-
-          if (!pm) {
-            console.error('No peer connection found for conversation', conversationId);
-            return;
-          }
-
-          pm.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
-            console.error('Failed to add ICE candidate', err);
-          });
-
-          break;
-        }
-        case 'incoming_call': {
-          const { conversationId, offer } = msg.data;
-          setConversations((prev) =>
-            prev.map((c) =>
-              c.conversationId === conversationId ? { ...c, incomingCall: true } : c,
-            ),
-          );
-
-          incomingOffers.current.set(conversationId, offer);
-
-          const timer = setTimeout(() => {
-            setConversations((prev) =>
-              prev.map((c) =>
-                c.conversationId === conversationId ? { ...c, incomingCall: false } : c,
-              ),
-            );
-            incomingCallTimers.current.delete(conversationId);
-            incomingOffers.current.delete(conversationId);
-          }, 10000);
-          incomingCallTimers.current.set(conversationId, timer);
-          break;
-        }
       }
     });
 
@@ -641,10 +412,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
         clearTimeout(timer);
       }
       typingTimers.current.clear();
-      for (const timer of incomingCallTimers.current.values()) {
-        clearTimeout(timer);
-      }
-      incomingCallTimers.current.clear();
     };
   }, [subscribe, did]);
 
@@ -717,9 +484,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
       togglePersist,
       dismissNotification,
       openFromNotification,
-      makeCall,
-      acceptCall,
-      rejectCall,
     }),
     [
       conversations,
@@ -733,9 +497,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
       togglePersist,
       dismissNotification,
       openFromNotification,
-      makeCall,
-      acceptCall,
-      rejectCall,
     ],
   );
 

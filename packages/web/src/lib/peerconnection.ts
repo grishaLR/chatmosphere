@@ -1,5 +1,4 @@
 import { ClientMessage } from '@protoimsg/shared';
-import { DmConversation } from '../contexts/DmContext';
 
 export enum PeerConnectionType {
   Caller = 'caller',
@@ -10,7 +9,7 @@ interface PeerConnectionConfig {
   config: RTCConfiguration;
   send: (msg: ClientMessage) => void;
   conversationId: string;
-  setConversations: React.Dispatch<React.SetStateAction<DmConversation[]>>;
+  onRemoteStream: (conversationId: string, stream: MediaStream) => void;
   type: PeerConnectionType;
 }
 
@@ -18,22 +17,44 @@ export class PeerManager {
   public pc: RTCPeerConnection;
   private send: (msg: ClientMessage) => void;
   private conversationId: string;
-  private setConversations: React.Dispatch<React.SetStateAction<DmConversation[]>>;
+  private onRemoteStream: (conversationId: string, stream: MediaStream) => void;
+  private type: PeerConnectionType;
+  private pendingCandidates: RTCIceCandidateInit[] = [];
 
   constructor(peerConfig: PeerConnectionConfig) {
     this.send = peerConfig.send;
     this.pc = new RTCPeerConnection(peerConfig.config);
     this.conversationId = peerConfig.conversationId;
-    this.setConversations = peerConfig.setConversations;
+    this.onRemoteStream = peerConfig.onRemoteStream;
+    this.type = peerConfig.type;
 
     this.pc.onicecandidate = this.handleICECandidateEvent.bind(this);
     this.pc.ontrack = this.handleTrackEvent.bind(this);
-
     this.pc.onnegotiationneeded = this.handleNegotiationNeededEvent.bind(this);
     this.pc.oniceconnectionstatechange = this.handleICEConnectionStateChangeEvent.bind(this);
     this.pc.onicegatheringstatechange = this.handleICEGatheringStateChangeEvent.bind(this);
     this.pc.onsignalingstatechange = this.handleSignalingStateChangeEvent.bind(this);
-    this.pc.onnegotiationneeded = this.handleNegotiationNeededEvent.bind(this);
+  }
+
+  /** Buffer ICE candidates until remote description is set, then flush */
+  addBufferedCandidate(candidate: RTCIceCandidateInit): void {
+    if (this.pc.remoteDescription) {
+      this.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
+        console.error('Failed to add ICE candidate', err);
+      });
+    } else {
+      this.pendingCandidates.push(candidate);
+    }
+  }
+
+  /** Flush buffered ICE candidates — call after setRemoteDescription */
+  flushCandidates(): void {
+    for (const c of this.pendingCandidates) {
+      this.pc.addIceCandidate(new RTCIceCandidate(c)).catch((err: unknown) => {
+        console.error('Failed to add buffered ICE candidate', err);
+      });
+    }
+    this.pendingCandidates = [];
   }
 
   private handleICECandidateEvent(event: RTCPeerConnectionIceEvent): void {
@@ -47,14 +68,14 @@ export class PeerManager {
   }
 
   private handleTrackEvent(t: RTCTrackEvent): void {
-    this.setConversations((prev) =>
-      prev.map((c) =>
-        c.conversationId === this.conversationId ? { ...c, remoteVideoSrc: t.streams[0] } : c,
-      ),
-    );
+    const stream = t.streams[0] ?? new MediaStream([t.track]);
+    this.onRemoteStream(this.conversationId, stream);
   }
 
   private handleNegotiationNeededEvent(_: Event): void {
+    // Only the caller should create offers — callee sends answers only
+    if (this.type !== PeerConnectionType.Caller) return;
+
     void this.pc
       .createOffer({
         offerToReceiveAudio: true,
@@ -77,31 +98,25 @@ export class PeerManager {
 
   private handleICEConnectionStateChangeEvent(e: Event): void {
     console.warn(
-      'ICE connection state change - this should be handled in DmContext, not PeerConnectionImpl',
+      'ICE connection state change - this should be handled in VideoCallContext, not PeerConnectionImpl',
       e,
     );
-    // Handle ICE connection state change event
   }
 
   private handleICEGatheringStateChangeEvent(e: Event): void {
     console.warn(
-      'ICE gathering state change - this should be handled in DmContext, not PeerConnectionImpl',
+      'ICE gathering state change - this should be handled in VideoCallContext, not PeerConnectionImpl',
       e,
     );
-    // Handle ICE gathering state change event
   }
 
   private handleSignalingStateChangeEvent(_: Event): void {
     console.warn(
-      'Signaling state change - this should be handled in DmContext, not PeerConnectionImpl',
+      'Signaling state change - this should be handled in VideoCallContext, not PeerConnectionImpl',
     );
 
     if (this.pc.signalingState === 'stable') {
       // Once stable, we can check if there are pending offers to create and send an answer for
-      // This can happen if the remote peer creates multiple offers before we respond to the first one
-      // In that case, we want to make sure we process all offers and don't leave any pending
-      // (This is a bit of a band-aid for handling rapid offer creation, ideally we'd want a more robust solution for queuing offers)
-      // Note: This is only relevant for the callee - the caller should not be receiving multiple offers without responding to the first one
       // TODO: render peer connection in UI
     }
   }

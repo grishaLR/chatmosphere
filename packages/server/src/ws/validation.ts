@@ -86,6 +86,11 @@ const dmTogglePersist = z.object({
   persist: z.boolean(),
 });
 
+const callInit = z.object({
+  type: z.literal('call_init'),
+  recipientDid: did,
+});
+
 const makeCall = z.object({
   type: z.literal('make_call'),
   conversationId: z.string().min(1),
@@ -130,6 +135,7 @@ const clientMessage = z.discriminatedUnion('type', [
   dmSend,
   dmTyping,
   dmTogglePersist,
+  callInit,
   makeCall,
   rejectCall,
   acceptCall,
