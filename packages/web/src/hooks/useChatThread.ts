@@ -81,7 +81,7 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
 
   // Send a reply in the thread
   const sendReply = useCallback(
-    async (text: string, roomUri: string, parentUri?: string) => {
+    async (text: string, roomUri: string, parentUri?: string, embed?: Record<string, unknown>) => {
       if (!agent || !did || !thread) return;
 
       // Parse markdown → cleaned text + formatting facets
@@ -126,6 +126,7 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
         text: cleaned,
         facets: allFacets.length > 0 ? allFacets : undefined,
         reply,
+        embed,
       };
 
       try {

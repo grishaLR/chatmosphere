@@ -3,8 +3,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: var(--cm-space-16);
+  height: 100%;
+  padding: var(--cm-space-4);
+  padding-top: max(var(--cm-space-16), env(safe-area-inset-top));
+  padding-bottom: var(--cm-space-16);
   background: var(--cm-desktop);
 }
 
@@ -13,7 +15,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  height: 100%;
   background: var(--cm-desktop);
   color: var(--cm-chrome-text);
 }

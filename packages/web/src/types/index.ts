@@ -31,6 +31,29 @@ export interface MessageView {
   pending?: boolean;
 }
 
+export interface PollView {
+  id: string;
+  uri: string;
+  did: string;
+  room_id: string;
+  question: string;
+  options: string[];
+  allow_multiple: boolean;
+  expires_at: string | null;
+  created_at: string;
+  indexed_at: string;
+  /** Vote tallies: option index → count */
+  tallies: Record<number, number>;
+  totalVoters: number;
+  /** Current user's vote (null if not voted) */
+  myVote: number[] | null;
+  /** Client-only: true while waiting for WS confirmation */
+  pending?: boolean;
+}
+
+/** Discriminated union for timeline items (messages + polls) */
+export type TimelineItem = (MessageView & { _type: 'message' }) | (PollView & { _type: 'poll' });
+
 export interface MemberPresence {
   did: string;
   status: string;

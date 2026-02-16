@@ -280,3 +280,62 @@
 .repostActive:hover {
   color: var(--color-success);
 }
+
+/* Inline GIF embed (Giphy) */
+.gifEmbed {
+  margin-bottom: var(--cm-space-3);
+  max-width: 400px;
+}
+
+.gifImage {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--cm-radius-sm);
+  background: var(--cm-surface-content);
+}
+
+/* Media pills (GIF/IMG type label + ALT button) */
+.mediaContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.mediaPill {
+  position: absolute;
+  bottom: var(--cm-space-2);
+  padding: var(--cm-space-0.5) var(--cm-space-2);
+  font-size: var(--cm-text-2xs);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--cm-chrome-text);
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: var(--cm-radius-sm);
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
+}
+
+button.mediaPill {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+button.mediaPill:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.altOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--cm-chrome-text);
+  font-size: var(--cm-text-sm);
+  padding: var(--cm-space-4);
+  overflow-y: auto;
+  cursor: pointer;
+  border-radius: var(--cm-radius-sm);
+  word-break: break-word;
+  white-space: pre-wrap;
+}

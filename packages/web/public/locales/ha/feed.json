@@ -7,7 +7,9 @@
     "attachImage": "Ha\u0257a Hoto",
     "cancel": "Soke",
     "posting": "Ana bugawa...",
-    "post": "Buga"
+    "post": "Buga",
+    "imageAltText": "Bayyana wannan hoto...",
+    "gifAltText": "Bayyana wannan GIF..."
   },
 
   "post": {

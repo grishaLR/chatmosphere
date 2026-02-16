@@ -7,7 +7,9 @@
     "attachImage": "إرفاق صورة",
     "cancel": "إلغاء",
     "posting": "جارٍ النشر...",
-    "post": "نشر"
+    "post": "نشر",
+    "imageAltText": "وصف هذه الصورة...",
+    "gifAltText": "وصف هذه الصورة المتحركة..."
   },
 
   "post": {

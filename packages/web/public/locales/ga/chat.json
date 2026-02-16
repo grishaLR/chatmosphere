@@ -116,5 +116,49 @@
     "deleteGroup": "Scrios grúpa",
     "expand": "Leathnaigh",
     "collapse": "Laghdaigh"
+  },
+
+  "gif": {
+    "title": "GIFanna",
+    "searchPlaceholder": "Cuardaigh GIFanna...",
+    "noResults": "Níor aimsíodh GIFanna",
+    "loading": "Ag lódáil...",
+    "poweredByGiphy": "Le cumhacht GIPHY",
+    "poweredByKlipy": "Le cumhacht Klipy",
+    "close": "Dún",
+    "altTextPlaceholder": "Déan cur síos ar an GIF seo (alt-téacs)...",
+    "confirm": "Seol",
+    "back": "Ar Ais"
+  },
+
+  "poll": {
+    "createPoll": "Cruthaigh Vótáil",
+    "questionLabel": "Ceist",
+    "questionPlaceholder": "Cuir ceist...",
+    "optionsLabel": "Roghanna",
+    "optionPlaceholder": "Rogha {{n}}",
+    "addOption": "Cuir Rogha Leis",
+    "removeOption": "Bain rogha",
+    "allowMultiple": "Ceadaigh roghanna iolracha",
+    "expires": "In éag",
+    "expired": "Vótáil críochnaithe",
+    "expiresIn": "Ag críochnú i {{time}}",
+    "totalVotes_one": "{{count}} vóta",
+    "totalVotes_other": "{{count}} vóta",
+    "vote": "Cuir Vóta Isteach",
+    "create": "Cruthaigh",
+    "cancel": "Cealaigh",
+    "expiry": {
+      "none": "Gan éag",
+      "1h": "1 uair",
+      "6h": "6 uair",
+      "24h": "24 uair",
+      "3d": "3 lá",
+      "1w": "1 seachtain"
+    },
+    "error": {
+      "minOptions": "Teastaíonn 2 rogha ar a laghad",
+      "default": "Theip ar chruthú vótála"
+    }
   }
 }

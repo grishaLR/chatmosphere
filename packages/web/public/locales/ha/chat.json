@@ -116,5 +116,49 @@
     "deleteGroup": "Share \u0253ungiya",
     "expand": "Bu\u0257e",
     "collapse": "Rufe"
+  },
+
+  "gif": {
+    "title": "GIF",
+    "searchPlaceholder": "Nemo GIF...",
+    "noResults": "Ba a sami GIF ba",
+    "loading": "Ana lodawa...",
+    "poweredByGiphy": "Ta GIPHY ne ke tallafawa",
+    "poweredByKlipy": "Ta Klipy ne ke tallafawa",
+    "close": "Rufe",
+    "altTextPlaceholder": "Bayyana wannan GIF (rubutun alt)...",
+    "confirm": "Aika",
+    "back": "Koma"
+  },
+
+  "poll": {
+    "createPoll": "\u0136ir\u0137iri Za\u0253e",
+    "questionLabel": "Tambaya",
+    "questionPlaceholder": "Yi tambaya...",
+    "optionsLabel": "Za\u0253u\u0253\u0253uka",
+    "optionPlaceholder": "Za\u0253i {{n}}",
+    "addOption": "\u0136ara Za\u0253i",
+    "removeOption": "Cire za\u0253i",
+    "allowMultiple": "Yarda da za\u0253uɓɓuka da yawa",
+    "expires": "Ya \u0137are",
+    "expired": "Za\u0253en ya \u0137are",
+    "expiresIn": "Zai \u0137are a {{time}}",
+    "totalVotes_one": "ku\u0257i {{count}}",
+    "totalVotes_other": "ku\u0257i {{count}}",
+    "vote": "Aika Ku\u0257i",
+    "create": "\u0136ir\u0137ira",
+    "cancel": "Soke",
+    "expiry": {
+      "none": "Babu iyaka",
+      "1h": "Awa 1",
+      "6h": "Awanni 6",
+      "24h": "Awanni 24",
+      "3d": "Kwanaki 3",
+      "1w": "Mako 1"
+    },
+    "error": {
+      "minOptions": "Ana bu\u0137atar za\u0253u\u0253\u0253uka 2 a \u0137alla",
+      "default": "Kuskure wajen \u0137ir\u0137irar za\u0253e"
+    }
   }
 }

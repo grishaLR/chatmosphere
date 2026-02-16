@@ -1,6 +1,6 @@
 /* Layout for ProtectedRoute and fallbacks — tokens only */
 .screenFill {
-  min-height: 100vh;
+  min-height: 100%;
   background: var(--cm-desktop);
 }
 

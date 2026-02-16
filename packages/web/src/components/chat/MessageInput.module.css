@@ -50,7 +50,7 @@
   border: none;
   border-radius: var(--cm-radius-sm);
   font-family: inherit;
-  font-size: var(--cm-text-lg);
+  font-size: max(var(--cm-text-lg), 16px);
   background: var(--cm-surface-content);
   box-shadow: var(--cm-sunken);
   box-sizing: border-box;
@@ -59,6 +59,27 @@
 .textarea:focus {
   outline: var(--cm-focus-thin) solid var(--cm-focus);
   outline-offset: var(--cm-focus-offset);
+}
+
+.pollButton {
+  padding: var(--cm-space-1) var(--cm-space-3);
+  background: var(--cm-surface-button);
+  color: var(--color-base-content);
+  border: none;
+  border-radius: var(--cm-radius-sm);
+  cursor: pointer;
+  font-size: var(--cm-text-md);
+  align-self: flex-end;
+  box-shadow: var(--cm-raised);
+  min-height: var(--cm-button-min-h-md);
+}
+
+.pollButton:hover {
+  background: var(--cm-button-hover);
+}
+
+.pollButton:active {
+  box-shadow: var(--cm-pressed);
 }
 
 .sendButton {
