@@ -21,6 +21,7 @@ export interface BuddyMenuProps {
   onToggleInnerCircle: () => void;
   onBlock: () => void;
   onSendIm?: () => void;
+  onVideoCall?: () => void;
   onMoveBuddy: (fromGroup: string, toGroup: string) => void;
 }
 
@@ -33,6 +34,7 @@ export function BuddyMenu({
   onToggleInnerCircle,
   onBlock,
   onSendIm,
+  onVideoCall,
   onMoveBuddy,
 }: BuddyMenuProps) {
   const { t } = useTranslation('chat');
@@ -81,6 +83,17 @@ export function BuddyMenu({
               }}
             >
               {t('buddyMenu.sendIm')}
+            </button>
+          )}
+          {onVideoCall && (
+            <button
+              className={styles.menuItem}
+              onClick={() => {
+                onVideoCall();
+                setOpen(false);
+              }}
+            >
+              {'\uD83D\uDCF9'} Video Call
             </button>
           )}
           <button

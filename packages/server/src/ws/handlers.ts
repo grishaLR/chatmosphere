@@ -420,6 +420,54 @@ export async function handleClientMessage(
       break;
     }
 
+    case 'call_init': {
+      // Same as dm_open but responds with call_ready instead of dm_opened.
+      // VideoCallContext uses this to get a conversationId for signaling
+      // without triggering a DM popover on the client.
+      if (data.recipientDid === did) {
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            message: 'Cannot call yourself',
+            errorCode: ERROR_CODES.SELF_DM,
+          }),
+        );
+        break;
+      }
+
+      if (blockService.isBlocked(did, data.recipientDid)) {
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            message: 'Cannot call this user',
+            errorCode: ERROR_CODES.BLOCKED_USER,
+          }),
+        );
+        break;
+      }
+
+      try {
+        const { conversation } = await dmService.openConversation(did, data.recipientDid);
+        dmSubs.subscribe(conversation.id, ws);
+
+        ws.send(
+          JSON.stringify({
+            type: 'call_ready',
+            data: {
+              conversationId: conversation.id,
+              recipientDid: data.recipientDid,
+            },
+          }),
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to init call';
+        ws.send(
+          JSON.stringify({ type: 'error', message: msg, errorCode: ERROR_CODES.SERVER_ERROR }),
+        );
+      }
+      break;
+    }
+
     case 'make_call': {
       const { conversationId, offer } = data;
       const isParticipant = await dmService.isParticipant(conversationId, did);
@@ -429,6 +477,7 @@ export async function handleClientMessage(
       }
 
       try {
+        // Broadcast to sockets subscribed to this conversation
         dmSubs.broadcast(
           data.conversationId,
           {
@@ -437,6 +486,24 @@ export async function handleClientMessage(
           },
           ws, // exclude sender
         );
+
+        // Also notify recipient's sockets that don't have this convo open
+        const recipientDid = await dmService.getRecipientDid(conversationId, did);
+        if (recipientDid) {
+          const recipientSockets = userSockets.get(recipientDid);
+          const convoSubscribers = dmSubs.getSubscribers(data.conversationId);
+
+          for (const recipientWs of recipientSockets) {
+            if (!convoSubscribers.has(recipientWs) && recipientWs.readyState === recipientWs.OPEN) {
+              recipientWs.send(
+                JSON.stringify({
+                  type: 'incoming_call',
+                  data: { conversationId: conversationId, senderDid: did, offer: offer },
+                }),
+              );
+            }
+          }
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to notify user of incoming call';
         ws.send(JSON.stringify({ type: 'error', message: msg }));
@@ -461,7 +528,7 @@ export async function handleClientMessage(
           ws, // exclude sender
         );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejectedcall';
+        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejected call';
         ws.send(JSON.stringify({ type: 'error', message: msg }));
       }
       break;
@@ -484,7 +551,7 @@ export async function handleClientMessage(
           ws, // exclude sender
         );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejectedcall';
+        const msg = err instanceof Error ? err.message : 'Failed to notify user of accepted call';
         ws.send(JSON.stringify({ type: 'error', message: msg }));
       }
       break;
@@ -509,7 +576,7 @@ export async function handleClientMessage(
           ws, // exclude sender
         );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to notify user of rejectedcall';
+        const msg = err instanceof Error ? err.message : 'Failed to relay ICE candidate';
         ws.send(JSON.stringify({ type: 'error', message: msg }));
       }
       break;

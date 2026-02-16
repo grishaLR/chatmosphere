@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useDm } from '../../contexts/DmContext';
+import { useVideoCall } from '../../contexts/VideoCallContext';
 import { useAuth } from '../../hooks/useAuth';
 import { IS_TAURI } from '../../lib/config';
 import { DmPopover } from './DmPopover';
@@ -18,10 +19,8 @@ export function DmPopoverContainer() {
     togglePersist,
     dismissNotification,
     openFromNotification,
-    makeCall,
-    acceptCall,
-    rejectCall,
   } = useDm();
+  const { videoCall } = useVideoCall();
   const { did } = useAuth();
 
   if (!did) return null;
@@ -51,14 +50,8 @@ export function DmPopoverContainer() {
           onTogglePersist={(persist) => {
             togglePersist(convo.conversationId, persist);
           }}
-          onMakeCall={async () => {
-            await makeCall(convo.conversationId, ''); // TODO: pass actual text or call data
-          }}
-          onAcceptCall={async () => {
-            await acceptCall(convo.conversationId);
-          }}
-          onRejectCall={() => {
-            rejectCall(convo.conversationId);
+          onVideoCall={() => {
+            videoCall(convo.recipientDid);
           }}
         />
       ))}

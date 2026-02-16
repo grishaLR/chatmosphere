@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "turbo dev --filter=!@protoimsg/desktop",
-    "dev:up": "docker compose up -d --wait && pnpm --filter @protoimsg/server db:migrate && turbo dev --filter=!@protoimsg/desktop",
+    "dev:up": "docker compose up -d && docker compose wait postgres redis && pnpm --filter @protoimsg/server db:migrate && turbo dev --filter=!@protoimsg/desktop",
+    "dev:up:all": "docker compose up -d --wait && pnpm --filter @protoimsg/server db:migrate && turbo dev --filter=!@protoimsg/desktop",
     "build": "turbo build",
     "lint": "turbo lint",
     "lint:fix": "turbo run lint -- --fix",

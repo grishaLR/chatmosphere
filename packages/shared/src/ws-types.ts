@@ -85,6 +85,11 @@ export interface SyncCommunityMessage extends WsMessageBase {
   }>;
 }
 
+export interface CallInitMessage extends WsMessageBase {
+  type: 'call_init';
+  recipientDid: string;
+}
+
 export interface MakeCall extends WsMessageBase {
   type: 'make_call';
   conversationId: string;
@@ -123,6 +128,7 @@ export type ClientMessage =
   | DmSendMessage
   | DmTypingMessage
   | DmTogglePersistMessage
+  | CallInitMessage
   | MakeCall
   | AcceptCallMessage
   | RejectCallMessage
@@ -277,6 +283,14 @@ export interface PollVoteEvent extends WsMessageBase {
   };
 }
 
+export interface CallReadyEvent extends WsMessageBase {
+  type: 'call_ready';
+  data: {
+    conversationId: string;
+    recipientDid: string;
+  };
+}
+
 export interface AcceptCallEvent extends WsMessageBase {
   type: 'accept_call';
   data: {
@@ -338,6 +352,7 @@ export type ServerMessage =
   | MentionNotificationEvent
   | PollCreatedEvent
   | PollVoteEvent
+  | CallReadyEvent
   | IncomingCall
   | RejectCallEvent
   | AcceptCallEvent

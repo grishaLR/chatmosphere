@@ -43,6 +43,13 @@
   --cm-image-max-h: 300px;
   --cm-link-thumb: 80px;
 
+  /* ── Video Call ──────────────────────────────────── */
+  --cm-call-btn-size: 36px;
+  --cm-call-pip-w: 80px;
+  --cm-call-video-min-h: 180px;
+  --cm-call-resize-edge: 6px;
+  --cm-call-resize-corner: 12px;
+
   /* ── Layout Widths / Heights ───────────────────────── */
   --cm-content-max-w: 600px;
   --cm-content-wide-max-w: 800px;
@@ -87,6 +94,7 @@
   --cm-z-popover: 200;
   --cm-z-tab: 900;
   --cm-z-dm: 1000;
+  --cm-z-videocall: 1100;
   --cm-z-banner: 2000;
 
   /* ── Filters ────────────────────────────────────────── */
