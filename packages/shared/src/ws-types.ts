@@ -105,7 +105,7 @@ export interface RejectCallMessage extends WsMessageBase {
 export interface NewIceCandidateMessage extends WsMessageBase {
   type: 'new_ice_candidate';
   conversationId: string;
-  candidate: RTCIceCandidate;
+  candidate: RTCIceCandidateInit;
 }
 
 export type ClientMessage =
@@ -274,7 +274,7 @@ export interface PollVoteEvent extends WsMessageBase {
     voterDid: string;
     /** Which options they picked */
     selectedOptions: number[];
-  }
+  };
 }
 
 export interface AcceptCallEvent extends WsMessageBase {
@@ -305,7 +305,7 @@ export interface NewIceCandidateEvent extends WsMessageBase {
   type: 'new_ice_candidate';
   data: {
     conversationId: string;
-    candidate: RTCIceCandidate;
+    candidate: RTCIceCandidateInit;
   };
 }
 

@@ -41,7 +41,7 @@ export class PeerManager {
       this.send({
         type: 'new_ice_candidate',
         conversationId: this.conversationId,
-        candidate: event.candidate,
+        candidate: event.candidate.toJSON(), // Send the candidate as a JSON object instead of a string
       });
     }
   }

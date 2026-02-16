@@ -103,10 +103,17 @@ const acceptCall = z.object({
   answer: z.string().min(1),
 });
 
+const candidateSchema: z.ZodType<RTCIceCandidateInit> = z.object({
+  candidate: z.string(),
+  sdpMid: z.string().nullable().optional(),
+  sdpMLineIndex: z.number().nullable().optional(),
+  usernameFragment: z.string().nullable().optional(),
+});
+
 const newIceCandidate = z.object({
   type: z.literal('new_ice_candidate'),
   conversationId: z.string().min(1),
-  candidate: z.string().min(1),
+  candidate: candidateSchema, // Expect the candidate as a JSON object that matches RTCIceCandidateInit
 });
 
 const clientMessage = z.discriminatedUnion('type', [
