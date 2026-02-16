@@ -7,7 +7,9 @@
     "attachImage": "Ceangail Íomhá",
     "cancel": "Cealaigh",
     "posting": "Ag postáil...",
-    "post": "Postáil"
+    "post": "Postáil",
+    "imageAltText": "Déan cur síos ar an íomhá seo...",
+    "gifAltText": "Déan cur síos ar an GIF seo..."
   },
 
   "post": {

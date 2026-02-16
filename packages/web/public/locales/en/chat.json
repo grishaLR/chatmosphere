@@ -116,5 +116,49 @@
     "deleteGroup": "Delete group",
     "expand": "Expand",
     "collapse": "Collapse"
+  },
+
+  "gif": {
+    "title": "GIFs",
+    "searchPlaceholder": "Search GIFs...",
+    "noResults": "No GIFs found",
+    "loading": "Loading...",
+    "poweredByGiphy": "Powered by GIPHY",
+    "poweredByKlipy": "Powered by Klipy",
+    "close": "Close",
+    "altTextPlaceholder": "Describe this GIF (alt text)...",
+    "confirm": "Send",
+    "back": "Back"
+  },
+
+  "poll": {
+    "createPoll": "Create Poll",
+    "questionLabel": "Question",
+    "questionPlaceholder": "Ask a question...",
+    "optionsLabel": "Options",
+    "optionPlaceholder": "Option {{n}}",
+    "addOption": "Add Option",
+    "removeOption": "Remove option",
+    "allowMultiple": "Allow multiple selections",
+    "expires": "Expires",
+    "expired": "Poll ended",
+    "expiresIn": "Ends in {{time}}",
+    "totalVotes_one": "{{count}} vote",
+    "totalVotes_other": "{{count}} votes",
+    "vote": "Submit Vote",
+    "create": "Create",
+    "cancel": "Cancel",
+    "expiry": {
+      "none": "No expiry",
+      "1h": "1 hour",
+      "6h": "6 hours",
+      "24h": "24 hours",
+      "3d": "3 days",
+      "1w": "1 week"
+    },
+    "error": {
+      "minOptions": "At least 2 options are required",
+      "default": "Failed to create poll"
+    }
   }
 }

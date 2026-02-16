@@ -92,6 +92,21 @@ async function main() {
     );
   }
 
+  // GIF proxy (optional — requires at least one of GIPHY_API_KEY or KLIPY_API_KEY)
+  const hasGifService = !!(config.GIPHY_API_KEY || config.KLIPY_API_KEY);
+  const gifRateLimiter = hasGifService
+    ? redis
+      ? new RedisRateLimiter(redis, { windowMs: 60_000, maxRequests: 30 })
+      : new InMemoryRateLimiter({ windowMs: 60_000, maxRequests: 30 })
+    : null;
+
+  if (hasGifService) {
+    const sources = [config.GIPHY_API_KEY ? 'Giphy' : null, config.KLIPY_API_KEY ? 'Klipy' : null]
+      .filter(Boolean)
+      .join(' + ');
+    log.info(`GIF proxy enabled (${sources})`);
+  }
+
   const app = createApp(
     config,
     db,
@@ -105,6 +120,9 @@ async function main() {
     translateService,
     translateRateLimiter,
     supportedLanguages,
+    config.GIPHY_API_KEY,
+    config.KLIPY_API_KEY,
+    gifRateLimiter,
   );
   const httpServer = createServer(app);
 

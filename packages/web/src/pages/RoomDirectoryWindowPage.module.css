@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background: var(--color-base-100);
 }
 
@@ -34,7 +34,7 @@
   padding: var(--cm-space-1.5) var(--cm-space-4);
   border: none;
   border-radius: var(--cm-radius-sm);
-  font-size: var(--cm-text-md);
+  font-size: max(var(--cm-text-md), 16px);
   background: var(--cm-surface-content);
   box-shadow: var(--cm-sunken);
   box-sizing: border-box;

@@ -47,6 +47,52 @@ function getDomain(url: string): string {
   }
 }
 
+function MediaPills({ type, alt }: { type: string; alt?: string }) {
+  const [showAlt, setShowAlt] = useState(false);
+
+  return (
+    <>
+      <span className={styles.mediaPill} style={{ left: 'var(--cm-space-2)' }}>
+        {type}
+      </span>
+      {alt && (
+        <button
+          type="button"
+          className={styles.mediaPill}
+          style={{ right: 'var(--cm-space-2)' }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowAlt((v) => !v);
+          }}
+        >
+          ALT
+        </button>
+      )}
+      {showAlt && alt && (
+        <div
+          className={styles.altOverlay}
+          role="button"
+          tabIndex={0}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowAlt(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowAlt(false);
+            }
+          }}
+        >
+          {alt}
+        </div>
+      )}
+    </>
+  );
+}
+
 function ImageEmbed({ embed }: { embed: AppBskyEmbedImages.View }) {
   const count = embed.images.length;
   const gridClass =
@@ -55,17 +101,114 @@ function ImageEmbed({ embed }: { embed: AppBskyEmbedImages.View }) {
   return (
     <div className={`${styles.imageGrid} ${gridClass}`}>
       {embed.images.map((img, i) => (
-        <a key={i} href={img.fullsize} target="_blank" rel="noopener noreferrer">
-          <img className={styles.embedImage} src={img.thumb} alt={img.alt || ''} loading="lazy" />
-        </a>
+        <div key={i} className={styles.mediaContainer}>
+          <a href={img.fullsize} target="_blank" rel="noopener noreferrer">
+            <img className={styles.embedImage} src={img.thumb} alt={img.alt || ''} loading="lazy" />
+          </a>
+          <MediaPills type="IMG" alt={img.alt || undefined} />
+        </div>
       ))}
     </div>
   );
 }
 
+function isGiphyUrl(uri: string): boolean {
+  try {
+    const url = new URL(uri);
+    return (
+      /^(www\.)?giphy\.com$/.test(url.hostname) ||
+      /^media\d*\.giphy\.com$/.test(url.hostname) ||
+      url.hostname === 'i.giphy.com'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isTenorUrl(uri: string): boolean {
+  try {
+    return new URL(uri).hostname === 'media.tenor.com';
+  } catch {
+    return false;
+  }
+}
+
+function isKlipyUrl(uri: string): boolean {
+  try {
+    return new URL(uri).hostname === 'cdn.klipy.com';
+  } catch {
+    return false;
+  }
+}
+
+/** Extract Giphy ID from page URL and return a direct animated GIF URL */
+function getGiphyMediaUrl(pageUri: string): string | null {
+  try {
+    const url = new URL(pageUri);
+    // Page URL format: https://giphy.com/gifs/optional-slug-GIFID
+    const parts = url.pathname.split('/');
+    const last = parts[parts.length - 1];
+    if (!last) return null;
+    const id = last.includes('-') ? last.split('-').pop() : last;
+    if (!id) return null;
+    return `https://i.giphy.com/media/${id}/200.gif`;
+  } catch {
+    return null;
+  }
+}
+
 function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
   const ext = embed.external;
   if (!isSafeUrl(ext.uri)) return null;
+
+  // Render Giphy links as inline playing GIFs (use direct Giphy CDN, not Bluesky thumbnail which is static)
+  const giphyMedia = isGiphyUrl(ext.uri) ? getGiphyMediaUrl(ext.uri) : null;
+  if (giphyMedia) {
+    const altText =
+      ext.description && ext.description !== 'via GIPHY'
+        ? ext.description
+        : ext.title && ext.title !== 'GIF'
+          ? ext.title
+          : undefined;
+    return (
+      <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        <img src={giphyMedia} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
+        <MediaPills type="GIF" alt={altText} />
+      </div>
+    );
+  }
+
+  // Render Tenor links as inline playing GIFs (URI is already a direct media URL)
+  if (isTenorUrl(ext.uri)) {
+    const altText =
+      ext.description && ext.description !== 'via GIPHY'
+        ? ext.description
+        : ext.title && ext.title !== 'GIF'
+          ? ext.title
+          : undefined;
+    return (
+      <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        <img src={ext.uri} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
+        <MediaPills type="GIF" alt={altText} />
+      </div>
+    );
+  }
+
+  // Render Klipy links as inline playing GIFs (URI is already a direct CDN URL)
+  if (isKlipyUrl(ext.uri)) {
+    const altText =
+      ext.description && ext.description !== 'via Klipy'
+        ? ext.description
+        : ext.title && ext.title !== 'GIF'
+          ? ext.title
+          : undefined;
+    return (
+      <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        <img src={ext.uri} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
+        <MediaPills type="GIF" alt={altText} />
+      </div>
+    );
+  }
 
   return (
     <a className={styles.linkCard} href={ext.uri} target="_blank" rel="noopener noreferrer">

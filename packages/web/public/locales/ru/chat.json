@@ -117,5 +117,50 @@
     "deleteGroup": "Удалить группу",
     "expand": "Развернуть",
     "collapse": "Свернуть"
+  },
+
+  "gif": {
+    "title": "GIF-ки",
+    "searchPlaceholder": "Поиск GIF...",
+    "noResults": "GIF не найдены",
+    "loading": "Загрузка...",
+    "poweredByGiphy": "При поддержке GIPHY",
+    "poweredByKlipy": "При поддержке Klipy",
+    "close": "Закрыть",
+    "altTextPlaceholder": "Опишите этот GIF (альт-текст)...",
+    "confirm": "Отправить",
+    "back": "Назад"
+  },
+
+  "poll": {
+    "createPoll": "Создать опрос",
+    "questionLabel": "Вопрос",
+    "questionPlaceholder": "Задайте вопрос...",
+    "optionsLabel": "Варианты",
+    "optionPlaceholder": "Вариант {{n}}",
+    "addOption": "Добавить вариант",
+    "removeOption": "Удалить вариант",
+    "allowMultiple": "Множественный выбор",
+    "expires": "Истекает",
+    "expired": "Опрос завершён",
+    "expiresIn": "Завершится через {{time}}",
+    "totalVotes_one": "{{count}} голос",
+    "totalVotes_few": "{{count}} голоса",
+    "totalVotes_many": "{{count}} голосов",
+    "vote": "Проголосовать",
+    "create": "Создать",
+    "cancel": "Отмена",
+    "expiry": {
+      "none": "Без ограничения",
+      "1h": "1 час",
+      "6h": "6 часов",
+      "24h": "24 часа",
+      "3d": "3 дня",
+      "1w": "1 неделя"
+    },
+    "error": {
+      "minOptions": "Необходимо минимум 2 варианта",
+      "default": "Ошибка создания опроса"
+    }
   }
 }

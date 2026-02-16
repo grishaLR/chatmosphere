@@ -116,5 +116,49 @@
     "deleteGroup": "Видалити групу",
     "expand": "Розгорнути",
     "collapse": "Згорнути"
+  },
+
+  "gif": {
+    "title": "GIF-ки",
+    "searchPlaceholder": "Пошук GIF...",
+    "noResults": "GIF не знайдено",
+    "loading": "Завантаження...",
+    "poweredByGiphy": "За підтримки GIPHY",
+    "poweredByKlipy": "За підтримки Klipy",
+    "close": "Закрити",
+    "altTextPlaceholder": "Опишіть цей GIF (альт-текст)...",
+    "confirm": "Надіслати",
+    "back": "Назад"
+  },
+
+  "poll": {
+    "createPoll": "Створити опитування",
+    "questionLabel": "Запитання",
+    "questionPlaceholder": "Задайте запитання...",
+    "optionsLabel": "Варіанти",
+    "optionPlaceholder": "Варіант {{n}}",
+    "addOption": "Додати варіант",
+    "removeOption": "Видалити варіант",
+    "allowMultiple": "Дозволити множинний вибір",
+    "expires": "Закінчується",
+    "expired": "Опитування завершено",
+    "expiresIn": "Завершиться через {{time}}",
+    "totalVotes_one": "{{count}} голос",
+    "totalVotes_other": "{{count}} голосів",
+    "vote": "Проголосувати",
+    "create": "Створити",
+    "cancel": "Скасувати",
+    "expiry": {
+      "none": "Без обмеження",
+      "1h": "1 година",
+      "6h": "6 годин",
+      "24h": "24 години",
+      "3d": "3 дні",
+      "1w": "1 тиждень"
+    },
+    "error": {
+      "minOptions": "Потрібно щонайменше 2 варіанти",
+      "default": "Помилка створення опитування"
+    }
   }
 }
