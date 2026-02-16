@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { IS_TAURI } from '../lib/config';
 import { useRoom } from '../hooks/useRoom';
 import { useMessages } from '../hooks/useMessages';
+import { usePolls } from '../hooks/usePolls';
 import { useBlocks } from '../contexts/BlockContext';
 import { useMentionNotifications } from '../contexts/MentionNotificationContext';
 import { useContentTranslation } from '../hooks/useContentTranslation';
@@ -34,6 +35,7 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     sendMessage,
     sendTyping,
   } = useMessages(roomId);
+  const { polls, createPoll, castVote } = usePolls(roomId);
   const { blockedDids } = useBlocks();
   const { clearMentions } = useMentionNotifications();
   const {
@@ -110,16 +112,26 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
         <div className={styles.chatArea}>
           <MessageList
             messages={filteredMessages}
+            polls={polls}
             loading={msgLoading}
             typingUsers={filteredTyping}
             replyCounts={replyCounts}
             onOpenThread={handleOpenThread}
+            onVote={(pollId, pollUri, opts) => {
+              void castVote(pollId, pollUri, opts);
+            }}
           />
           <MessageInput
             onSend={(text) => {
               void sendMessage(text, room.uri);
             }}
             onTyping={sendTyping}
+            onCreatePoll={(input) => {
+              void createPoll(input, room.uri);
+            }}
+            onSendWithEmbed={(text, embed) => {
+              void sendMessage(text, room.uri, undefined, embed);
+            }}
           />
         </div>
         {activeThread && (

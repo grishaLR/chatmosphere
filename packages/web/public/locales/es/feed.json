@@ -7,7 +7,9 @@
     "attachImage": "Adjuntar imagen",
     "cancel": "Cancelar",
     "posting": "Publicando...",
-    "post": "Publicar"
+    "post": "Publicar",
+    "imageAltText": "Describir esta imagen...",
+    "gifAltText": "Describir este GIF..."
   },
 
   "post": {

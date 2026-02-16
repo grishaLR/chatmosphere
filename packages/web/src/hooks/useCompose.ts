@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { RichText as RichTextAPI } from '@atproto/api';
 import type { AppBskyFeedDefs } from '@atproto/api';
+import type { GifResult } from '../lib/api';
 import { useAuth } from './useAuth';
 import { generateTid } from '../lib/atproto';
 
@@ -14,8 +15,14 @@ interface UseComposeResult {
   text: string;
   setText: (text: string) => void;
   images: File[];
+  imageAlts: string[];
   addImage: (file: File) => void;
   removeImage: (index: number) => void;
+  setImageAlt: (index: number, alt: string) => void;
+  gif: GifResult | null;
+  setGif: (gif: GifResult | null) => void;
+  gifAlt: string;
+  setGifAlt: (alt: string) => void;
   replyTo: AppBskyFeedDefs.PostView | null;
   setReplyTo: (post: AppBskyFeedDefs.PostView | null) => void;
   posting: boolean;
@@ -39,24 +46,44 @@ export function useCompose(onSuccess?: () => void): UseComposeResult {
   const { agent } = useAuth();
   const [text, setText] = useState('');
   const [images, setImages] = useState<File[]>([]);
+  const [imageAlts, setImageAlts] = useState<string[]>([]);
+  const [gif, setGif] = useState<GifResult | null>(null);
+  const [gifAlt, setGifAlt] = useState('');
   const [replyTo, setReplyTo] = useState<AppBskyFeedDefs.PostView | null>(null);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const graphemeCount = useMemo(() => countGraphemes(text), [text]);
-  const canPost = graphemeCount > 0 && graphemeCount <= MAX_GRAPHEMES && !posting;
+  const hasContent = graphemeCount > 0 || images.length > 0 || gif !== null;
+  const canPost = hasContent && graphemeCount <= MAX_GRAPHEMES && !posting;
 
   const addImage = useCallback((file: File) => {
-    setImages((prev) => (prev.length >= MAX_IMAGES ? prev : [...prev, file]));
+    setImages((prev) => {
+      if (prev.length >= MAX_IMAGES) return prev;
+      setImageAlts((alts) => [...alts, '']);
+      return [...prev, file];
+    });
   }, []);
 
   const removeImage = useCallback((index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
+    setImageAlts((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const setImageAlt = useCallback((index: number, alt: string) => {
+    setImageAlts((prev) => {
+      const next = [...prev];
+      next[index] = alt;
+      return next;
+    });
   }, []);
 
   const clear = useCallback(() => {
     setText('');
     setImages([]);
+    setImageAlts([]);
+    setGif(null);
+    setGifAlt('');
     setReplyTo(null);
     setError(null);
   }, []);
@@ -72,9 +99,32 @@ export function useCompose(onSuccess?: () => void): UseComposeResult {
       const rt = new RichTextAPI({ text });
       await rt.detectFacets(agent);
 
-      // Upload images if any
+      // Build embed: GIF (external) or images
       let embed: Record<string, unknown> | undefined;
-      if (images.length > 0) {
+      if (gif) {
+        // Fetch GIF as blob and upload as thumbnail for Bluesky-compatible link card
+        let thumbBlob: unknown;
+        try {
+          const gifRes = await fetch(gif.previewUrl);
+          const gifData = await gifRes.blob();
+          const uploaded = await agent.uploadBlob(gifData, { encoding: 'image/gif' });
+          thumbBlob = uploaded.data.blob;
+        } catch {
+          // If thumbnail upload fails, post without it
+        }
+
+        const description = gifAlt || `via ${gif.source === 'klipy' ? 'Klipy' : 'GIPHY'}`;
+
+        embed = {
+          $type: 'app.bsky.embed.external',
+          external: {
+            uri: gif.fullUrl,
+            title: gif.title || 'GIF',
+            description,
+            ...(thumbBlob ? { thumb: thumbBlob } : {}),
+          },
+        };
+      } else if (images.length > 0) {
         const blobRefs = await Promise.all(
           images.map(async (file) => {
             const res = await agent.uploadBlob(file, { encoding: file.type });
@@ -83,9 +133,9 @@ export function useCompose(onSuccess?: () => void): UseComposeResult {
         );
         embed = {
           $type: 'app.bsky.embed.images',
-          images: blobRefs.map((blob) => ({
+          images: blobRefs.map((blob, i) => ({
             image: blob,
-            alt: '',
+            alt: imageAlts[i] || '',
           })),
         };
       }
@@ -128,14 +178,20 @@ export function useCompose(onSuccess?: () => void): UseComposeResult {
     } finally {
       setPosting(false);
     }
-  }, [agent, canPost, text, images, replyTo, clear, onSuccess]);
+  }, [agent, canPost, text, images, imageAlts, gif, gifAlt, replyTo, clear, onSuccess]);
 
   return {
     text,
     setText,
     images,
+    imageAlts,
     addImage,
     removeImage,
+    setImageAlt,
+    gif,
+    setGif,
+    gifAlt,
+    setGifAlt,
     replyTo,
     setReplyTo,
     posting,

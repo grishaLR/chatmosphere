@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import { useCompose } from '../../hooks/useCompose';
+import { useGifCapabilities } from '../../hooks/useGifCapabilities';
+import { GifSearchModal } from '../chat/GifSearchModal';
 import styles from './FeedComposer.module.css';
 
 interface FeedComposerProps {
@@ -13,14 +15,22 @@ interface FeedComposerProps {
 export function FeedComposer({ replyTo, onClearReply, onPostSuccess }: FeedComposerProps) {
   const { t } = useTranslation('feed');
   const [expanded, setExpanded] = useState(false);
+  const [showGifModal, setShowGifModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { capabilities, hasAnyGifService } = useGifCapabilities();
 
   const {
     text,
     setText,
     images,
+    imageAlts,
     addImage,
     removeImage,
+    setImageAlt,
+    gif,
+    setGif,
+    gifAlt,
+    setGifAlt,
     setReplyTo,
     posting,
     error,
@@ -128,24 +138,72 @@ export function FeedComposer({ replyTo, onClearReply, onPostSuccess }: FeedCompo
               >
                 &times;
               </button>
+              <textarea
+                className={styles.altTextInput}
+                value={imageAlts[i] || ''}
+                onChange={(e) => {
+                  setImageAlt(i, e.target.value);
+                }}
+                placeholder={t('composer.imageAltText', 'Describe this image...')}
+                rows={1}
+              />
             </div>
           ))}
+        </div>
+      )}
+
+      {gif && (
+        <div className={styles.gifPreview}>
+          <img src={gif.previewUrl} alt={gif.title} />
+          <button
+            className={styles.removeImage}
+            onClick={() => {
+              setGif(null);
+              setGifAlt('');
+            }}
+            type="button"
+          >
+            &times;
+          </button>
+          <textarea
+            className={styles.altTextInput}
+            value={gifAlt}
+            onChange={(e) => {
+              setGifAlt(e.target.value);
+            }}
+            placeholder={t('composer.gifAltText', 'Describe this GIF...')}
+            rows={1}
+          />
         </div>
       )}
 
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.actions}>
-        <button
-          className={styles.attachButton}
-          onClick={() => {
-            fileInputRef.current?.click();
-          }}
-          type="button"
-          disabled={images.length >= 4}
-        >
-          {t('composer.attachImage')}
-        </button>
+        <div className={styles.attachButtons}>
+          <button
+            className={styles.attachButton}
+            onClick={() => {
+              fileInputRef.current?.click();
+            }}
+            type="button"
+            disabled={images.length >= 4 || gif !== null}
+          >
+            {t('composer.attachImage')}
+          </button>
+          {hasAnyGifService && (
+            <button
+              className={styles.attachButton}
+              onClick={() => {
+                setShowGifModal(true);
+              }}
+              type="button"
+              disabled={images.length > 0 || gif !== null}
+            >
+              GIF
+            </button>
+          )}
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -178,6 +236,20 @@ export function FeedComposer({ replyTo, onClearReply, onPostSuccess }: FeedCompo
           </button>
         </div>
       </div>
+      {showGifModal && (
+        <GifSearchModal
+          initialQuery=""
+          capabilities={capabilities}
+          onClose={() => {
+            setShowGifModal(false);
+          }}
+          onSelect={(selected, altTextFromModal) => {
+            setGif(selected);
+            setGifAlt(altTextFromModal);
+            setShowGifModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -7,7 +7,9 @@
     "attachImage": "Attach Image",
     "cancel": "Cancel",
     "posting": "Posting...",
-    "post": "Post"
+    "post": "Post",
+    "imageAltText": "Describe this image...",
+    "gifAltText": "Describe this GIF..."
   },
 
   "post": {

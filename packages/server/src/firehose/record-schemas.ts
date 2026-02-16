@@ -162,6 +162,25 @@ export const presenceRecordSchema = z.object({
   updatedAt: datetime,
 });
 
+// -- Poll --
+
+export const pollRecordSchema = z.object({
+  room: atUri,
+  question: z.string().max(200),
+  options: z.array(z.string().max(100)).min(2).max(10),
+  allowMultiple: z.boolean().optional(),
+  expiresAt: datetime.optional(),
+  createdAt: datetime,
+});
+
+// -- Vote --
+
+export const voteRecordSchema = z.object({
+  poll: atUri,
+  selectedOptions: z.array(z.number().int().min(0)).max(10),
+  createdAt: datetime,
+});
+
 // -- Inferred types --
 
 export type RoomRecordParsed = z.infer<typeof roomRecordSchema>;
@@ -171,3 +190,5 @@ export type RoleRecordParsed = z.infer<typeof roleRecordSchema>;
 export type CommunityRecordParsed = z.infer<typeof communityRecordSchema>;
 export type AllowlistRecordParsed = z.infer<typeof allowlistRecordSchema>;
 export type PresenceRecordParsed = z.infer<typeof presenceRecordSchema>;
+export type PollRecordParsed = z.infer<typeof pollRecordSchema>;
+export type VoteRecordParsed = z.infer<typeof voteRecordSchema>;

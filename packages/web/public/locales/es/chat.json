@@ -116,5 +116,49 @@
     "deleteGroup": "Eliminar grupo",
     "expand": "Expandir",
     "collapse": "Contraer"
+  },
+
+  "gif": {
+    "title": "GIFs",
+    "searchPlaceholder": "Buscar GIFs...",
+    "noResults": "No se encontraron GIFs",
+    "loading": "Cargando...",
+    "poweredByGiphy": "Desarrollado por GIPHY",
+    "poweredByKlipy": "Desarrollado por Klipy",
+    "close": "Cerrar",
+    "altTextPlaceholder": "Describir este GIF (texto alternativo)...",
+    "confirm": "Enviar",
+    "back": "Volver"
+  },
+
+  "poll": {
+    "createPoll": "Crear Encuesta",
+    "questionLabel": "Pregunta",
+    "questionPlaceholder": "Haz una pregunta...",
+    "optionsLabel": "Opciones",
+    "optionPlaceholder": "Opción {{n}}",
+    "addOption": "Agregar Opción",
+    "removeOption": "Eliminar opción",
+    "allowMultiple": "Permitir selección múltiple",
+    "expires": "Expira",
+    "expired": "Encuesta terminada",
+    "expiresIn": "Termina en {{time}}",
+    "totalVotes_one": "{{count}} voto",
+    "totalVotes_other": "{{count}} votos",
+    "vote": "Enviar Voto",
+    "create": "Crear",
+    "cancel": "Cancelar",
+    "expiry": {
+      "none": "Sin expiración",
+      "1h": "1 hora",
+      "6h": "6 horas",
+      "24h": "24 horas",
+      "3d": "3 días",
+      "1w": "1 semana"
+    },
+    "error": {
+      "minOptions": "Se requieren al menos 2 opciones",
+      "default": "Error al crear encuesta"
+    }
   }
 }

@@ -4,6 +4,7 @@ import type { MessageView } from '../../types';
 import { useModeration } from '../../hooks/useModeration';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
 import { RichText, type GenericFacet } from './RichText';
+import { EmbedRenderer } from './EmbedRenderer';
 import { UserIdentity } from './UserIdentity';
 import styles from './MessageItem.module.css';
 
@@ -56,7 +57,13 @@ export const MessageItem = memo(function MessageItem({
   const blurred = moderation.shouldBlur && !revealed;
   const hasReplies = (replyCount ?? 0) > 0;
   const showReplyActions = !hideActions && !!onOpenThread;
-  const showTranslateBtn = translateAvailable && !!message.text;
+
+  // When a message has an inline embed (e.g. GIF), the text is just a fallback URL — hide it
+  const hasInlineEmbed =
+    message.embed != null &&
+    typeof message.embed === 'object' &&
+    'uri' in (message.embed as Record<string, unknown>);
+  const showTranslateBtn = translateAvailable && !!message.text && !hasInlineEmbed;
 
   return (
     <div
@@ -68,7 +75,7 @@ export const MessageItem = memo(function MessageItem({
         </span>
         <span className={styles.time}>{formatTime(message.created_at)}</span>
       </span>
-      {blurred ? (
+      {hasInlineEmbed ? null : blurred ? (
         <span className={styles.blurredText}>
           {t('messageItem.contentWarning')}{' '}
           <button
@@ -104,6 +111,7 @@ export const MessageItem = memo(function MessageItem({
           )}
         </span>
       )}
+      {message.embed != null && <EmbedRenderer embed={message.embed} />}
       {(showReplyActions || showTranslateBtn) && (
         <div className={styles.actions}>
           {showReplyActions && hasReplies && (

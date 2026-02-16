@@ -1,4 +1,4 @@
-import type { RoomView, MessageView, DmConversationView, DmMessageView } from '../types';
+import type { RoomView, MessageView, PollView, DmConversationView, DmMessageView } from '../types';
 import { API_URL } from './config.js';
 
 // -- Token management --
@@ -242,6 +242,36 @@ export async function fetchBuddyList(
   return (await res.json()) as BuddyListResponse;
 }
 
+// -- Polls --
+
+export async function fetchPolls(
+  roomId: string,
+  opts?: { signal?: AbortSignal },
+): Promise<PollView[]> {
+  const res = await authFetch(`/api/rooms/${encodeURIComponent(roomId)}/polls`, {
+    signal: opts?.signal,
+  });
+  if (!res.ok) throw new Error(`Failed to fetch polls: ${res.status}`);
+
+  const data = (await res.json()) as { polls: PollView[] };
+  return data.polls;
+}
+
+export async function fetchPoll(
+  roomId: string,
+  pollId: string,
+  opts?: { signal?: AbortSignal },
+): Promise<PollView> {
+  const res = await authFetch(
+    `/api/rooms/${encodeURIComponent(roomId)}/polls/${encodeURIComponent(pollId)}`,
+    { signal: opts?.signal },
+  );
+  if (!res.ok) throw new Error(`Failed to fetch poll: ${res.status}`);
+
+  const data = (await res.json()) as { poll: PollView };
+  return data.poll;
+}
+
 // -- DMs --
 
 export async function fetchDmConversations(opts?: {
@@ -278,6 +308,57 @@ export async function fetchDmMessages(
 
   const data = (await res.json()) as { messages: DmMessageView[] };
   return data.messages;
+}
+
+// -- GIF services --
+
+export type GifSource = 'giphy' | 'klipy';
+
+export interface GifResult {
+  id: string;
+  title: string;
+  previewUrl: string;
+  fullUrl: string;
+  previewWidth?: string;
+  previewHeight?: string;
+  source: GifSource;
+}
+
+export interface GifCapabilities {
+  giphy: boolean;
+  klipy: boolean;
+}
+
+export async function fetchGifCapabilities(): Promise<GifCapabilities> {
+  try {
+    const res = await fetch(`${API_URL}/api/gif/capabilities`);
+    if (!res.ok) return { giphy: false, klipy: false };
+    return (await res.json()) as GifCapabilities;
+  } catch {
+    return { giphy: false, klipy: false };
+  }
+}
+
+export async function searchGifs(
+  source: GifSource,
+  query: string,
+  opts?: { limit?: number; offset?: number; signal?: AbortSignal },
+): Promise<GifResult[]> {
+  const params = new URLSearchParams({ q: query });
+
+  if (source === 'klipy') {
+    if (opts?.limit) params.set('per_page', String(opts.limit));
+  } else {
+    if (opts?.limit) params.set('limit', String(opts.limit));
+    if (opts?.offset) params.set('offset', String(opts.offset));
+  }
+
+  const endpoint = source === 'klipy' ? '/api/gif/klipy-search' : '/api/gif/search';
+  const res = await authFetch(`${endpoint}?${params.toString()}`, { signal: opts?.signal });
+  if (!res.ok) return [];
+
+  const data = (await res.json()) as { gifs: GifResult[] };
+  return data.gifs;
 }
 
 // -- Translation --
