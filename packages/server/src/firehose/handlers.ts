@@ -3,6 +3,15 @@ import type { Sql } from '../db/client.js';
 import { createRoom, deleteRoom } from '../rooms/queries.js';
 import { insertMessage, deleteMessage } from '../messages/queries.js';
 import {
+  insertPoll,
+  deletePoll,
+  getPollById,
+  insertVote,
+  deleteVote,
+  getVoteTallies,
+  getTotalVoters,
+} from '../polls/queries.js';
+import {
   recordModAction,
   deleteModActionByUri,
   isUserBanned,
@@ -22,6 +31,8 @@ import {
   communityRecordSchema,
   allowlistRecordSchema,
   presenceRecordSchema,
+  pollRecordSchema,
+  voteRecordSchema,
 } from './record-schemas.js';
 import type { PresenceService } from '../presence/service.js';
 import { createLogger } from '../logger.js';
@@ -390,6 +401,135 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         { did: event.did, status: record.status, visibleTo: record.visibleTo },
         'Presence indexed',
       );
+    },
+
+    [NSID.Poll]: async (event) => {
+      if (event.operation === 'delete') {
+        await deletePoll(db, event.uri);
+        log.info({ rkey: event.rkey }, 'Poll deleted');
+        return;
+      }
+
+      const parsed = pollRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        log.warn(
+          { did: event.did, rkey: event.rkey, error: parsed.error.message },
+          'Invalid poll record',
+        );
+        return;
+      }
+      const record = parsed.data;
+      const roomId = extractRkey(record.room);
+
+      const room = await getRoomById(db, roomId);
+      if (!room) {
+        log.warn({ roomId, did: event.did, rkey: event.rkey }, 'Poll for unknown room — skipping');
+        return;
+      }
+
+      const banned = await isUserBanned(db, roomId, event.did);
+      if (banned) {
+        log.info({ did: event.did, roomId }, 'Poll from banned user — skipping broadcast');
+        return;
+      }
+
+      await insertPoll(db, {
+        id: event.rkey,
+        uri: event.uri,
+        did: event.did,
+        cid: event.cid,
+        roomId,
+        question: record.question,
+        options: record.options,
+        allowMultiple: record.allowMultiple ?? false,
+        expiresAt: record.expiresAt,
+        createdAt: record.createdAt,
+      });
+
+      wss.broadcastToRoom(roomId, {
+        type: 'poll_created',
+        data: {
+          id: event.rkey,
+          uri: event.uri,
+          did: event.did,
+          roomId,
+          question: record.question,
+          options: record.options,
+          allowMultiple: record.allowMultiple ?? false,
+          expiresAt: record.expiresAt,
+          createdAt: record.createdAt,
+        },
+      });
+
+      log.info({ rkey: event.rkey, roomId, question: record.question }, 'Poll indexed');
+    },
+
+    [NSID.Vote]: async (event) => {
+      if (event.operation === 'delete') {
+        await deleteVote(db, event.uri);
+        log.info({ rkey: event.rkey }, 'Vote deleted');
+        return;
+      }
+
+      const parsed = voteRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        log.warn(
+          { did: event.did, rkey: event.rkey, error: parsed.error.message },
+          'Invalid vote record',
+        );
+        return;
+      }
+      const record = parsed.data;
+      const pollId = extractRkey(record.poll);
+
+      const poll = await getPollById(db, pollId);
+      if (!poll) {
+        log.warn({ pollId, did: event.did }, 'Vote for unknown poll — skipping');
+        return;
+      }
+
+      // Validate selected options are in range
+      const maxIdx = poll.options.length - 1;
+      if (record.selectedOptions.some((i) => i > maxIdx)) {
+        log.warn({ did: event.did, pollId }, 'Vote option index out of range — skipping');
+        return;
+      }
+
+      // Validate single-select polls only get one option
+      if (!poll.allow_multiple && record.selectedOptions.length > 1) {
+        log.warn({ did: event.did, pollId }, 'Multiple options on single-select poll — skipping');
+        return;
+      }
+
+      await insertVote(db, {
+        id: event.rkey,
+        uri: event.uri,
+        did: event.did,
+        cid: event.cid,
+        pollId,
+        selectedOptions: record.selectedOptions,
+        createdAt: record.createdAt,
+      });
+
+      // Fetch updated tallies for broadcast
+      const [tallies, totalVoters] = await Promise.all([
+        getVoteTallies(db, pollId),
+        getTotalVoters(db, pollId),
+      ]);
+
+      wss.broadcastToRoom(poll.room_id, {
+        type: 'poll_vote',
+        data: {
+          pollId,
+          roomId: poll.room_id,
+          tallies,
+          totalVoters,
+          voterDid: event.did,
+          selectedOptions: record.selectedOptions,
+        },
+      });
+
+      log.info({ pollId, did: event.did }, 'Vote indexed');
     },
   };
 

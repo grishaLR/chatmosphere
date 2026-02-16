@@ -128,6 +128,9 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
         onSend={(text) => {
           void sendReply(text, roomUri, focusUri);
         }}
+        onSendWithEmbed={(text, embed) => {
+          void sendReply(text, roomUri, focusUri, embed);
+        }}
         placeholder={t('threadPanel.inputPlaceholder')}
       />
     </aside>

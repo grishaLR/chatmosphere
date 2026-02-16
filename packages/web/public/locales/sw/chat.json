@@ -116,5 +116,49 @@
     "deleteGroup": "Futa kundi",
     "expand": "Panua",
     "collapse": "Kunja"
+  },
+
+  "gif": {
+    "title": "GIF",
+    "searchPlaceholder": "Tafuta GIF...",
+    "noResults": "Hakuna GIF zilizopatikana",
+    "loading": "Inapakia...",
+    "poweredByGiphy": "Imeendeshwa na GIPHY",
+    "poweredByKlipy": "Imeendeshwa na Klipy",
+    "close": "Funga",
+    "altTextPlaceholder": "Eleza GIF hii (maandishi mbadala)...",
+    "confirm": "Tuma",
+    "back": "Rudi"
+  },
+
+  "poll": {
+    "createPoll": "Unda Kura",
+    "questionLabel": "Swali",
+    "questionPlaceholder": "Uliza swali...",
+    "optionsLabel": "Chaguo",
+    "optionPlaceholder": "Chaguo {{n}}",
+    "addOption": "Ongeza Chaguo",
+    "removeOption": "Ondoa chaguo",
+    "allowMultiple": "Ruhusu chaguo nyingi",
+    "expires": "Inaisha",
+    "expired": "Kura imemalizika",
+    "expiresIn": "Itaisha kwa {{time}}",
+    "totalVotes_one": "kura {{count}}",
+    "totalVotes_other": "kura {{count}}",
+    "vote": "Tuma Kura",
+    "create": "Unda",
+    "cancel": "Ghairi",
+    "expiry": {
+      "none": "Bila mwisho",
+      "1h": "Saa 1",
+      "6h": "Masaa 6",
+      "24h": "Masaa 24",
+      "3d": "Siku 3",
+      "1w": "Wiki 1"
+    },
+    "error": {
+      "minOptions": "Chaguo 2 au zaidi zinahitajika",
+      "default": "Imeshindwa kuunda kura"
+    }
   }
 }

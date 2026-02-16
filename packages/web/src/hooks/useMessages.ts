@@ -88,6 +88,7 @@ export function useMessages(roomId: string) {
               room_id: event.data.roomId,
               text: event.data.text,
               facets: event.data.facets,
+              embed: event.data.embed,
               reply_parent: event.data.reply?.parent ?? null,
               reply_root: event.data.reply?.root ?? null,
               created_at: event.data.createdAt,
@@ -107,6 +108,7 @@ export function useMessages(roomId: string) {
               room_id: event.data.roomId,
               text: event.data.text,
               facets: event.data.facets,
+              embed: event.data.embed,
               reply_parent: event.data.reply?.parent ?? null,
               reply_root: event.data.reply?.root ?? null,
               created_at: event.data.createdAt,
@@ -144,7 +146,12 @@ export function useMessages(roomId: string) {
 
   // Send a message with optimistic update
   const sendMessage = useCallback(
-    async (text: string, roomUri: string, reply?: { root: string; parent: string }) => {
+    async (
+      text: string,
+      roomUri: string,
+      reply?: { root: string; parent: string },
+      embed?: Record<string, unknown>,
+    ) => {
       if (!agent || !did) return;
 
       // Parse markdown → cleaned text + formatting facets
@@ -171,6 +178,7 @@ export function useMessages(roomId: string) {
           room_id: roomId,
           text: cleaned,
           facets: allFacets.length > 0 ? allFacets : undefined,
+          embed,
           reply_parent: reply?.parent ?? null,
           reply_root: reply?.root ?? null,
           created_at: new Date().toISOString(),
@@ -184,6 +192,7 @@ export function useMessages(roomId: string) {
         text: cleaned,
         facets: allFacets.length > 0 ? allFacets : undefined,
         reply,
+        embed,
       };
 
       try {

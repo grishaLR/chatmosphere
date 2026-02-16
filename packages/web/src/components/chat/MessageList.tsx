@@ -2,37 +2,54 @@ import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useVirtualList } from 'virtualized-ui';
 import { MessageItem } from './MessageItem';
+import { PollCard } from './PollCard';
 import { UserIdentity } from './UserIdentity';
 import { hasMentionOf } from '../../lib/facet-utils';
 import { useAuth } from '../../hooks/useAuth';
-import type { MessageView } from '../../types';
+import type { MessageView, PollView, TimelineItem } from '../../types';
 import styles from './MessageList.module.css';
 
 interface MessageListProps {
   messages: MessageView[];
+  polls?: PollView[];
   loading: boolean;
   typingUsers?: string[];
   /** Reply counts keyed by root message URI */
   replyCounts?: Record<string, number>;
   /** Called when user clicks Reply or reply count — opens thread sidebar */
   onOpenThread?: (rootUri: string) => void;
+  /** Called when user votes on a poll */
+  onVote?: (pollId: string, pollUri: string, selectedOptions: number[]) => void;
 }
 
 const SCROLL_THRESHOLD = 80;
 
 export function MessageList({
   messages,
+  polls = [],
   loading,
   typingUsers = [],
   replyCounts,
   onOpenThread,
+  onVote,
 }: MessageListProps) {
   const { t } = useTranslation('chat');
   const { did } = useAuth();
   const isNearBottomRef = useRef(true);
 
-  // Main timeline only shows root messages (not replies)
-  const rootMessages = useMemo(() => messages.filter((m) => !m.reply_root), [messages]);
+  // Merge messages + polls into a single timeline sorted by created_at
+  const timeline = useMemo(() => {
+    // Main timeline only shows root messages (not replies)
+    const rootMessages: TimelineItem[] = messages
+      .filter((m) => !m.reply_root)
+      .map((m) => ({ ...m, _type: 'message' as const }));
+
+    const pollItems: TimelineItem[] = polls.map((p) => ({ ...p, _type: 'poll' as const }));
+
+    return [...rootMessages, ...pollItems].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+    );
+  }, [messages, polls]);
 
   const {
     virtualItems,
@@ -43,8 +60,8 @@ export function MessageList({
     scrollToIndex,
     data,
   } = useVirtualList({
-    data: rootMessages,
-    getItemId: (msg) => msg.id,
+    data: timeline,
+    getItemId: (item) => item.id,
     estimatedItemHeight: 40,
   });
 
@@ -55,34 +72,41 @@ export function MessageList({
   }, [handleScroll, containerRef]);
 
   useEffect(() => {
-    if (isNearBottomRef.current && rootMessages.length > 0) {
-      scrollToIndex(rootMessages.length - 1);
+    if (isNearBottomRef.current && timeline.length > 0) {
+      scrollToIndex(timeline.length - 1);
     }
-  }, [rootMessages.length, scrollToIndex]);
+  }, [timeline.length, scrollToIndex]);
 
   return (
     <div className={styles.container} ref={containerRef} onScroll={onScroll}>
       {loading && <p className={styles.loading}>{t('messageList.loading')}</p>}
-      {!loading && rootMessages.length === 0 && (
+      {!loading && timeline.length === 0 && (
         <p className={styles.empty}>{t('messageList.empty')}</p>
       )}
       <div className={styles.spacer} style={{ height: totalSize }}>
-        {virtualItems.map((vi) => (
-          <div
-            key={vi.key}
-            ref={measureElement}
-            data-index={vi.index}
-            className={styles.virtualItem}
-            style={{ transform: `translateY(${vi.start}px)` }}
-          >
-            <MessageItem
-              message={data[vi.index] as MessageView}
-              replyCount={replyCounts?.[(data[vi.index] as MessageView).uri]}
-              onOpenThread={onOpenThread}
-              isMentioned={!!did && hasMentionOf((data[vi.index] as MessageView).facets, did)}
-            />
-          </div>
-        ))}
+        {virtualItems.map((vi) => {
+          const item = data[vi.index] as TimelineItem;
+          return (
+            <div
+              key={vi.key}
+              ref={measureElement}
+              data-index={vi.index}
+              className={styles.virtualItem}
+              style={{ transform: `translateY(${vi.start}px)` }}
+            >
+              {item._type === 'poll' ? (
+                <PollCard poll={item} onVote={onVote ?? (() => {})} />
+              ) : (
+                <MessageItem
+                  message={item}
+                  replyCount={replyCounts?.[item.uri]}
+                  onOpenThread={onOpenThread}
+                  isMentioned={!!did && hasMentionOf(item.facets, did)}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
       {typingUsers.length > 0 && (
         <div className={styles.typing} role="status" aria-live="polite">

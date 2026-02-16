@@ -12,8 +12,10 @@ import type { ChallengeStoreInterface } from './auth/challenge.js';
 import { presenceRouter } from './presence/router.js';
 import { communityRouter } from './community/router.js';
 import { moderationRouter } from './moderation/router.js';
+import { pollsRouter } from './polls/router.js';
 import { dmRouter } from './dms/router.js';
 import { translateRouter } from './translate/router.js';
+import { gifRouter } from './giphy/router.js';
 import type { Config } from './config.js';
 import type { Sql } from './db/client.js';
 import type { PresenceService } from './presence/service.js';
@@ -36,6 +38,9 @@ export function createApp(
   translateService?: TranslateService | null,
   translateRateLimiter?: RateLimiterStore | null,
   supportedLanguages?: string[],
+  giphyApiKey?: string | null,
+  klipyApiKey?: string | null,
+  gifRateLimiter?: RateLimiterStore | null,
 ): Express {
   const app = express();
   const requireAuth = createRequireAuth(sessions);
@@ -62,6 +67,7 @@ export function createApp(
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), roomsRouter(sql));
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), messagesRouter(sql));
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), moderationRouter(sql));
+  app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), pollsRouter(sql));
   app.use('/api/presence', requireAuth, presenceRouter(presenceService, blockService, sql));
   app.use('/api/community', requireAuth, communityRouter(sql));
   app.use('/api/dms', requireAuth, createRateLimitMiddleware(rateLimiter), dmRouter(sql));
@@ -72,6 +78,19 @@ export function createApp(
       '/api/translate',
       requireAuth,
       translateRouter(translateService, translateRateLimiter, supportedLanguages ?? []),
+    );
+  }
+
+  // GIF proxy (optional — mounted when either GIPHY_API_KEY or KLIPY_API_KEY is set)
+  if ((giphyApiKey || klipyApiKey) && gifRateLimiter) {
+    // Capabilities is public (client checks before login)
+    app.get('/api/gif/capabilities', (_req, res) => {
+      res.json({ giphy: !!giphyApiKey, klipy: !!klipyApiKey });
+    });
+    app.use(
+      '/api/gif',
+      requireAuth,
+      gifRouter(giphyApiKey ?? null, klipyApiKey ?? null, gifRateLimiter),
     );
   }
 

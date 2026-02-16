@@ -7,7 +7,9 @@
     "attachImage": "Ambatisha Picha",
     "cancel": "Ghairi",
     "posting": "Inachapisha...",
-    "post": "Chapisha"
+    "post": "Chapisha",
+    "imageAltText": "Eleza picha hii...",
+    "gifAltText": "Eleza GIF hii..."
   },
 
   "post": {

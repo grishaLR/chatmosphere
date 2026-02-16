@@ -28,6 +28,8 @@ const envSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
   TRANSLATE_RATE_LIMIT: z.coerce.number().int().min(1).default(100),
+  GIPHY_API_KEY: z.string().optional(),
+  KLIPY_API_KEY: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema>;

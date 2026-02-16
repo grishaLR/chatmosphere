@@ -122,5 +122,52 @@
     "deleteGroup": "حذف المجموعة",
     "expand": "توسيع",
     "collapse": "طي"
+  },
+
+  "gif": {
+    "title": "صور متحركة",
+    "searchPlaceholder": "البحث عن صور متحركة...",
+    "noResults": "لم يتم العثور على صور متحركة",
+    "loading": "جارٍ التحميل...",
+    "poweredByGiphy": "مدعوم من GIPHY",
+    "poweredByKlipy": "مدعوم من Klipy",
+    "close": "إغلاق",
+    "altTextPlaceholder": "وصف هذه الصورة المتحركة (نص بديل)...",
+    "confirm": "إرسال",
+    "back": "رجوع"
+  },
+
+  "poll": {
+    "createPoll": "إنشاء استطلاع",
+    "questionLabel": "السؤال",
+    "questionPlaceholder": "اطرح سؤالاً...",
+    "optionsLabel": "الخيارات",
+    "optionPlaceholder": "خيار {{n}}",
+    "addOption": "إضافة خيار",
+    "removeOption": "إزالة خيار",
+    "allowMultiple": "السماح بالاختيار المتعدد",
+    "expires": "ينتهي",
+    "expired": "انتهى الاستطلاع",
+    "expiresIn": "ينتهي في {{time}}",
+    "totalVotes_one": "صوت واحد",
+    "totalVotes_two": "صوتان",
+    "totalVotes_few": "{{count}} أصوات",
+    "totalVotes_many": "{{count}} صوتاً",
+    "totalVotes_other": "{{count}} صوت",
+    "vote": "إرسال التصويت",
+    "create": "إنشاء",
+    "cancel": "إلغاء",
+    "expiry": {
+      "none": "بدون انتهاء",
+      "1h": "ساعة واحدة",
+      "6h": "6 ساعات",
+      "24h": "24 ساعة",
+      "3d": "3 أيام",
+      "1w": "أسبوع واحد"
+    },
+    "error": {
+      "minOptions": "مطلوب خياران على الأقل",
+      "default": "فشل في إنشاء الاستطلاع"
+    }
   }
 }

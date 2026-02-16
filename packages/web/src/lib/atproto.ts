@@ -91,6 +91,7 @@ export interface CreateMessageInput {
   text: string;
   facets?: Record<string, unknown>[];
   reply?: { root: string; parent: string };
+  embed?: Record<string, unknown>;
 }
 
 export interface CreateMessageResult {
@@ -116,6 +117,89 @@ export async function createMessageRecord(
       text: input.text,
       facets: input.facets?.length ? input.facets : undefined,
       reply: input.reply,
+      embed: input.embed,
+      createdAt: new Date().toISOString(),
+    },
+  });
+
+  return {
+    uri: response.data.uri,
+    cid: response.data.cid,
+    rkey,
+  };
+}
+
+// -- Poll PDS helpers --
+
+export interface CreatePollInput {
+  roomUri: string;
+  question: string;
+  options: string[];
+  allowMultiple?: boolean;
+  expiresAt?: string;
+}
+
+export interface CreatePollResult {
+  uri: string;
+  cid: string;
+  rkey: string;
+}
+
+export async function createPollRecord(
+  agent: Agent,
+  input: CreatePollInput,
+  existingRkey?: string,
+): Promise<CreatePollResult> {
+  const rkey = existingRkey ?? generateTid();
+
+  const response = await agent.com.atproto.repo.createRecord({
+    repo: agent.assertDid,
+    collection: NSID.Poll,
+    rkey,
+    record: {
+      $type: NSID.Poll,
+      room: input.roomUri,
+      question: input.question,
+      options: input.options,
+      allowMultiple: input.allowMultiple ?? false,
+      expiresAt: input.expiresAt,
+      createdAt: new Date().toISOString(),
+    },
+  });
+
+  return {
+    uri: response.data.uri,
+    cid: response.data.cid,
+    rkey,
+  };
+}
+
+export interface CreateVoteInput {
+  pollUri: string;
+  selectedOptions: number[];
+}
+
+export interface CreateVoteResult {
+  uri: string;
+  cid: string;
+  rkey: string;
+}
+
+export async function createVoteRecord(
+  agent: Agent,
+  input: CreateVoteInput,
+  existingRkey?: string,
+): Promise<CreateVoteResult> {
+  const rkey = existingRkey ?? generateTid();
+
+  const response = await agent.com.atproto.repo.createRecord({
+    repo: agent.assertDid,
+    collection: NSID.Vote,
+    rkey,
+    record: {
+      $type: NSID.Vote,
+      poll: input.pollUri,
+      selectedOptions: input.selectedOptions,
       createdAt: new Date().toISOString(),
     },
   });

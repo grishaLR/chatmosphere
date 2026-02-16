@@ -219,6 +219,37 @@ export interface MentionNotificationEvent extends WsMessageBase {
   };
 }
 
+export interface PollCreatedEvent extends WsMessageBase {
+  type: 'poll_created';
+  data: {
+    id: string;
+    uri: string;
+    did: string;
+    roomId: string;
+    question: string;
+    options: string[];
+    allowMultiple: boolean;
+    expiresAt?: string;
+    createdAt: string;
+  };
+}
+
+export interface PollVoteEvent extends WsMessageBase {
+  type: 'poll_vote';
+  data: {
+    pollId: string;
+    roomId: string;
+    /** Updated tallies: option index → count */
+    tallies: Record<number, number>;
+    /** Total unique voters */
+    totalVoters: number;
+    /** The voter's DID */
+    voterDid: string;
+    /** Which options they picked */
+    selectedOptions: number[];
+  };
+}
+
 export interface AuthSuccessEvent extends WsMessageBase {
   type: 'auth_success';
 }
@@ -245,4 +276,6 @@ export type ServerMessage =
   | DmTypingEvent
   | DmPersistChangedEvent
   | DmIncomingEvent
-  | MentionNotificationEvent;
+  | MentionNotificationEvent
+  | PollCreatedEvent
+  | PollVoteEvent;
