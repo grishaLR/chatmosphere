@@ -79,6 +79,7 @@ export function DmPopover({
           className={styles.video}
           aria-label="Remote video stream"
           ref={remoteVideoRef}
+          autoPlay
           playsInline
           muted
         />
@@ -138,7 +139,9 @@ export function DmPopover({
                 e.stopPropagation();
                 onTogglePersist(!persist);
               }}
-              title={persist ? t('popover.persist.titleActive') : t('popover.persist.titleInactive')}
+              title={
+                persist ? t('popover.persist.titleActive') : t('popover.persist.titleInactive')
+              }
               aria-label={
                 persist
                   ? t('popover.persist.ariaLabel.disable')
