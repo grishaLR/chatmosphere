@@ -125,7 +125,7 @@
   color: var(--color-base-content);
   border: none;
   border-radius: var(--cm-radius-sm);
-  font-size: var(--cm-text-sm);
+  font-size: max(var(--cm-text-sm), 16px);
   font-family: inherit;
   cursor: pointer;
   box-shadow: var(--cm-sunken);

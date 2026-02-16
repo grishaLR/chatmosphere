@@ -10,6 +10,7 @@
     left: 0;
     right: 0;
     height: var(--cm-tab-bar-h);
+    padding-bottom: env(safe-area-inset-bottom);
     background: var(--color-base-200);
     box-shadow: var(--cm-raised);
     z-index: var(--cm-z-tab);

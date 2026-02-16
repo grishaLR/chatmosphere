@@ -20,7 +20,7 @@ function isExternalEmbed(embed: unknown): embed is ExternalEmbed {
 function isGifServiceUrl(uri: string): boolean {
   try {
     const url = new URL(uri);
-    return /^(media\d*\.giphy\.com|i\.giphy\.com|media\.tenor\.com|cdn\.klipy\.com)$/.test(
+    return /^(media\d*\.giphy\.com|i\.giphy\.com|media\.tenor\.com|[\w-]+\.klipy\.com)$/.test(
       url.hostname,
     );
   } catch {

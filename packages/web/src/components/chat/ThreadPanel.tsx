@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChatThread, type ChatThreadState } from '../../hooks/useChatThread';
 import { useBlocks } from '../../contexts/BlockContext';
@@ -72,6 +72,36 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
 
   const isAtRoot = focusStack.length === 0;
 
+  // Auto-scroll to bottom of thread
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const SCROLL_THRESHOLD = 80;
+
+  const scrollToBottom = useCallback(() => {
+    const el = messagesRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+
+  // Scroll to bottom on initial load and when thread changes
+  useEffect(() => {
+    if (!loading && focusedMessage) {
+      requestAnimationFrame(scrollToBottom);
+    }
+  }, [loading, focusUri, focusedMessage, scrollToBottom]);
+
+  // Scroll to bottom when new replies arrive (if user is near bottom)
+  useEffect(() => {
+    if (isNearBottomRef.current && directChildren.length > 0) {
+      scrollToBottom();
+    }
+  }, [directChildren.length, scrollToBottom]);
+
+  const onMessagesScroll = useCallback(() => {
+    const el = messagesRef.current;
+    if (!el) return;
+    isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_THRESHOLD;
+  }, []);
+
   return (
     <aside className={styles.panel} aria-label={t('threadPanel.ariaLabel')}>
       <header className={styles.header}>
@@ -95,7 +125,7 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
           &times;
         </button>
       </header>
-      <div className={styles.messages}>
+      <div className={styles.messages} ref={messagesRef} onScroll={onMessagesScroll}>
         {loading && <p className={styles.loading}>{t('threadPanel.loading')}</p>}
         {!loading && !focusedMessage && <p className={styles.empty}>{t('threadPanel.notFound')}</p>}
         {focusedMessage && (
