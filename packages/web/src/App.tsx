@@ -14,27 +14,47 @@ import styles from './App.module.css';
 // On a hard refresh this flag is absent → skip ConnectingScreen.
 const isOAuthCallback = sessionStorage.getItem('protoimsg:oauth_pending') === '1';
 
+// Clear stale-chunk reload flag on successful page load
+sessionStorage.removeItem('protoimsg:chunk_reload');
+
+// Auto-reload on stale chunks after a deploy (old hashed filenames → 404).
+// Prevents "Failed to fetch dynamically imported module" / "Unable to preload CSS" errors.
+function reloadOnChunkError<T>(p: Promise<T>): Promise<T> {
+  return p.catch((err: unknown): never => {
+    const key = 'protoimsg:chunk_reload';
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1');
+      window.location.reload();
+    }
+    throw err;
+  });
+}
+
 // Lazy-loaded — these pull in the heavy provider + page dependency graphs.
 // They stay out of the main bundle; ConnectingScreen triggers preloading via lib/preload.ts.
 const AuthenticatedApp = lazy(() =>
-  import('./AuthenticatedApp').then((m) => ({ default: m.AuthenticatedApp })),
+  reloadOnChunkError(import('./AuthenticatedApp').then((m) => ({ default: m.AuthenticatedApp }))),
 );
 const RoomDirectoryPage = lazy(() =>
-  import('./pages/RoomDirectoryPage').then((m) => ({ default: m.RoomDirectoryPage })),
+  reloadOnChunkError(
+    import('./pages/RoomDirectoryPage').then((m) => ({ default: m.RoomDirectoryPage })),
+  ),
 );
 const ChatRoomPage = lazy(() =>
-  import('./pages/ChatRoomPage').then((m) => ({ default: m.ChatRoomPage })),
+  reloadOnChunkError(import('./pages/ChatRoomPage').then((m) => ({ default: m.ChatRoomPage }))),
 );
 const DmWindowPage = lazy(() =>
-  import('./pages/DmWindowPage').then((m) => ({ default: m.DmWindowPage })),
+  reloadOnChunkError(import('./pages/DmWindowPage').then((m) => ({ default: m.DmWindowPage }))),
 );
 const RoomDirectoryWindowPage = lazy(() =>
-  import('./pages/RoomDirectoryWindowPage').then((m) => ({
-    default: m.RoomDirectoryWindowPage,
-  })),
+  reloadOnChunkError(
+    import('./pages/RoomDirectoryWindowPage').then((m) => ({
+      default: m.RoomDirectoryWindowPage,
+    })),
+  ),
 );
 const FeedWindowPage = lazy(() =>
-  import('./pages/FeedWindowPage').then((m) => ({ default: m.FeedWindowPage })),
+  reloadOnChunkError(import('./pages/FeedWindowPage').then((m) => ({ default: m.FeedWindowPage }))),
 );
 
 const queryClient = new QueryClient({
