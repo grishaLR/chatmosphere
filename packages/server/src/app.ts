@@ -23,6 +23,7 @@ import type { SessionStore } from './auth/session-store.js';
 import type { RateLimiterStore } from './moderation/rate-limiter-store.js';
 import type { BlockService } from './moderation/block-service.js';
 import type { GlobalBanService } from './moderation/global-ban-service.js';
+import type { GlobalAllowlistService } from './moderation/global-allowlist-service.js';
 import type { TranslateService } from './translate/service.js';
 
 export function createApp(
@@ -34,6 +35,7 @@ export function createApp(
   authRateLimiter: RateLimiterStore,
   blockService: BlockService,
   globalBans: GlobalBanService,
+  globalAllowlist: GlobalAllowlistService,
   challenges: ChallengeStoreInterface,
   translateService?: TranslateService | null,
   translateRateLimiter?: RateLimiterStore | null,
@@ -60,7 +62,7 @@ export function createApp(
   app.use(
     '/api/auth',
     createRateLimitMiddleware(authRateLimiter),
-    authRouter(sessions, config, challenges, globalBans),
+    authRouter(sessions, config, challenges, globalBans, globalAllowlist),
   );
 
   // Protected API routes

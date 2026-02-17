@@ -126,8 +126,6 @@ export function detectLanguage(text: string): string {
     .replace(/https?:\/\/\S+/g, '')
     .replace(/www\.\S+/g, '')
     .trim();
-  if (stripped.length < 20) return 'en';
-
   const iso3 = franc(stripped);
   if (iso3 === 'und') return 'en';
 
