@@ -97,27 +97,11 @@ export class PeerManager {
   }
 
   private handleICEConnectionStateChangeEvent(e: Event): void {
-    console.warn(
-      'ICE connection state change - this should be handled in VideoCallContext, not PeerConnectionImpl',
-      e,
-    );
   }
 
   private handleICEGatheringStateChangeEvent(e: Event): void {
-    console.warn(
-      'ICE gathering state change - this should be handled in VideoCallContext, not PeerConnectionImpl',
-      e,
-    );
   }
 
   private handleSignalingStateChangeEvent(_: Event): void {
-    console.warn(
-      'Signaling state change - this should be handled in VideoCallContext, not PeerConnectionImpl',
-    );
-
-    if (this.pc.signalingState === 'stable') {
-      // Once stable, we can check if there are pending offers to create and send an answer for
-      // TODO: render peer connection in UI
-    }
   }
 }
