@@ -30,6 +30,10 @@ const envSchema = z.object({
   TRANSLATE_RATE_LIMIT: z.coerce.number().int().min(1).default(100),
   GIPHY_API_KEY: z.string().optional(),
   KLIPY_API_KEY: z.string().optional(),
+  REQUIRE_ALLOWLIST: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
 });
 
 export type Config = z.infer<typeof envSchema>;

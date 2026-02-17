@@ -81,6 +81,45 @@
   line-height: 1.4;
 }
 
+.alphaGateBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-3);
+  text-align: left;
+}
+
+.alphaGateTitle {
+  font-size: var(--cm-text-lg);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-warning, #d97706);
+  text-align: center;
+}
+
+.alphaGateBody {
+  font-size: var(--cm-text-sm);
+  color: var(--color-base-content);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.alphaGateCta {
+  font-size: var(--cm-text-sm);
+  color: var(--color-base-content);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.alphaGateLink {
+  color: var(--color-primary, #6366f1);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.alphaGateLink:hover {
+  opacity: 0.8;
+}
+
 .error {
   color: var(--color-error);
   font-size: var(--cm-text-md);

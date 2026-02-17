@@ -6,6 +6,7 @@ import { verifyDidHandle, verifyAuthRecord } from './verify.js';
 import { createRequireAuth } from './middleware.js';
 import type { Config } from '../config.js';
 import type { GlobalBanService } from '../moderation/global-ban-service.js';
+import type { GlobalAllowlistService } from '../moderation/global-allowlist-service.js';
 import { ERROR_CODES } from '@protoimsg/shared';
 
 import { createLogger } from '../logger.js';
@@ -28,6 +29,7 @@ export function authRouter(
   config: Config,
   challenges: ChallengeStoreInterface,
   globalBans: GlobalBanService,
+  globalAllowlist: GlobalAllowlistService,
 ): Router {
   const router = Router();
   const requireAuth = createRequireAuth(sessions);
@@ -55,6 +57,17 @@ export function authRouter(
       const data = (await resolveRes.json()) as { did: string };
       if (globalBans.isBanned(data.did)) {
         log.warn({ did: data.did, handle }, 'auth/preflight rejected: globally banned');
+
+        res.status(403).json({
+          error: 'This account is not permitted to use this service.',
+          errorCode: ERROR_CODES.BANNED,
+        });
+
+        return;
+      }
+
+      if (!globalAllowlist.isAllowed(data.did)) {
+        log.warn({ did: data.did, handle }, 'auth/preflight rejected: not on allowlist');
 
         res.status(403).json({
           error: 'This account is not permitted to use this service.',
@@ -92,6 +105,15 @@ export function authRouter(
         return;
       }
 
+      if (!globalAllowlist.isAllowed(parsed.data.did)) {
+        log.warn({ did: parsed.data.did }, 'auth/challenge rejected: not on allowlist');
+        res.status(403).json({
+          error: 'This account is not permitted to use this service.',
+          errorCode: ERROR_CODES.BANNED,
+        });
+        return;
+      }
+
       const nonce = await challenges.create(parsed.data.did);
       res.json({ nonce });
     } catch (err) {
@@ -116,6 +138,17 @@ export function authRouter(
 
       if (globalBans.isBanned(did)) {
         log.warn({ did, handle }, 'auth/session rejected: globally banned');
+
+        res.status(403).json({
+          error: 'This account is not permitted to use this service.',
+          errorCode: ERROR_CODES.BANNED,
+        });
+
+        return;
+      }
+
+      if (!globalAllowlist.isAllowed(did)) {
+        log.warn({ did, handle }, 'auth/session rejected: not on allowlist');
 
         res.status(403).json({
           error: 'This account is not permitted to use this service.',

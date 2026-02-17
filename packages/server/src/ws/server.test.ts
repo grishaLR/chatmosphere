@@ -7,6 +7,7 @@ import type { SessionStore } from '../auth/session-store.js';
 import { InMemoryRateLimiter } from '../moderation/rate-limiter.js';
 import { BlockService } from '../moderation/block-service.js';
 import { GlobalBanService } from '../moderation/global-ban-service.js';
+import { GlobalAllowlistService } from '../moderation/global-allowlist-service.js';
 import { createPresenceService } from '../presence/service.js';
 import { InMemoryPresenceTracker } from '../presence/tracker.js';
 import type { DmService } from '../dms/service.js';
@@ -33,6 +34,7 @@ function setup() {
   const service = createPresenceService(tracker);
   const blockService = new BlockService();
   const globalBans = new GlobalBanService();
+  const globalAllowlist = new GlobalAllowlistService(false);
   const wss = createWsServer(
     httpServer,
     mockSql,
@@ -42,6 +44,7 @@ function setup() {
     mockDmService,
     blockService,
     globalBans,
+    globalAllowlist,
   );
 
   return new Promise<{

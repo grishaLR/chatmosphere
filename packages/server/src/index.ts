@@ -16,6 +16,7 @@ import { InMemoryRateLimiter } from './moderation/rate-limiter.js';
 import { RedisRateLimiter } from './moderation/rate-limiter-redis.js';
 import { BlockService } from './moderation/block-service.js';
 import { GlobalBanService } from './moderation/global-ban-service.js';
+import { GlobalAllowlistService } from './moderation/global-allowlist-service.js';
 import { createDmService } from './dms/service.js';
 import { createTranslateService, getSupportedLanguages } from './translate/service.js';
 import { ChallengeStore } from './auth/challenge.js';
@@ -59,6 +60,10 @@ async function main() {
   // Global account bans — load into memory for O(1) checks
   const globalBans = new GlobalBanService();
   await globalBans.load(db);
+
+  // Global allowlist — when enabled, only listed DIDs can authenticate
+  const globalAllowlist = new GlobalAllowlistService(config.REQUIRE_ALLOWLIST);
+  await globalAllowlist.load(db);
 
   // Auth challenge store (Redis when available, else in-memory)
   const challenges = redis ? new RedisChallengeStore(redis) : new ChallengeStore();
@@ -116,6 +121,7 @@ async function main() {
     authRateLimiter,
     blockService,
     globalBans,
+    globalAllowlist,
     challenges,
     translateService,
     translateRateLimiter,
@@ -136,6 +142,7 @@ async function main() {
     dmService,
     blockService,
     globalBans,
+    globalAllowlist,
   );
   log.info('WebSocket server attached');
 
