@@ -33,7 +33,7 @@ const VideoCallContext = createContext<VideoCallContextValue | null>(null);
 
 // TODO: Replace with our own STUN/TURN server to avoid exposing IPs to Google
 function getStunServers(): RTCIceServer[] {
-  console.warn('Using Google STUN servers as fallback — deploy our own STUN/TURN server');
+  console.warn('Falling back to public Google STUN servers');
   return [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
