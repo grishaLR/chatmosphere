@@ -15,6 +15,7 @@ import type { SessionStore } from '../auth/session-store.js';
 import type { RateLimiterStore } from '../moderation/rate-limiter-store.js';
 import { BlockService } from '../moderation/block-service.js';
 import type { GlobalBanService } from '../moderation/global-ban-service.js';
+import type { GlobalAllowlistService } from '../moderation/global-allowlist-service.js';
 import { ERROR_CODES } from '@protoimsg/shared';
 
 import { createLogger } from '../logger.js';
@@ -89,6 +90,7 @@ export function createWsServer(
   dmService: DmService,
   blockService: BlockService,
   globalBans: GlobalBanService,
+  globalAllowlist: GlobalAllowlistService,
 ): WsServer {
   const connectionTracker = new WsConnectionTracker();
 
@@ -184,6 +186,13 @@ export function createWsServer(
 
             if (globalBans.isBanned(session.did)) {
               log.warn({ did: session.did }, 'WS rejected: globally banned');
+              void sessions.revokeByDid(session.did);
+              ws.close(4003, 'Account banned');
+              return;
+            }
+
+            if (!globalAllowlist.isAllowed(session.did)) {
+              log.warn({ did: session.did }, 'WS rejected: not on allowlist');
               void sessions.revokeByDid(session.did);
               ws.close(4003, 'Account banned');
               return;
