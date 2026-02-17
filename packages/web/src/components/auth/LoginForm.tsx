@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import { THEME_OPTIONS, type Theme } from '../../contexts/ThemeContext';
@@ -46,9 +46,35 @@ export function LoginForm() {
     return (
       <div className={styles.form}>
         <h1 className={styles.title}>{t('login.title')}</h1>
-        <div className={styles.bannedBox}>
-          <p className={styles.bannedHandle}>{handle}</p>
-          <p className={styles.bannedMessage}>{t('login.banned.message')}</p>
+        <div className={styles.alphaGateBox}>
+          <h2 className={styles.alphaGateTitle}>{t('login.alphaGate.title')}</h2>
+          <p className={styles.alphaGateBody}>{t('login.alphaGate.body')}</p>
+          <p className={styles.alphaGateCta}>
+            <Trans
+              i18nKey="login.alphaGate.cta"
+              ns="auth"
+              components={{
+                blueskyLink: (
+                  <a
+                    href="https://bsky.app/profile/grishalr.bsky.social"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.alphaGateLink}
+                  />
+                ),
+                emailLink: <a href="mailto:protoimsg@gmail.com" className={styles.alphaGateLink} />,
+              }}
+            />
+          </p>
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => {
+              setBanned(false);
+            }}
+          >
+            {t('login.alphaGate.back')}
+          </button>
         </div>
       </div>
     );
