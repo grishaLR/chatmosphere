@@ -1,5 +1,7 @@
 # Contributing to protoimsg
 
+Anything I can build we can build better <3
+
 Thanks for your interest in contributing! protoimsg is AIM-inspired group chat built on the AT Protocol, and we welcome contributions of all kinds.
 
 ## Prerequisites
@@ -8,11 +10,25 @@ Thanks for your interest in contributing! protoimsg is AIM-inspired group chat b
 - [pnpm](https://pnpm.io/) 9+
 - Docker (for Postgres, and optionally Redis + translation backends)
 
+## Getting Started
+
+1. **Fork** and **clone** the repo, then set up the upstream remote:
+   ```bash
+   git clone https://github.com/<your-username>/protoimsg.git
+   cd protoimsg
+   git remote add upstream https://github.com/grisha/protoimsg.git
+   ```
+2. **Keep your fork up to date** before starting new work:
+   ```bash
+   git fetch upstream
+   git checkout staging
+   git merge upstream/staging
+   ```
+3. **All pull requests must target the `staging` branch.** PRs opened against `main` will be asked to target `staging`.
+
 ## Setup
 
 ```bash
-git clone https://github.com/grisha/protoimsg.git
-cd protoimsg
 pnpm install
 
 # Start core services (Postgres + Redis)
@@ -31,7 +47,7 @@ pnpm dev
 
 Server runs on `http://localhost:3000`, web app on `http://localhost:5173`.
 
-> **Shortcut:** `pnpm dev:up` starts all Docker services (including translation backends), runs migrations, and launches dev servers in one command. See the Translation section below if you need the full stack.
+> **Shortcut:** `pnpm dev:up` starts core Docker services (Postgres + Redis), runs migrations, and launches dev servers. Use `pnpm dev:up:all` to also start translation backends (LibreTranslate + NLLB). See the Translation section below for details.
 
 ## Project Structure
 
@@ -47,7 +63,7 @@ packages/
 
 ## Development Workflow
 
-1. **Branch from `staging`** — use descriptive branch names (`fix/presence-visibility`, `feat/poll-ui`).
+1. **Create a branch on your fork from `staging`** — use descriptive names (`fix/presence-visibility`, `feat/poll-ui`).
 2. **Make your changes** — see style guidelines below.
 3. **Validate** before pushing:
    ```bash
@@ -56,7 +72,7 @@ packages/
    pnpm test          # Vitest
    pnpm build         # Full build
    ```
-4. **Open a PR** against `staging`. CI runs lint, typecheck, build, lexicon validation, and tests. Merges to `main` are done via release cuts.
+4. **Push to your fork** and **open a PR against `staging`** on the upstream repo. CI runs lint, typecheck, build, lexicon validation, and tests. Merges to `main` are done via release cuts.
 
 ## Commit Messages
 
