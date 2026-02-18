@@ -222,9 +222,14 @@ export async function getCommunityListRecord(agent: Agent): Promise<CommunityGro
     });
     const record = response.data.value as { groups?: CommunityGroup[] };
     return record.groups ?? [];
-  } catch {
-    // Record doesn't exist yet
-    return [];
+  } catch (err: unknown) {
+    // Only treat "record doesn't exist" as empty — rethrow real errors
+    // (network failures, 500s, etc.) so callers don't accidentally wipe the buddy list
+    const xrpcError = err as { error?: string };
+    if (xrpcError.error === 'RecordNotFound') {
+      return [];
+    }
+    throw err;
   }
 }
 

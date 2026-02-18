@@ -565,7 +565,7 @@ export async function handleClientMessage(
         break;
       }
 
-      console.info({ conversationId, candidate }, 'Received new ICE candidate');
+      log.debug({ conversationId }, 'Relaying ICE candidate');
       try {
         dmSubs.broadcast(
           conversationId,

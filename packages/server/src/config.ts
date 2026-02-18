@@ -34,6 +34,9 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
+  COTURN_SHARED_SECRET: z.string().optional(),
+  STUN_URL: z.string().optional(),
+  ICE_CREDENTIAL_TTL_SECS: z.coerce.number().int().min(60).default(86400),
 });
 
 export type Config = z.infer<typeof envSchema>;

@@ -16,6 +16,7 @@ import { pollsRouter } from './polls/router.js';
 import { dmRouter } from './dms/router.js';
 import { translateRouter } from './translate/router.js';
 import { gifRouter } from './giphy/router.js';
+import { iceRouter } from './ice/router.js';
 import type { Config } from './config.js';
 import type { Sql } from './db/client.js';
 import type { PresenceService } from './presence/service.js';
@@ -73,6 +74,15 @@ export function createApp(
   app.use('/api/presence', requireAuth, presenceRouter(presenceService, blockService, sql));
   app.use('/api/community', requireAuth, communityRouter(sql));
   app.use('/api/dms', requireAuth, createRateLimitMiddleware(rateLimiter), dmRouter(sql));
+  app.use(
+    '/api/ice-servers',
+    requireAuth,
+    iceRouter({
+      stunUrl: config.STUN_URL,
+      sharedSecret: config.COTURN_SHARED_SECRET,
+      ttlSeconds: config.ICE_CREDENTIAL_TTL_SECS,
+    }),
+  );
 
   // Translation routes (optional — only mounted when TRANSLATE_ENABLED=true)
   if (translateService && translateRateLimiter) {
