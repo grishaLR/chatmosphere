@@ -9,7 +9,8 @@
   border: none;
   border-radius: var(--cm-radius-lg);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
-  overflow: hidden; /* respects rounded corners on header */
+  overflow: hidden;
+  /* respects rounded corners on header */
 }
 
 .minimized {

@@ -25,6 +25,7 @@ interface BuddyListPanelProps {
   onToggleInnerCircle: (did: string) => Promise<void>;
   onBlockBuddy: (did: string) => void;
   onSendIm?: (did: string) => void;
+  onVideoCall?: (did: string) => void;
   onBuddyClick?: (did: string) => void;
   onCreateGroup: (name: string) => Promise<void>;
   onRenameGroup: (oldName: string, newName: string) => Promise<void>;
@@ -54,6 +55,7 @@ export function BuddyListPanel({
   onToggleInnerCircle,
   onBlockBuddy,
   onSendIm,
+  onVideoCall,
   onBuddyClick,
   onCreateGroup,
   onRenameGroup,
@@ -406,6 +408,13 @@ export function BuddyListPanel({
                       onSendIm
                         ? () => {
                             onSendIm(buddy.did);
+                          }
+                        : undefined
+                    }
+                    onVideoCall={
+                      onVideoCall
+                        ? () => {
+                            onVideoCall(buddy.did);
                           }
                         : undefined
                     }

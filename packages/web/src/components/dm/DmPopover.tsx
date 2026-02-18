@@ -14,6 +14,7 @@ interface DmPopoverProps {
   onSend: (text: string) => void;
   onTyping: () => void;
   onTogglePersist: (persist: boolean) => void;
+  onVideoCall: () => void;
 }
 
 export function DmPopover({
@@ -24,6 +25,7 @@ export function DmPopover({
   onSend,
   onTyping,
   onTogglePersist,
+  onVideoCall,
 }: DmPopoverProps) {
   const { t } = useTranslation('dm');
   const { recipientDid, messages, persist, minimized, typing, unreadCount } = conversation;
@@ -81,6 +83,17 @@ export function DmPopover({
         )}
         <div className={styles.headerActions}>
           <button
+            className={styles.headerBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              onVideoCall();
+            }}
+            title={'Start video call'}
+            aria-label={'Start video call'}
+          >
+            {'\uD83D\uDCF9'}
+          </button>
+          <button
             className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -126,7 +139,6 @@ export function DmPopover({
           </button>
         </div>
       </div>
-
       {/* L4/M3: Use CSS class instead of unmounting to preserve draft text and scroll */}
       <div className={minimized ? `${styles.body} ${styles.bodyHidden}` : styles.body}>
         <DmMessageList messages={messages} currentDid={currentDid} typing={typing} />
