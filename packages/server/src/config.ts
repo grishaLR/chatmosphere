@@ -36,6 +36,7 @@ const envSchema = z.object({
     .transform((v) => v === 'true'),
   COTURN_SHARED_SECRET: z.string().optional(),
   STUN_URL: z.string().optional(),
+  TURN_URL: z.string().optional(),
   ICE_CREDENTIAL_TTL_SECS: z.coerce.number().int().min(60).default(86400),
 });
 

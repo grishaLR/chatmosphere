@@ -14,6 +14,7 @@ let fallbackWarned = false;
 
 interface IceRouterConfig {
   stunUrl?: string;
+  turnUrl?: string;
   sharedSecret?: string;
   ttlSeconds: number;
 }
@@ -47,6 +48,14 @@ export function iceRouter(config: IceRouterConfig): Router {
         credential,
       },
     ];
+
+    if (config.turnUrl) {
+      iceServers.push({
+        urls: [config.turnUrl, `${config.turnUrl}?transport=tcp`],
+        username,
+        credential,
+      });
+    }
 
     res.json({ iceServers });
   });
