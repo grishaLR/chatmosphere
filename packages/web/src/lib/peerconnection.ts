@@ -14,6 +14,7 @@ interface PeerConnectionConfig {
   send: (msg: ClientMessage) => void;
   conversationId: string;
   onRemoteStream: (conversationId: string, stream: MediaStream) => void;
+  onIceConnectionStateChange?: (state: RTCIceConnectionState) => void;
   type: PeerConnectionType;
 }
 
@@ -22,6 +23,7 @@ export class PeerManager {
   private send: (msg: ClientMessage) => void;
   private conversationId: string;
   private onRemoteStream: (conversationId: string, stream: MediaStream) => void;
+  private onIceConnectionStateChange?: (state: RTCIceConnectionState) => void;
   private type: PeerConnectionType;
   private pendingCandidates: IceCandidateInit[] = [];
 
@@ -30,6 +32,7 @@ export class PeerManager {
     this.pc = new RTCPeerConnection(peerConfig.config);
     this.conversationId = peerConfig.conversationId;
     this.onRemoteStream = peerConfig.onRemoteStream;
+    this.onIceConnectionStateChange = peerConfig.onIceConnectionStateChange;
     this.type = peerConfig.type;
 
     this.pc.onicecandidate = this.handleICECandidateEvent.bind(this);
@@ -103,6 +106,7 @@ export class PeerManager {
   private handleICEConnectionStateChangeEvent(_e: Event): void {
     const state = this.pc.iceConnectionState;
     log.debug('ICE connection state: %s', state);
+    this.onIceConnectionStateChange?.(state);
     if (state === 'failed') {
       log.warn('ICE connection failed');
       Sentry.captureMessage('WebRTC ICE connection failed', {

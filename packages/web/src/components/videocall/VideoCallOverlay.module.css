@@ -250,6 +250,48 @@
   cursor: sw-resize;
 }
 
+/* Reconnecting overlay — semi-transparent over frozen video */
+.reconnectingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.5);
+  color: var(--cm-chrome-text);
+  font-size: var(--cm-text-base);
+  font-weight: 700;
+  z-index: 1;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Error banner — temporary notification for call errors */
+.errorBanner {
+  position: fixed;
+  top: var(--cm-space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--cm-z-videocall);
+  padding: var(--cm-space-3) var(--cm-space-4);
+  background: var(--color-error);
+  color: var(--color-error-content);
+  border-radius: var(--cm-radius-lg);
+  box-shadow: var(--cm-raised);
+  font-size: var(--cm-text-sm);
+  font-weight: 600;
+  animation: slideDown 0.2s ease-out;
+}
+
 /* Touch devices — larger hit areas for fingers */
 @media (pointer: coarse) {
   :root {
