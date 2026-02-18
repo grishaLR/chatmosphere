@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DM_LIMITS, LIMITS } from '@protoimsg/shared';
+import type { IceCandidateInit } from '@protoimsg/shared';
 
 const MAX_BLOCK_LIST_SIZE = 10_000;
 
@@ -86,6 +87,41 @@ const dmTogglePersist = z.object({
   persist: z.boolean(),
 });
 
+const callInit = z.object({
+  type: z.literal('call_init'),
+  recipientDid: did,
+});
+
+const makeCall = z.object({
+  type: z.literal('make_call'),
+  conversationId: z.string().min(1),
+  offer: z.string().min(1).max(65_536),
+});
+
+const rejectCall = z.object({
+  type: z.literal('reject_call'),
+  conversationId: z.string().min(1),
+});
+
+const acceptCall = z.object({
+  type: z.literal('accept_call'),
+  conversationId: z.string().min(1),
+  answer: z.string().min(1).max(65_536),
+});
+
+const candidateSchema: z.ZodType<IceCandidateInit> = z.object({
+  candidate: z.string().max(2048),
+  sdpMid: z.string().nullable().optional(),
+  sdpMLineIndex: z.number().nullable().optional(),
+  usernameFragment: z.string().nullable().optional(),
+});
+
+const newIceCandidate = z.object({
+  type: z.literal('new_ice_candidate'),
+  conversationId: z.string().min(1),
+  candidate: candidateSchema, // Expect the candidate as a JSON object that matches RTCIceCandidateInit
+});
+
 const clientMessage = z.discriminatedUnion('type', [
   joinRoom,
   leaveRoom,
@@ -100,6 +136,11 @@ const clientMessage = z.discriminatedUnion('type', [
   dmSend,
   dmTyping,
   dmTogglePersist,
+  callInit,
+  makeCall,
+  rejectCall,
+  acceptCall,
+  newIceCandidate,
 ]);
 
 export type ValidatedClientMessage = z.infer<typeof clientMessage>;

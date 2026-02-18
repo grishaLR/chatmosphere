@@ -15,6 +15,7 @@ import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDm } from '../contexts/DmContext';
+import { useVideoCall } from '../contexts/VideoCallContext';
 import { useBlocks } from '../contexts/BlockContext';
 import { IS_TAURI } from '../lib/config';
 import styles from './RoomDirectoryPage.module.css';
@@ -40,6 +41,7 @@ export function RoomDirectoryPage() {
     moveBuddy,
   } = useBuddyList();
   const { openDm, openDmMinimized } = useDm();
+  const { videoCall } = useVideoCall();
   const { blockedDids, toggleBlock } = useBlocks();
   const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
@@ -145,6 +147,7 @@ export function RoomDirectoryPage() {
       });
     },
     onSendIm: openDm,
+    onVideoCall: videoCall,
     onBuddyClick: (did: string) => {
       navigateToProfile(did);
       openDmMinimized(did);

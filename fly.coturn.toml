@@ -1,0 +1,22 @@
+app = 'protoimsg-coturn'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'docker/coturn/Dockerfile'
+  [build.args]
+
+[env]
+  TURN_REALM = 'protoimsg.app'
+
+# Fly routes ALL inbound UDP to the machine regardless of port,
+# so relay ports 49152-49252 work without extra [[services]] blocks.
+# TCP TURN removed — Fly's TCP proxy corrupts TURN binary framing.
+[[services]]
+  protocol = 'udp'
+  internal_port = 3478
+  [[services.ports]]
+    port = 3478
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '256mb'

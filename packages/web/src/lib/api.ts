@@ -310,6 +310,22 @@ export async function fetchDmMessages(
   return data.messages;
 }
 
+// -- ICE servers --
+
+export async function fetchIceServers(): Promise<RTCIceServer[]> {
+  try {
+    const res = await authFetch('/api/ice-servers');
+    if (!res.ok) throw new Error(`ICE server request failed: ${res.status}`);
+    const data = (await res.json()) as {
+      iceServers: Array<{ urls: string | string[]; username?: string; credential?: string }>;
+    };
+    return data.iceServers;
+  } catch {
+    // Fallback — video calling degrades but never breaks
+    return [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
+  }
+}
+
 // -- GIF services --
 
 export type GifSource = 'giphy' | 'klipy';
