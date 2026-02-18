@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useVideoCall } from '../../contexts/VideoCallContext';
 import { UserIdentity } from '../chat/UserIdentity';
 import styles from './VideoCallOverlay.module.css';
 
 export function VideoCallOverlay() {
-  const { activeCall, acceptCall, rejectCall, hangUp } = useVideoCall();
+  const { t } = useTranslation('chat');
+  const { activeCall, callError, acceptCall, rejectCall, hangUp } = useVideoCall();
 
   // Position: top-left corner of the container (null = use CSS default)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -145,32 +147,46 @@ export function VideoCallOverlay() {
     };
   }, []);
 
-  if (!activeCall) return null;
+  // Show error banner even without an active call (e.g. getUserMedia denied)
+  if (!activeCall) {
+    if (callError) {
+      return (
+        <div className={styles.errorBanner} role="alert">
+          {t(callError, { defaultValue: callError })}
+        </div>
+      );
+    }
+    return null;
+  }
 
   // Incoming call — top-center banner
   if (activeCall.status === 'incoming') {
     return (
-      <div className={styles.incomingBanner} role="alert" aria-label="Incoming video call">
+      <div
+        className={styles.incomingBanner}
+        role="alert"
+        aria-label={t('videoCall.incoming.ariaLabel')}
+      >
         <span className={styles.bannerIdentity}>
           <UserIdentity did={activeCall.recipientDid} showAvatar size="sm" />
         </span>
-        <span className={styles.bannerLabel}>Incoming call...</span>
+        <span className={styles.bannerLabel}>{t('videoCall.incoming.label')}</span>
         <div className={styles.bannerActions}>
           <button
             className={styles.acceptBtn}
             onClick={() => {
               void acceptCall();
             }}
-            title="Accept call"
-            aria-label="Accept incoming call"
+            title={t('videoCall.incoming.accept')}
+            aria-label={t('videoCall.incoming.acceptAriaLabel')}
           >
             {'\uD83D\uDFE2'}
           </button>
           <button
             className={styles.rejectBtn}
             onClick={rejectCall}
-            title="Reject call"
-            aria-label="Reject incoming call"
+            title={t('videoCall.incoming.reject')}
+            aria-label={t('videoCall.incoming.rejectAriaLabel')}
           >
             {'\uD83D\uDEAB'}
           </button>
@@ -253,7 +269,10 @@ export function VideoCallOverlay() {
           <UserIdentity did={activeCall.recipientDid} showAvatar size="sm" />
         </span>
         {activeCall.status === 'outgoing' && (
-          <span className={styles.headerStatus}>Calling...</span>
+          <span className={styles.headerStatus}>{t('videoCall.calling')}</span>
+        )}
+        {activeCall.status === 'reconnecting' && (
+          <span className={styles.headerStatus}>{t('videoCall.reconnecting')}</span>
         )}
         <button
           className={styles.headerHangUp}
@@ -261,8 +280,8 @@ export function VideoCallOverlay() {
           onPointerDown={(e) => {
             e.stopPropagation();
           }}
-          title="End call"
-          aria-label="End call"
+          title={t('videoCall.endCall')}
+          aria-label={t('videoCall.endCall')}
         >
           {'\u2715'}
         </button>
@@ -270,11 +289,11 @@ export function VideoCallOverlay() {
 
       {activeCall.status === 'outgoing' && (
         <div className={styles.ringing}>
-          <p>Ringing...</p>
+          <p>{t('videoCall.ringing')}</p>
         </div>
       )}
 
-      {activeCall.status === 'active' && (
+      {(activeCall.status === 'active' || activeCall.status === 'reconnecting') && (
         <div className={styles.videosContainer}>
           <video
             className={styles.remoteVideo}
@@ -283,6 +302,9 @@ export function VideoCallOverlay() {
             autoPlay
             playsInline
           />
+          {activeCall.status === 'reconnecting' && (
+            <div className={styles.reconnectingOverlay}>{t('videoCall.reconnecting')}</div>
+          )}
           <video
             className={styles.localVideo}
             aria-label="Local video stream"

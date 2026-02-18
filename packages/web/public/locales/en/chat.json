@@ -131,6 +131,24 @@
     "back": "Back"
   },
 
+  "videoCall": {
+    "incoming": {
+      "ariaLabel": "Incoming video call",
+      "label": "Incoming call...",
+      "accept": "Accept call",
+      "acceptAriaLabel": "Accept incoming call",
+      "reject": "Reject call",
+      "rejectAriaLabel": "Reject incoming call"
+    },
+    "calling": "Calling...",
+    "ringing": "Ringing...",
+    "reconnecting": "Reconnecting...",
+    "endCall": "End call",
+    "error": {
+      "mediaPermission": "Camera/mic permission required for video calls"
+    }
+  },
+
   "poll": {
     "createPoll": "Create Poll",
     "questionLabel": "Question",

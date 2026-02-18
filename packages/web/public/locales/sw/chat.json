@@ -131,6 +131,24 @@
     "back": "Rudi"
   },
 
+  "videoCall": {
+    "incoming": {
+      "ariaLabel": "Simu ya video inayoingia",
+      "label": "Simu inayoingia...",
+      "accept": "Pokea simu",
+      "acceptAriaLabel": "Pokea simu inayoingia",
+      "reject": "Kataa simu",
+      "rejectAriaLabel": "Kataa simu inayoingia"
+    },
+    "calling": "Inapiga simu...",
+    "ringing": "Inalia...",
+    "reconnecting": "Inaunganisha tena...",
+    "endCall": "Maliza simu",
+    "error": {
+      "mediaPermission": "Ruhusa ya kamera/maikrofoni inahitajika kwa simu za video"
+    }
+  },
+
   "poll": {
     "createPoll": "Unda Kura",
     "questionLabel": "Swali",
