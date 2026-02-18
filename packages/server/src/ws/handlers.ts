@@ -495,6 +495,9 @@ export async function handleClientMessage(
 
           for (const recipientWs of recipientSockets) {
             if (!convoSubscribers.has(recipientWs) && recipientWs.readyState === recipientWs.OPEN) {
+              // Subscribe so subsequent signaling (ICE candidates, accept/reject)
+              // reaches this socket without waiting for the client's call_init round-trip
+              dmSubs.subscribe(data.conversationId, recipientWs);
               recipientWs.send(
                 JSON.stringify({
                   type: 'incoming_call',
