@@ -85,6 +85,34 @@ export interface SyncCommunityMessage extends WsMessageBase {
   }>;
 }
 
+export interface CallInitMessage extends WsMessageBase {
+  type: 'call_init';
+  recipientDid: string;
+}
+
+export interface MakeCall extends WsMessageBase {
+  type: 'make_call';
+  conversationId: string;
+  offer: string;
+}
+
+export interface AcceptCallMessage extends WsMessageBase {
+  type: 'accept_call';
+  conversationId: string;
+  answer: string;
+}
+
+export interface RejectCallMessage extends WsMessageBase {
+  type: 'reject_call';
+  conversationId: string;
+}
+
+export interface NewIceCandidateMessage extends WsMessageBase {
+  type: 'new_ice_candidate';
+  conversationId: string;
+  candidate: RTCIceCandidateInit;
+}
+
 export type ClientMessage =
   | AuthMessage
   | JoinRoomMessage
@@ -99,7 +127,12 @@ export type ClientMessage =
   | DmCloseMessage
   | DmSendMessage
   | DmTypingMessage
-  | DmTogglePersistMessage;
+  | DmTogglePersistMessage
+  | CallInitMessage
+  | MakeCall
+  | AcceptCallMessage
+  | RejectCallMessage
+  | NewIceCandidateMessage;
 
 // Server → Client messages
 
@@ -250,6 +283,46 @@ export interface PollVoteEvent extends WsMessageBase {
   };
 }
 
+export interface CallReadyEvent extends WsMessageBase {
+  type: 'call_ready';
+  data: {
+    conversationId: string;
+    recipientDid: string;
+  };
+}
+
+export interface AcceptCallEvent extends WsMessageBase {
+  type: 'accept_call';
+  data: {
+    conversationId: string;
+    answer: string;
+  };
+}
+
+export interface RejectCallEvent extends WsMessageBase {
+  type: 'reject_call';
+  data: {
+    conversationId: string;
+  };
+}
+
+export interface IncomingCall extends WsMessageBase {
+  type: 'incoming_call';
+  data: {
+    conversationId: string;
+    senderDid: string;
+    offer: string;
+  };
+}
+
+export interface NewIceCandidateEvent extends WsMessageBase {
+  type: 'new_ice_candidate';
+  data: {
+    conversationId: string;
+    candidate: RTCIceCandidateInit;
+  };
+}
+
 export interface AuthSuccessEvent extends WsMessageBase {
   type: 'auth_success';
 }
@@ -278,4 +351,9 @@ export type ServerMessage =
   | DmIncomingEvent
   | MentionNotificationEvent
   | PollCreatedEvent
-  | PollVoteEvent;
+  | PollVoteEvent
+  | CallReadyEvent
+  | IncomingCall
+  | RejectCallEvent
+  | AcceptCallEvent
+  | NewIceCandidateEvent;
