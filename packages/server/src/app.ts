@@ -79,6 +79,7 @@ export function createApp(
     requireAuth,
     iceRouter({
       stunUrl: config.STUN_URL,
+      turnUrl: config.TURN_URL,
       sharedSecret: config.COTURN_SHARED_SECRET,
       ttlSeconds: config.ICE_CREDENTIAL_TTL_SECS,
     }),
