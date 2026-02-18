@@ -8,14 +8,11 @@ primary_region = 'iad'
 [env]
   TURN_REALM = 'protoimsg.app'
 
+# Fly routes ALL inbound UDP to the machine regardless of port,
+# so relay ports 49152-49252 work without extra [[services]] blocks.
+# TCP TURN removed — Fly's TCP proxy corrupts TURN binary framing.
 [[services]]
   protocol = 'udp'
-  internal_port = 3478
-  [[services.ports]]
-    port = 3478
-
-[[services]]
-  protocol = 'tcp'
   internal_port = 3478
   [[services.ports]]
     port = 3478

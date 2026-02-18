@@ -51,7 +51,7 @@ export function iceRouter(config: IceRouterConfig): Router {
 
     if (config.turnUrl) {
       iceServers.push({
-        urls: [config.turnUrl, `${config.turnUrl}?transport=tcp`],
+        urls: config.turnUrl,
         username,
         credential,
       });

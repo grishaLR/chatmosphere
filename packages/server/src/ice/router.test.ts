@@ -95,7 +95,7 @@ describe('iceRouter', () => {
     expect(stun.urls).toBe(stunUrl);
 
     // Second entry: TURN (UDP + TCP)
-    expect(turn.urls).toEqual([turnUrl, `${turnUrl}?transport=tcp`]);
+    expect(turn.urls).toBe(turnUrl);
     expect(turn.username).toBe(stun.username);
     expect(turn.credential).toBe(stun.credential);
   });
