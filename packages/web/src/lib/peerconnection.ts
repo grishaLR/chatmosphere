@@ -1,4 +1,8 @@
-import { ClientMessage } from '@protoimsg/shared';
+import type { ClientMessage } from '@protoimsg/shared';
+import { Sentry } from '../sentry';
+import { createLogger } from './logger';
+
+const log = createLogger('PeerManager');
 
 export enum PeerConnectionType {
   Caller = 'caller',
@@ -40,7 +44,7 @@ export class PeerManager {
   addBufferedCandidate(candidate: RTCIceCandidateInit): void {
     if (this.pc.remoteDescription) {
       this.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
-        console.error('Failed to add ICE candidate', err);
+        log.error('Failed to add ICE candidate', err);
       });
     } else {
       this.pendingCandidates.push(candidate);
@@ -51,7 +55,7 @@ export class PeerManager {
   flushCandidates(): void {
     for (const c of this.pendingCandidates) {
       this.pc.addIceCandidate(new RTCIceCandidate(c)).catch((err: unknown) => {
-        console.error('Failed to add buffered ICE candidate', err);
+        log.error('Failed to add buffered ICE candidate', err);
       });
     }
     this.pendingCandidates = [];
@@ -62,7 +66,7 @@ export class PeerManager {
       this.send({
         type: 'new_ice_candidate',
         conversationId: this.conversationId,
-        candidate: event.candidate.toJSON(), // Send the candidate as a JSON object instead of a string
+        candidate: event.candidate.toJSON(),
       });
     }
   }
@@ -92,16 +96,27 @@ export class PeerManager {
         this.send({ type: 'make_call', conversationId: this.conversationId, offer: offer.sdp });
       })
       .catch((err: unknown) => {
-        console.error('Error during negotiation', err);
+        log.error('Error during negotiation', err);
       });
   }
 
-  private handleICEConnectionStateChangeEvent(e: Event): void {
+  private handleICEConnectionStateChangeEvent(_e: Event): void {
+    const state = this.pc.iceConnectionState;
+    log.debug('ICE connection state: %s', state);
+    if (state === 'failed') {
+      log.warn('ICE connection failed');
+      Sentry.captureMessage('WebRTC ICE connection failed', {
+        level: 'warning',
+        extra: { conversationId: this.conversationId, type: this.type },
+      });
+    }
   }
 
-  private handleICEGatheringStateChangeEvent(e: Event): void {
+  private handleICEGatheringStateChangeEvent(_e: Event): void {
+    log.debug('ICE gathering state: %s', this.pc.iceGatheringState);
   }
 
   private handleSignalingStateChangeEvent(_: Event): void {
+    log.debug('Signaling state: %s', this.pc.signalingState);
   }
 }
