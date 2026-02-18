@@ -1,0 +1,25 @@
+app = 'protoimsg-coturn'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'docker/coturn/Dockerfile'
+  [build.args]
+
+[env]
+  TURN_REALM = 'protoimsg.app'
+
+[[services]]
+  protocol = 'udp'
+  internal_port = 3478
+  [[services.ports]]
+    port = 3478
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 3478
+  [[services.ports]]
+    port = 3478
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '256mb'

@@ -1,4 +1,4 @@
-import type { ClientMessage } from '@protoimsg/shared';
+import type { ClientMessage, IceCandidateInit } from '@protoimsg/shared';
 import { Sentry } from '../sentry';
 import { createLogger } from './logger';
 
@@ -23,7 +23,7 @@ export class PeerManager {
   private conversationId: string;
   private onRemoteStream: (conversationId: string, stream: MediaStream) => void;
   private type: PeerConnectionType;
-  private pendingCandidates: RTCIceCandidateInit[] = [];
+  private pendingCandidates: IceCandidateInit[] = [];
 
   constructor(peerConfig: PeerConnectionConfig) {
     this.send = peerConfig.send;
@@ -41,7 +41,7 @@ export class PeerManager {
   }
 
   /** Buffer ICE candidates until remote description is set, then flush */
-  addBufferedCandidate(candidate: RTCIceCandidateInit): void {
+  addBufferedCandidate(candidate: IceCandidateInit): void {
     if (this.pc.remoteDescription) {
       this.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
         log.error('Failed to add ICE candidate', err);
@@ -66,7 +66,7 @@ export class PeerManager {
       this.send({
         type: 'new_ice_candidate',
         conversationId: this.conversationId,
-        candidate: event.candidate.toJSON(),
+        candidate: event.candidate.toJSON() as IceCandidateInit,
       });
     }
   }
