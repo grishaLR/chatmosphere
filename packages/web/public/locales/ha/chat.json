@@ -131,6 +131,24 @@
     "back": "Koma"
   },
 
+  "videoCall": {
+    "incoming": {
+      "ariaLabel": "Kiran bidiyo mai shigowa",
+      "label": "Kira mai shigowa...",
+      "accept": "Karɓi kira",
+      "acceptAriaLabel": "Karɓi kiran da ke shigowa",
+      "reject": "Ƙi kira",
+      "rejectAriaLabel": "Ƙi kiran da ke shigowa"
+    },
+    "calling": "Ana kira...",
+    "ringing": "Ana ƙara...",
+    "reconnecting": "Ana sake haɗawa...",
+    "endCall": "Kawo ƙarshen kira",
+    "error": {
+      "mediaPermission": "Ana buƙatar izinin kyamara/makirufo don kiran bidiyo"
+    }
+  },
+
   "poll": {
     "createPoll": "\u0136ir\u0137iri Za\u0253e",
     "questionLabel": "Tambaya",
