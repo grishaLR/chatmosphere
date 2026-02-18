@@ -19,10 +19,13 @@ function isGetRoot(l: unknown): l is RouteLayer {
 }
 
 /** Extract the GET / handler from the router */
-function getHandler(router: ReturnType<typeof iceRouter>) {
-  const layer = router.stack.find(isGetRoot);
-  if (!layer) throw new Error('GET / handler not found');
-  return layer.route.stack[0].handle as (req: Request, res: Response) => void;
+function getHandler(router: ReturnType<typeof iceRouter>): (req: Request, res: Response) => void {
+  for (const layer of router.stack) {
+    if (isGetRoot(layer)) {
+      return layer.route.stack[0].handle as (req: Request, res: Response) => void;
+    }
+  }
+  throw new Error('GET / handler not found');
 }
 
 function mockReqRes(did?: string) {
@@ -33,7 +36,14 @@ function mockReqRes(did?: string) {
 }
 
 function parseBody(json: ReturnType<typeof vi.fn>): IceResponse {
-  return json.mock.calls[0][0] as IceResponse;
+  const call = json.mock.calls[0] as unknown[];
+  return call[0] as IceResponse;
+}
+
+function at(servers: IceServerConfig[], index: number): IceServerConfig {
+  const entry = servers[index];
+  if (!entry) throw new Error(`No ICE server at index ${String(index)}`);
+  return entry;
 }
 
 describe('iceRouter', () => {
@@ -48,9 +58,9 @@ describe('iceRouter', () => {
 
     handler(req, res);
 
-    const body = parseBody(json);
-    expect(body.iceServers).toHaveLength(2);
-    expect(body.iceServers[0].urls).toContain('stun:stun.l.google.com:19302');
+    const { iceServers } = parseBody(json);
+    expect(iceServers).toHaveLength(2);
+    expect(at(iceServers, 0).urls).toContain('stun:stun.l.google.com:19302');
   });
 
   it('returns STUN-only when TURN_URL not set', () => {
@@ -60,11 +70,12 @@ describe('iceRouter', () => {
 
     handler(req, res);
 
-    const body = parseBody(json);
-    expect(body.iceServers).toHaveLength(1);
-    expect(body.iceServers[0].urls).toBe(stunUrl);
-    expect(body.iceServers[0].username).toBeDefined();
-    expect(body.iceServers[0].credential).toBeDefined();
+    const { iceServers } = parseBody(json);
+    expect(iceServers).toHaveLength(1);
+    const stun = at(iceServers, 0);
+    expect(stun.urls).toBe(stunUrl);
+    expect(stun.username).toBeDefined();
+    expect(stun.credential).toBeDefined();
   });
 
   it('returns both STUN and TURN entries when TURN_URL is set', () => {
@@ -74,16 +85,18 @@ describe('iceRouter', () => {
 
     handler(req, res);
 
-    const body = parseBody(json);
-    expect(body.iceServers).toHaveLength(2);
+    const { iceServers } = parseBody(json);
+    expect(iceServers).toHaveLength(2);
+
+    const stun = at(iceServers, 0);
+    const turn = at(iceServers, 1);
 
     // First entry: STUN
-    expect(body.iceServers[0].urls).toBe(stunUrl);
+    expect(stun.urls).toBe(stunUrl);
 
     // Second entry: TURN (UDP + TCP)
-    const turn = body.iceServers[1];
     expect(turn.urls).toEqual([turnUrl, `${turnUrl}?transport=tcp`]);
-    expect(turn.username).toBe(body.iceServers[0].username);
-    expect(turn.credential).toBe(body.iceServers[0].credential);
+    expect(turn.username).toBe(stun.username);
+    expect(turn.credential).toBe(stun.credential);
   });
 });
