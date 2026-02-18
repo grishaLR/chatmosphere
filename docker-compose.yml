@@ -46,6 +46,22 @@ services:
       retries: 20
       start_period: 120s
 
+  coturn:
+    image: coturn/coturn:latest
+    ports:
+      - '3478:3478/udp'
+      - '3478:3478/tcp'
+    command: >
+      --listening-port=3478
+      --realm=protoimsg.local
+      --use-auth-secret
+      --static-auth-secret=localdev-coturn-secret
+      --no-cli
+      --fingerprint
+      --no-multicast-peers
+      --min-port=49152
+      --max-port=49200
+
   nllb:
     build: ./docker/nllb
     ports:

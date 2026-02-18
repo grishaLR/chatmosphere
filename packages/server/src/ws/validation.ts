@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DM_LIMITS, LIMITS } from '@protoimsg/shared';
+import type { IceCandidateInit } from '@protoimsg/shared';
 
 const MAX_BLOCK_LIST_SIZE = 10_000;
 
@@ -94,7 +95,7 @@ const callInit = z.object({
 const makeCall = z.object({
   type: z.literal('make_call'),
   conversationId: z.string().min(1),
-  offer: z.string().min(1),
+  offer: z.string().min(1).max(65_536),
 });
 
 const rejectCall = z.object({
@@ -105,11 +106,11 @@ const rejectCall = z.object({
 const acceptCall = z.object({
   type: z.literal('accept_call'),
   conversationId: z.string().min(1),
-  answer: z.string().min(1),
+  answer: z.string().min(1).max(65_536),
 });
 
-const candidateSchema: z.ZodType<RTCIceCandidateInit> = z.object({
-  candidate: z.string(),
+const candidateSchema: z.ZodType<IceCandidateInit> = z.object({
+  candidate: z.string().max(2048),
   sdpMid: z.string().nullable().optional(),
   sdpMLineIndex: z.number().nullable().optional(),
   usernameFragment: z.string().nullable().optional(),

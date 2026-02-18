@@ -10,8 +10,9 @@ import {
 import { useWebSocket } from './WebSocketContext';
 import { useAuth } from '../hooks/useAuth';
 import { playImNotify } from '../lib/sounds';
+import { fetchIceServers } from '../lib/api';
 import { PeerManager, PeerConnectionType } from '../lib/peerconnection';
-import type { ServerMessage } from '@protoimsg/shared';
+import type { ServerMessage, IceCandidateInit } from '@protoimsg/shared';
 
 export interface VideoCall {
   conversationId: string;
@@ -31,18 +32,6 @@ interface VideoCallContextValue {
 
 const VideoCallContext = createContext<VideoCallContextValue | null>(null);
 
-// TODO: Replace with our own STUN/TURN server to avoid exposing IPs to Google
-function getStunServers(): RTCIceServer[] {
-  console.warn('Falling back to public Google STUN servers');
-  return [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
-  ];
-}
-
 const INCOMING_CALL_TIMEOUT_MS = 30_000;
 
 export function VideoCallProvider({ children }: { children: ReactNode }) {
@@ -54,7 +43,7 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   const peerConnection = useRef<PeerManager | null>(null);
   const localStream = useRef<MediaStream | null>(null);
   const incomingOffer = useRef<string | null>(null);
-  const pendingIceCandidates = useRef<RTCIceCandidateInit[]>([]);
+  const pendingIceCandidates = useRef<IceCandidateInit[]>([]);
   const pendingCallDid = useRef<string | null>(null);
   const incomingCallTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ref mirror of activeCall so WS handlers always see latest state
@@ -94,11 +83,12 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       if (!did) return;
 
       try {
+        const iceServers = await fetchIceServers();
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         localStream.current = stream;
 
         const pm = new PeerManager({
-          config: { iceServers: getStunServers() },
+          config: { iceServers },
           conversationId,
           send,
           onRemoteStream,
@@ -158,8 +148,9 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      const iceServers = await fetchIceServers();
       const pm = new PeerManager({
-        config: { iceServers: getStunServers() },
+        config: { iceServers },
         conversationId: call.conversationId,
         send,
         onRemoteStream,

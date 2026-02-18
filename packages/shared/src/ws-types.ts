@@ -1,5 +1,20 @@
 /** WebSocket message types — shared contract between server and client */
 
+/** Portable ICE candidate — mirrors browser RTCIceCandidateInit without DOM dep */
+export interface IceCandidateInit {
+  candidate: string;
+  sdpMid?: string | null;
+  sdpMLineIndex?: number | null;
+  usernameFragment?: string | null;
+}
+
+/** ICE server config returned by /api/ice-servers (subset of RTCIceServer) */
+export interface IceServerConfig {
+  urls: string | string[];
+  username?: string;
+  credential?: string;
+}
+
 export interface WsMessageBase {
   type: string;
 }
@@ -90,7 +105,7 @@ export interface CallInitMessage extends WsMessageBase {
   recipientDid: string;
 }
 
-export interface MakeCall extends WsMessageBase {
+export interface MakeCallMessage extends WsMessageBase {
   type: 'make_call';
   conversationId: string;
   offer: string;
@@ -110,7 +125,7 @@ export interface RejectCallMessage extends WsMessageBase {
 export interface NewIceCandidateMessage extends WsMessageBase {
   type: 'new_ice_candidate';
   conversationId: string;
-  candidate: RTCIceCandidateInit;
+  candidate: IceCandidateInit;
 }
 
 export type ClientMessage =
@@ -129,7 +144,7 @@ export type ClientMessage =
   | DmTypingMessage
   | DmTogglePersistMessage
   | CallInitMessage
-  | MakeCall
+  | MakeCallMessage
   | AcceptCallMessage
   | RejectCallMessage
   | NewIceCandidateMessage;
@@ -306,7 +321,7 @@ export interface RejectCallEvent extends WsMessageBase {
   };
 }
 
-export interface IncomingCall extends WsMessageBase {
+export interface IncomingCallEvent extends WsMessageBase {
   type: 'incoming_call';
   data: {
     conversationId: string;
@@ -319,7 +334,7 @@ export interface NewIceCandidateEvent extends WsMessageBase {
   type: 'new_ice_candidate';
   data: {
     conversationId: string;
-    candidate: RTCIceCandidateInit;
+    candidate: IceCandidateInit;
   };
 }
 
@@ -353,7 +368,7 @@ export type ServerMessage =
   | PollCreatedEvent
   | PollVoteEvent
   | CallReadyEvent
-  | IncomingCall
+  | IncomingCallEvent
   | RejectCallEvent
   | AcceptCallEvent
   | NewIceCandidateEvent;

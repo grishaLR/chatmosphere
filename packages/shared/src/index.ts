@@ -14,6 +14,8 @@ export { ERROR_CODES } from './error-codes.js';
 export type { ErrorCode } from './error-codes.js';
 
 export type {
+  IceCandidateInit,
+  IceServerConfig,
   WsMessageBase,
   JoinRoomMessage,
   LeaveRoomMessage,
@@ -28,6 +30,11 @@ export type {
   DmTogglePersistMessage,
   RoomTypingMessage,
   SyncBlocksMessage,
+  CallInitMessage,
+  MakeCallMessage,
+  AcceptCallMessage,
+  RejectCallMessage,
+  NewIceCandidateMessage,
   ClientMessage,
   NewMessageEvent,
   PresenceUpdateEvent,
@@ -42,5 +49,10 @@ export type {
   DmPersistChangedEvent,
   DmIncomingEvent,
   MentionNotificationEvent,
+  CallReadyEvent,
+  IncomingCallEvent,
+  AcceptCallEvent,
+  RejectCallEvent,
+  NewIceCandidateEvent,
   ServerMessage,
 } from './ws-types.js';
