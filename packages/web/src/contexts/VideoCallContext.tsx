@@ -34,6 +34,9 @@ const VideoCallContext = createContext<VideoCallContextValue | null>(null);
 
 const INCOMING_CALL_TIMEOUT_MS = 30_000;
 
+/** ?forceRelay=true in the URL forces TURN-only (no direct/STUN) for testing */
+const forceRelay = new URLSearchParams(window.location.search).has('forceRelay');
+
 export function VideoCallProvider({ children }: { children: ReactNode }) {
   const { send, subscribe } = useWebSocket();
   const { did } = useAuth();
@@ -88,7 +91,7 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
         localStream.current = stream;
 
         const pm = new PeerManager({
-          config: { iceServers },
+          config: { iceServers, ...(forceRelay && { iceTransportPolicy: 'relay' as const }) },
           conversationId,
           send,
           onRemoteStream,
@@ -150,7 +153,7 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     try {
       const iceServers = await fetchIceServers();
       const pm = new PeerManager({
-        config: { iceServers },
+        config: { iceServers, ...(forceRelay && { iceTransportPolicy: 'relay' as const }) },
         conversationId: call.conversationId,
         send,
         onRemoteStream,
