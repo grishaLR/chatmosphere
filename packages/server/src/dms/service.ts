@@ -106,7 +106,7 @@ export function createDmService(sql: Sql): DmService {
     },
 
     async pruneExpired() {
-      const deleted = await pruneExpiredDmMessages(sql, DM_LIMITS.retentionDays);
+      const deleted = await pruneExpiredDmMessages(sql, 7);
       if (deleted > 0) {
         const pruned = await pruneEmptyConversations(sql);
         if (pruned > 0) {

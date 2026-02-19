@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DM_LIMITS, LIMITS } from '@protoimsg/shared';
+import { LIMITS } from '@protoimsg/shared';
 import type { IceCandidateInit } from '@protoimsg/shared';
 
 const MAX_BLOCK_LIST_SIZE = 10_000;
@@ -70,23 +70,6 @@ const dmClose = z.object({
   conversationId: z.string().min(1),
 });
 
-const dmSend = z.object({
-  type: z.literal('dm_send'),
-  conversationId: z.string().min(1),
-  text: z.string().min(1).max(DM_LIMITS.maxMessageLength),
-});
-
-const dmTyping = z.object({
-  type: z.literal('dm_typing'),
-  conversationId: z.string().min(1),
-});
-
-const dmTogglePersist = z.object({
-  type: z.literal('dm_toggle_persist'),
-  conversationId: z.string().min(1),
-  persist: z.boolean(),
-});
-
 const callInit = z.object({
   type: z.literal('call_init'),
   recipientDid: did,
@@ -119,7 +102,25 @@ const candidateSchema: z.ZodType<IceCandidateInit> = z.object({
 const newIceCandidate = z.object({
   type: z.literal('new_ice_candidate'),
   conversationId: z.string().min(1),
-  candidate: candidateSchema, // Expect the candidate as a JSON object that matches RTCIceCandidateInit
+  candidate: candidateSchema,
+});
+
+const imOffer = z.object({
+  type: z.literal('im_offer'),
+  conversationId: z.string().min(1),
+  offer: z.string().min(1).max(65_536),
+});
+
+const imAnswer = z.object({
+  type: z.literal('im_answer'),
+  conversationId: z.string().min(1),
+  answer: z.string().min(1).max(65_536),
+});
+
+const imIceCandidate = z.object({
+  type: z.literal('im_ice_candidate'),
+  conversationId: z.string().min(1),
+  candidate: candidateSchema,
 });
 
 const clientMessage = z.discriminatedUnion('type', [
@@ -133,9 +134,9 @@ const clientMessage = z.discriminatedUnion('type', [
   syncCommunity,
   dmOpen,
   dmClose,
-  dmSend,
-  dmTyping,
-  dmTogglePersist,
+  imOffer,
+  imAnswer,
+  imIceCandidate,
   callInit,
   makeCall,
   rejectCall,

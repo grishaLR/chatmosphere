@@ -20,14 +20,9 @@
     },
     "unreadAriaLabel": "ujumbe {{count}} ambao haujasomwa",
     "unreadOverflow": "99+",
-    "persist": {
-      "titleActive": "Ujumbe umehifadhiwa (siku 7)",
-      "titleInactive": "Ujumbe ni wa muda \u2014 bofya kuhifadhi",
-      "ariaLabel": {
-        "disable": "Zima uhifadhi wa ujumbe",
-        "enable": "Washa uhifadhi wa ujumbe"
-      }
-    },
+    "connecting": "Inaunganisha\u2026",
+    "connectionFailed": "Muunganisho umeshindwa",
+    "peerOffline": "Mtumiaji hayuko mtandaoni. Tumia Germ kwa ujumbe nje ya mtandao.",
     "minimize": {
       "titleExpand": "Panua",
       "titleMinimize": "Punguza",
@@ -43,7 +38,8 @@
   },
 
   "notification": {
-    "ariaLabel": "Ujumbe mpya kutoka {{senderDid}}: {{preview}}",
+    "ariaLabel": "Ujumbe mpya kutoka {{senderDid}}",
+    "incoming": "anataka kuzungumza",
     "dismiss": {
       "title": "Ondoa",
       "ariaLabel": "Ondoa arifa"

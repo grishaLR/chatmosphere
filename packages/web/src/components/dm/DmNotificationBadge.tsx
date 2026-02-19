@@ -20,7 +20,6 @@ export function DmNotificationBadge({ notification, onOpen, onDismiss }: DmNotif
       tabIndex={0}
       aria-label={t('notification.ariaLabel', {
         senderDid: notification.senderDid,
-        preview: notification.preview,
       })}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -35,7 +34,7 @@ export function DmNotificationBadge({ notification, onOpen, onDismiss }: DmNotif
         <div className={styles.sender}>
           <UserIdentity did={notification.senderDid} showAvatar size="sm" />
         </div>
-        <div className={styles.preview}>{notification.preview}</div>
+        <div className={styles.preview}>{t('notification.incoming')}</div>
       </div>
       <button
         className={styles.closeBtn}
