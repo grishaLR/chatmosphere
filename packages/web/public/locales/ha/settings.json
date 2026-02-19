@@ -31,6 +31,17 @@
     "autoTranslateHint": "Fassara bugaggu da bayanai ta atomatik zuwa harshinka"
   },
 
+  "privacy": {
+    "title": "Sirri",
+    "ipProtectionLabel": "Kariyar IP don kira",
+    "ipProtectionHint": "Mai watsawa yana ɓoye adireshin IP ɗinka amma yana iya rage ingancin kira. Haɗin kai tsaye ya fi sauri amma yana bayyana IP ɗinka ga mai kira.",
+    "options": {
+      "all": "Watsawa duk kira (mafi girman sirri)",
+      "nonInnerCircle": "Watsawa waɗanda ba na kusa ba kawai (shawarar da ake ba)",
+      "off": "Yarda da haɗin tsaye ga kowa (mafi kyaun inganci)"
+    }
+  },
+
   "actions": {
     "title": "Ayyuka",
     "signOut": "Fita"

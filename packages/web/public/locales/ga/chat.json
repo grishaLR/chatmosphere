@@ -143,6 +143,9 @@
     "calling": "Ag glaoch...",
     "ringing": "Ag bualadh...",
     "reconnecting": "Ag athcheangal...",
+    "mute": "Balbhaigh",
+    "unmute": "Díbhalbhaigh",
+    "flipCamera": "Cas an ceamara",
     "endCall": "Cuir deireadh leis an nglao",
     "error": {
       "mediaPermission": "Teastaíonn cead ceamara/micreafóin le haghaidh físghlaonna"

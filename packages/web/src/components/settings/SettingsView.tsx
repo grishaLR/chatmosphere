@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfileEditor } from '../../hooks/useProfileEditor';
@@ -6,6 +6,7 @@ import { useTheme } from '../../hooks/useTheme';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
 import { THEME_OPTIONS, type Theme } from '../../contexts/ThemeContext';
 import { LanguageSelector } from './LanguageSelector';
+import type { IpProtectionLevel } from '../../contexts/VideoCallContext';
 import styles from './SettingsView.module.css';
 
 interface SettingsViewProps {
@@ -23,6 +24,11 @@ export function SettingsView({ onBack }: SettingsViewProps) {
     available: translateAvailable,
   } = useContentTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [ipProtection, setIpProtection] = useState<IpProtectionLevel>(() => {
+    const stored = localStorage.getItem('protoimsg:ipProtection');
+    if (stored === 'all' || stored === 'non-inner-circle' || stored === 'off') return stored;
+    return 'non-inner-circle';
+  });
 
   const {
     displayName,
@@ -178,6 +184,28 @@ export function SettingsView({ onBack }: SettingsViewProps) {
             </div>
           </div>
         )}
+
+        {/* Privacy */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>{t('privacy.title')}</div>
+          <div className={styles.sectionBody}>
+            <label className={styles.label}>{t('privacy.ipProtectionLabel')}</label>
+            <select
+              className={styles.themeSelect}
+              value={ipProtection}
+              onChange={(e) => {
+                const value = e.target.value as IpProtectionLevel;
+                setIpProtection(value);
+                localStorage.setItem('protoimsg:ipProtection', value);
+              }}
+            >
+              <option value="all">{t('privacy.options.all')}</option>
+              <option value="non-inner-circle">{t('privacy.options.nonInnerCircle')}</option>
+              <option value="off">{t('privacy.options.off')}</option>
+            </select>
+            <div className={styles.hint}>{t('privacy.ipProtectionHint')}</div>
+          </div>
+        </div>
 
         {/* Actions */}
         <div className={styles.section}>
