@@ -6,47 +6,43 @@
   },
 
   "messageList": {
-    "empty": "No hay mensajes aún. ¡Di hola!",
+    "empty": "No hay mensajes a\u00fan. \u00a1Di hola!",
     "typing": "escribiendo..."
   },
 
   "popover": {
-    "ariaLabel": "Conversación de mensaje directo con {{recipientDid}}",
+    "ariaLabel": "Conversaci\u00f3n de mensaje directo con {{recipientDid}}",
     "header": {
       "ariaLabel": {
-        "expand": "Mensaje directo con {{recipientDid}} — haz clic para expandir",
-        "minimize": "Mensaje directo con {{recipientDid}} — haz clic para minimizar"
+        "expand": "Mensaje directo con {{recipientDid}} \u2014 haz clic para expandir",
+        "minimize": "Mensaje directo con {{recipientDid}} \u2014 haz clic para minimizar"
       }
     },
-    "unreadAriaLabel": "{{count}} mensajes no leídos",
+    "unreadAriaLabel": "{{count}} mensajes no le\u00eddos",
     "unreadOverflow": "99+",
-    "persist": {
-      "titleActive": "Mensajes guardados (7 días)",
-      "titleInactive": "Mensajes efímeros — haz clic para guardar",
-      "ariaLabel": {
-        "disable": "Desactivar guardado de mensajes",
-        "enable": "Activar guardado de mensajes"
-      }
-    },
+    "connecting": "Conectando\u2026",
+    "connectionFailed": "Conexi\u00f3n fallida",
+    "peerOffline": "El usuario est\u00e1 desconectado. Usa Germ para mensajes sin conexi\u00f3n.",
     "minimize": {
       "titleExpand": "Expandir",
       "titleMinimize": "Minimizar",
       "ariaLabel": {
-        "expand": "Expandir conversación",
-        "minimize": "Minimizar conversación"
+        "expand": "Expandir conversaci\u00f3n",
+        "minimize": "Minimizar conversaci\u00f3n"
       }
     },
     "close": {
       "title": "Cerrar",
-      "ariaLabel": "Cerrar conversación"
+      "ariaLabel": "Cerrar conversaci\u00f3n"
     }
   },
 
   "notification": {
-    "ariaLabel": "Nuevo mensaje de {{senderDid}}: {{preview}}",
+    "ariaLabel": "Nuevo mensaje de {{senderDid}}",
+    "incoming": "quiere chatear",
     "dismiss": {
       "title": "Descartar",
-      "ariaLabel": "Descartar notificación"
+      "ariaLabel": "Descartar notificaci\u00f3n"
     }
   },
 

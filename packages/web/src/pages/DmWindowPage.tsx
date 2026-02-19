@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useDm } from '../contexts/DmContext';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../contexts/WebSocketContext';
@@ -19,17 +20,15 @@ export function DmWindowPage() {
   const { conversationId } = useParams<{ conversationId: string }>();
   const [searchParams] = useSearchParams();
   const recipientDid = searchParams.get('recipientDid');
-  const { conversations, openDm, closeDm, sendDm, sendTyping, togglePersist } = useDm();
+  const { conversations, openDm, closeDm, sendDm, sendTyping } = useDm();
   const { did } = useAuth();
   const { connected } = useWebSocket();
+  const { t } = useTranslation('dm');
   const closingRef = useRef(false);
 
   const convo = conversations.find((c) => c.conversationId === conversationId);
 
   // Request the conversation once the WS IPC relay is connected.
-  // openDm is a no-op if already in state (deduped via conversationsRef).
-  // Skip if the window is being closed (closeDm removes convo from state,
-  // which would otherwise re-trigger this effect and reopen the DM).
   useEffect(() => {
     if (closingRef.current) return;
     if (!connected || !recipientDid || !did || convo) return;
@@ -64,16 +63,16 @@ export function DmWindowPage() {
         <span className={styles.headerIdentity}>
           <UserIdentity did={convo.recipientDid} showAvatar size="sm" />
         </span>
+        {convo.peerState === 'connecting' && (
+          <span className={styles.connectionState}>{t('popover.connecting')}</span>
+        )}
+        {convo.peerState === 'failed' && (
+          <span className={styles.connectionFailed}>{t('popover.connectionFailed')}</span>
+        )}
+        {convo.peerState === 'closed' && (
+          <span className={styles.connectionFailed}>{t('popover.peerOffline')}</span>
+        )}
         <div className={styles.headerActions}>
-          <button
-            className={`${styles.headerBtn} ${convo.persist ? styles.persistActive : ''}`}
-            onClick={() => {
-              togglePersist(convo.conversationId, !convo.persist);
-            }}
-            title={convo.persist ? 'Messages saved (7 days)' : 'Messages ephemeral — click to save'}
-          >
-            {convo.persist ? '\uD83D\uDCBE' : '\u2601\uFE0F'}
-          </button>
           <WindowControls onClose={handleClose} />
         </div>
       </div>

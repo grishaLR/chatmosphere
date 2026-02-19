@@ -56,6 +56,4 @@ export const DM_LIMITS = {
   maxMessageLength: 3000,
   /** Maximum preview text length for dm_incoming notifications */
   maxPreviewLength: 100,
-  /** Maximum days to retain persisted DM messages */
-  retentionDays: 7,
 } as const;

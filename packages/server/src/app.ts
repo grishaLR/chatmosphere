@@ -13,7 +13,6 @@ import { presenceRouter } from './presence/router.js';
 import { communityRouter } from './community/router.js';
 import { moderationRouter } from './moderation/router.js';
 import { pollsRouter } from './polls/router.js';
-import { dmRouter } from './dms/router.js';
 import { translateRouter } from './translate/router.js';
 import { gifRouter } from './giphy/router.js';
 import { iceRouter } from './ice/router.js';
@@ -73,7 +72,6 @@ export function createApp(
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), pollsRouter(sql));
   app.use('/api/presence', requireAuth, presenceRouter(presenceService, blockService, sql));
   app.use('/api/community', requireAuth, communityRouter(sql));
-  app.use('/api/dms', requireAuth, createRateLimitMiddleware(rateLimiter), dmRouter(sql));
   app.use(
     '/api/ice-servers',
     requireAuth,

@@ -80,15 +80,6 @@ export type CommunityListRow =
     }
   | { type: 'buddy'; buddy: MemberWithPresence; groupName: string };
 
-export interface DmConversationView {
-  id: string;
-  did1: string;
-  did2: string;
-  persist: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface DmMessageView {
   id: string;
   conversationId: string;
