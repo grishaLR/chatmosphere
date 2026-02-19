@@ -1,4 +1,4 @@
-import type { RoomView, MessageView, PollView, DmConversationView, DmMessageView } from '../types';
+import type { RoomView, MessageView, PollView } from '../types';
 import { API_URL } from './config.js';
 
 // -- Token management --
@@ -270,44 +270,6 @@ export async function fetchPoll(
 
   const data = (await res.json()) as { poll: PollView };
   return data.poll;
-}
-
-// -- DMs --
-
-export async function fetchDmConversations(opts?: {
-  limit?: number;
-  offset?: number;
-  signal?: AbortSignal;
-}): Promise<DmConversationView[]> {
-  const params = new URLSearchParams();
-  if (opts?.limit) params.set('limit', String(opts.limit));
-  if (opts?.offset) params.set('offset', String(opts.offset));
-
-  const qs = params.toString();
-  const res = await authFetch(`/api/dms${qs ? `?${qs}` : ''}`, { signal: opts?.signal });
-  if (!res.ok) throw new Error(`Failed to fetch DM conversations: ${res.status}`);
-
-  const data = (await res.json()) as { conversations: DmConversationView[] };
-  return data.conversations;
-}
-
-export async function fetchDmMessages(
-  conversationId: string,
-  opts?: { limit?: number; before?: string; signal?: AbortSignal },
-): Promise<DmMessageView[]> {
-  const params = new URLSearchParams();
-  if (opts?.limit) params.set('limit', String(opts.limit));
-  if (opts?.before) params.set('before', opts.before);
-
-  const qs = params.toString();
-  const res = await authFetch(
-    `/api/dms/${encodeURIComponent(conversationId)}/messages${qs ? `?${qs}` : ''}`,
-    { signal: opts?.signal },
-  );
-  if (!res.ok) throw new Error(`Failed to fetch DM messages: ${res.status}`);
-
-  const data = (await res.json()) as { messages: DmMessageView[] };
-  return data.messages;
 }
 
 // -- ICE servers --

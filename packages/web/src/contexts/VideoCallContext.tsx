@@ -12,7 +12,11 @@ import { useAuth } from '../hooks/useAuth';
 import { playImNotify } from '../lib/sounds';
 import { fetchIceServers } from '../lib/api';
 import { PeerManager, PeerConnectionType } from '../lib/peerconnection';
+import { shouldForceRelayForDid } from '../lib/ip-protection';
 import type { ServerMessage, IceCandidateInit } from '@protoimsg/shared';
+
+export { setInnerCircleDidsForCalls } from '../lib/ip-protection';
+export type { IpProtectionLevel } from '../lib/ip-protection';
 
 export interface VideoCall {
   conversationId: string;
@@ -20,38 +24,6 @@ export interface VideoCall {
   status: 'outgoing' | 'incoming' | 'active' | 'reconnecting';
   localStream: MediaStream | null;
   remoteStream: MediaStream | undefined;
-}
-
-export type IpProtectionLevel = 'all' | 'non-inner-circle' | 'off';
-
-/** Snapshot of inner-circle DIDs for IP protection checks (set from RoomDirectoryPage) */
-let innerCircleDidsSnapshot: ReadonlySet<string> = new Set();
-
-export function setInnerCircleDidsForCalls(dids: ReadonlySet<string>) {
-  innerCircleDidsSnapshot = dids;
-}
-
-function getIpProtectionLevel(): IpProtectionLevel {
-  const stored = localStorage.getItem('protoimsg:ipProtection');
-  if (stored === 'all' || stored === 'non-inner-circle' || stored === 'off') return stored;
-  return 'non-inner-circle';
-}
-
-/**
- * On localhost, only explicit 'all' forces relay — the 'non-inner-circle' default
- * would break local dev where coturn often isn't fully working.
- * Use ?forceRelay to test TURN locally regardless.
- */
-const isLocalDev =
-  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-function shouldForceRelayForDid(recipientDid: string): boolean {
-  if (forceRelay) return true;
-  const level = getIpProtectionLevel();
-  if (level === 'all') return true;
-  if (level === 'off' || isLocalDev) return false;
-  // 'non-inner-circle' — relay unless recipient is in inner circle
-  return !innerCircleDidsSnapshot.has(recipientDid);
 }
 
 interface VideoCallContextValue {
@@ -69,9 +41,6 @@ interface VideoCallContextValue {
 const VideoCallContext = createContext<VideoCallContextValue | null>(null);
 
 const INCOMING_CALL_TIMEOUT_MS = 30_000;
-
-/** ?forceRelay=true in the URL forces TURN-only (no direct/STUN) for testing */
-const forceRelay = new URLSearchParams(window.location.search).has('forceRelay');
 
 export function VideoCallProvider({ children }: { children: ReactNode }) {
   const { send, subscribe } = useWebSocket();
