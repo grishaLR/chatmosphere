@@ -20,14 +20,9 @@
     },
     "unreadAriaLabel": "{{count}} unread messages",
     "unreadOverflow": "99+",
-    "persist": {
-      "titleActive": "Messages saved (7 days)",
-      "titleInactive": "Messages ephemeral \u2014 click to save",
-      "ariaLabel": {
-        "disable": "Disable message saving",
-        "enable": "Enable message saving"
-      }
-    },
+    "connecting": "Connecting\u2026",
+    "connectionFailed": "Connection failed",
+    "peerOffline": "User is offline. Use Germ for offline messaging.",
     "minimize": {
       "titleExpand": "Expand",
       "titleMinimize": "Minimize",
@@ -43,7 +38,8 @@
   },
 
   "notification": {
-    "ariaLabel": "New message from {{senderDid}}: {{preview}}",
+    "ariaLabel": "New message from {{senderDid}}",
+    "incoming": "wants to chat",
     "dismiss": {
       "title": "Dismiss",
       "ariaLabel": "Dismiss notification"

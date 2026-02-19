@@ -64,21 +64,24 @@ export interface DmCloseMessage extends WsMessageBase {
   conversationId: string;
 }
 
-export interface DmSendMessage extends WsMessageBase {
-  type: 'dm_send';
+// IM signaling (P2P data channels — separate from video call signaling)
+
+export interface ImOfferMessage extends WsMessageBase {
+  type: 'im_offer';
   conversationId: string;
-  text: string;
+  offer: string;
 }
 
-export interface DmTypingMessage extends WsMessageBase {
-  type: 'dm_typing';
+export interface ImAnswerMessage extends WsMessageBase {
+  type: 'im_answer';
   conversationId: string;
+  answer: string;
 }
 
-export interface DmTogglePersistMessage extends WsMessageBase {
-  type: 'dm_toggle_persist';
+export interface ImIceCandidateMessage extends WsMessageBase {
+  type: 'im_ice_candidate';
   conversationId: string;
-  persist: boolean;
+  candidate: IceCandidateInit;
 }
 
 export interface RoomTypingMessage extends WsMessageBase {
@@ -140,9 +143,9 @@ export type ClientMessage =
   | SyncCommunityMessage
   | DmOpenMessage
   | DmCloseMessage
-  | DmSendMessage
-  | DmTypingMessage
-  | DmTogglePersistMessage
+  | ImOfferMessage
+  | ImAnswerMessage
+  | ImIceCandidateMessage
   | CallInitMessage
   | MakeCallMessage
   | AcceptCallMessage
@@ -207,51 +210,33 @@ export interface DmOpenedEvent extends WsMessageBase {
   data: {
     conversationId: string;
     recipientDid: string;
-    persist: boolean;
-    messages: Array<{
-      id: string;
-      conversationId: string;
-      senderDid: string;
-      text: string;
-      createdAt: string;
-    }>;
   };
 }
 
-export interface DmMessageEvent extends WsMessageBase {
-  type: 'dm_message';
-  data: {
-    id: string;
-    conversationId: string;
-    senderDid: string;
-    text: string;
-    createdAt: string;
-  };
-}
+// IM signaling Server → Client events
 
-export interface DmTypingEvent extends WsMessageBase {
-  type: 'dm_typing';
+export interface ImOfferEvent extends WsMessageBase {
+  type: 'im_offer';
   data: {
     conversationId: string;
     senderDid: string;
+    offer: string;
   };
 }
 
-export interface DmPersistChangedEvent extends WsMessageBase {
-  type: 'dm_persist_changed';
+export interface ImAnswerEvent extends WsMessageBase {
+  type: 'im_answer';
   data: {
     conversationId: string;
-    persist: boolean;
-    changedBy: string;
+    answer: string;
   };
 }
 
-export interface DmIncomingEvent extends WsMessageBase {
-  type: 'dm_incoming';
+export interface ImIceCandidateEvent extends WsMessageBase {
+  type: 'im_ice_candidate';
   data: {
     conversationId: string;
-    senderDid: string;
-    preview: string;
+    candidate: IceCandidateInit;
   };
 }
 
@@ -360,10 +345,9 @@ export type ServerMessage =
   | ErrorEvent
   | RoomTypingEvent
   | DmOpenedEvent
-  | DmMessageEvent
-  | DmTypingEvent
-  | DmPersistChangedEvent
-  | DmIncomingEvent
+  | ImOfferEvent
+  | ImAnswerEvent
+  | ImIceCandidateEvent
   | MentionNotificationEvent
   | PollCreatedEvent
   | PollVoteEvent

@@ -16,7 +16,6 @@ export function DmPopoverContainer() {
     toggleMinimize,
     sendDm,
     sendTyping,
-    togglePersist,
     dismissNotification,
     openFromNotification,
   } = useDm();
@@ -46,9 +45,6 @@ export function DmPopoverContainer() {
           }}
           onTyping={() => {
             sendTyping(convo.conversationId);
-          }}
-          onTogglePersist={(persist) => {
-            togglePersist(convo.conversationId, persist);
           }}
           onVideoCall={() => {
             videoCall(convo.recipientDid);

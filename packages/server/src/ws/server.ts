@@ -8,6 +8,7 @@ import { handleClientMessage } from './handlers.js';
 import { attachHeartbeat } from './heartbeat.js';
 import type { PresenceService } from '../presence/service.js';
 import type { DmService } from '../dms/service.js';
+import type { ImRegistry } from '../dms/registry.js';
 import type { ServerMessage } from './types.js';
 import { parseClientMessage } from './validation.js';
 import type { Sql } from '../db/client.js';
@@ -88,6 +89,7 @@ export function createWsServer(
   sessions: SessionStore,
   rateLimiter: RateLimiterStore,
   dmService: DmService,
+  imRegistry: ImRegistry,
   blockService: BlockService,
   globalBans: GlobalBanService,
   globalAllowlist: GlobalAllowlistService,
@@ -256,6 +258,7 @@ export function createWsServer(
             userSockets,
             dmService,
             blockService,
+            imRegistry,
           ),
         )
         .catch((err: unknown) => {
@@ -280,7 +283,11 @@ export function createWsServer(
 
         const abandonedConvos = dmSubs.unsubscribeAll(ws);
         for (const conversationId of abandonedConvos) {
-          void dmService.cleanupIfEmpty(conversationId);
+          if (imRegistry.has(conversationId)) {
+            imRegistry.unregister(conversationId);
+          } else {
+            void dmService.cleanupIfEmpty(conversationId);
+          }
         }
 
         // Only tear down presence if this was the user's last connection

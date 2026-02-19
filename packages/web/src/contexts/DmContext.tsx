@@ -11,29 +11,31 @@ import {
 import { useWebSocket } from './WebSocketContext';
 import { useAuth } from '../hooks/useAuth';
 import { playImNotify } from '../lib/sounds';
+import { fetchIceServers } from '../lib/api';
+import { shouldForceRelayForDid } from '../lib/ip-protection';
+import { DataChannelPeer, type DcTextMessage, type DataChannelState } from '../lib/datachannel';
 import { IS_TAURI } from '../lib/config';
 import type { DmMessageView } from '../types';
-import type { ServerMessage } from '@protoimsg/shared';
+import type { ServerMessage, IceCandidateInit } from '@protoimsg/shared';
 
 const MAX_OPEN_POPOVERS = 4;
 const MAX_MESSAGES = 200;
 const MAX_NOTIFICATIONS = 20;
-const PENDING_TIMEOUT_MS = 15_000;
+const CONNECTION_TIMEOUT_MS = 30_000;
 
 export interface DmConversation {
   conversationId: string;
   recipientDid: string;
   messages: DmMessageView[];
-  persist: boolean;
   minimized: boolean;
   typing: boolean;
   unreadCount: number;
+  peerState: DataChannelState;
 }
 
 export interface DmNotification {
   conversationId: string;
   senderDid: string;
-  preview: string;
   receivedAt: string;
 }
 
@@ -46,7 +48,6 @@ interface DmContextValue {
   toggleMinimize: (conversationId: string) => void;
   sendDm: (conversationId: string, text: string) => void;
   sendTyping: (conversationId: string) => void;
-  togglePersist: (conversationId: string, persist: boolean) => void;
   dismissNotification: (conversationId: string) => void;
   openFromNotification: (notification: DmNotification) => void;
 }
@@ -65,21 +66,182 @@ export function DmProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<DmNotification[]>([]);
   const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastTypingSent = useRef<Map<string, number>>(new Map());
-  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const connectionTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // P2P data channel state
+  const peersRef = useRef<Map<string, DataChannelPeer>>(new Map());
+  const pendingQueue = useRef<Map<string, DcTextMessage[]>>(new Map());
+  const pendingOffers = useRef<Map<string, { senderDid: string; offer: string }>>(new Map());
+  const pendingIceCandidates = useRef<Map<string, IceCandidateInit[]>>(new Map());
 
   // M24: pendingMinimized — ref to track "open minimized" intent across async boundary.
-  // When openDmMinimized(recipientDid) is called before the server responds, we can't
-  // add the conversation to state yet. We store recipientDid here; when dm_opened
-  // arrives, we read it and set minimized: true on the new conversation.
   const pendingMinimized = useRef<Set<string>>(new Set());
 
-  // M24: conversationsRef — ref mirror of conversations state. Callbacks like openDm,
-  // openDmMinimized, and the dm_incoming handler need the latest conversations
-  // without being recreated when conversations changes (which would cause stale
-  // closures in subscriptions). We read conversationsRef.current inside callbacks
-  // instead of closing over conversations.
+  // M24: conversationsRef — ref mirror of conversations state.
   const conversationsRef = useRef(conversations);
   conversationsRef.current = conversations;
+
+  /** Create a DataChannelPeer and wire up callbacks */
+  const createPeer = useCallback(
+    (conversationId: string, isCaller: boolean, rtcConfig: RTCConfiguration) => {
+      const existing = peersRef.current.get(conversationId);
+      if (existing) {
+        existing.close();
+        peersRef.current.delete(conversationId);
+      }
+
+      const peer = new DataChannelPeer({
+        rtcConfig,
+        conversationId,
+        send,
+        isCaller,
+        onMessage: (msg: DcTextMessage) => {
+          // Play sound if minimized
+          const convo = conversationsRef.current.find((c) => c.conversationId === conversationId);
+          if (convo?.minimized) {
+            playImNotify();
+          }
+
+          // The sender DID is the recipient of our conversation (remote peer)
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (c.conversationId !== conversationId) return c;
+              // Dedup by message ID
+              if (c.messages.some((m) => m.id === msg.id)) return c;
+              const remoteMsg: DmMessageView = {
+                id: msg.id,
+                conversationId,
+                senderDid: c.recipientDid,
+                text: msg.text,
+                createdAt: msg.ts,
+              };
+              return {
+                ...c,
+                messages: trimMessages([...c.messages, remoteMsg]),
+                unreadCount: c.minimized ? c.unreadCount + 1 : c.unreadCount,
+              };
+            }),
+          );
+        },
+        onTyping: () => {
+          setConversations((prev) =>
+            prev.map((c) => (c.conversationId === conversationId ? { ...c, typing: true } : c)),
+          );
+
+          const prevTimer = typingTimers.current.get(conversationId);
+          if (prevTimer) clearTimeout(prevTimer);
+
+          const timer = setTimeout(() => {
+            setConversations((prev) =>
+              prev.map((c) => (c.conversationId === conversationId ? { ...c, typing: false } : c)),
+            );
+            typingTimers.current.delete(conversationId);
+          }, 3000);
+          typingTimers.current.set(conversationId, timer);
+        },
+        onStateChange: (state: DataChannelState) => {
+          setConversations((prev) =>
+            prev.map((c) => (c.conversationId === conversationId ? { ...c, peerState: state } : c)),
+          );
+
+          if (state === 'open') {
+            // Clear connection timeout
+            const ct = connectionTimers.current.get(conversationId);
+            if (ct) {
+              clearTimeout(ct);
+              connectionTimers.current.delete(conversationId);
+            }
+
+            // Flush pending messages
+            const queued = pendingQueue.current.get(conversationId);
+            if (queued) {
+              for (const msg of queued) {
+                peer.sendMessage(msg);
+              }
+              pendingQueue.current.delete(conversationId);
+            }
+          }
+        },
+      });
+
+      peersRef.current.set(conversationId, peer);
+
+      // Start connection timeout — close the peer if it doesn't open in time
+      const ct = setTimeout(() => {
+        connectionTimers.current.delete(conversationId);
+        if (peer.state === 'connecting') {
+          peer.close();
+          peersRef.current.delete(conversationId);
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.conversationId === conversationId ? { ...c, peerState: 'failed' } : c,
+            ),
+          );
+        }
+      }, CONNECTION_TIMEOUT_MS);
+      connectionTimers.current.set(conversationId, ct);
+
+      return peer;
+    },
+    [send],
+  );
+
+  /** Initiate a data channel connection as caller */
+  const initiatePeerConnection = useCallback(
+    async (conversationId: string, recipientDid: string) => {
+      try {
+        const iceServers = await fetchIceServers();
+        const useRelay = shouldForceRelayForDid(recipientDid);
+        const rtcConfig: RTCConfiguration = {
+          iceServers,
+          ...(useRelay && { iceTransportPolicy: 'relay' as const }),
+        };
+        const peer = createPeer(conversationId, true, rtcConfig);
+        await peer.createOffer();
+      } catch (err) {
+        console.error('Failed to initiate data channel', err);
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.conversationId === conversationId ? { ...c, peerState: 'failed' } : c,
+          ),
+        );
+      }
+    },
+    [createPeer],
+  );
+
+  /** Accept an incoming offer as callee */
+  const acceptPeerConnection = useCallback(
+    async (conversationId: string, recipientDid: string, offerSdp: string) => {
+      try {
+        const iceServers = await fetchIceServers();
+        const useRelay = shouldForceRelayForDid(recipientDid);
+        const rtcConfig: RTCConfiguration = {
+          iceServers,
+          ...(useRelay && { iceTransportPolicy: 'relay' as const }),
+        };
+        const peer = createPeer(conversationId, false, rtcConfig);
+        await peer.handleOffer(offerSdp);
+
+        // Flush buffered ICE candidates
+        const buffered = pendingIceCandidates.current.get(conversationId);
+        if (buffered) {
+          for (const c of buffered) {
+            peer.addBufferedCandidate(c);
+          }
+          pendingIceCandidates.current.delete(conversationId);
+        }
+      } catch (err) {
+        console.error('Failed to accept data channel', err);
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.conversationId === conversationId ? { ...c, peerState: 'failed' } : c,
+          ),
+        );
+      }
+    },
+    [createPeer],
+  );
 
   const openDm = useCallback(
     (recipientDid: string) => {
@@ -103,7 +265,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
     (recipientDid: string) => {
       const existing = conversationsRef.current.find((c) => c.recipientDid === recipientDid);
       if (existing) {
-        // Already open — ensure minimized
         setConversations((prev) =>
           prev.map((c) =>
             c.conversationId === existing.conversationId ? { ...c, minimized: true } : c,
@@ -111,7 +272,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
         );
         return;
       }
-      // Not yet open — mark for minimized state when dm_opened arrives
       pendingMinimized.current.add(recipientDid);
       send({ type: 'dm_open', recipientDid });
     },
@@ -120,7 +280,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
 
   const closeDm = useCallback(
     (conversationId: string) => {
-      // Clean up timers for this conversation (M6)
+      // Clean up timers
       const typingTimer = typingTimers.current.get(conversationId);
       if (typingTimer) {
         clearTimeout(typingTimer);
@@ -128,10 +288,24 @@ export function DmProvider({ children }: { children: ReactNode }) {
       }
       lastTypingSent.current.delete(conversationId);
 
+      const ct = connectionTimers.current.get(conversationId);
+      if (ct) {
+        clearTimeout(ct);
+        connectionTimers.current.delete(conversationId);
+      }
+
+      // Close data channel peer
+      const peer = peersRef.current.get(conversationId);
+      if (peer) {
+        peer.close();
+        peersRef.current.delete(conversationId);
+      }
+      pendingQueue.current.delete(conversationId);
+      pendingOffers.current.delete(conversationId);
+      pendingIceCandidates.current.delete(conversationId);
+
       send({ type: 'dm_close', conversationId });
       setConversations((prev) => prev.filter((c) => c.conversationId !== conversationId));
-      // Eagerly update ref so a subsequent openDm() in the same tick won't
-      // find the just-closed conversation and skip the server request.
       conversationsRef.current = conversationsRef.current.filter(
         (c) => c.conversationId !== conversationId,
       );
@@ -151,61 +325,53 @@ export function DmProvider({ children }: { children: ReactNode }) {
 
   const sendDm = useCallback(
     (conversationId: string, text: string) => {
-      if (!did) return; // Guard against unauthenticated sends (M4 from context audit)
-      send({ type: 'dm_send', conversationId, text });
+      if (!did) return;
+      const msg: DcTextMessage = {
+        type: 'text',
+        id: `local-${crypto.randomUUID()}`,
+        text,
+        ts: new Date().toISOString(),
+      };
 
-      const pendingId = `pending-${crypto.randomUUID()}`;
-      const pendingMsg: DmMessageView = {
-        id: pendingId,
+      const peer = peersRef.current.get(conversationId);
+      if (peer?.state === 'open') {
+        peer.sendMessage(msg);
+      } else {
+        const queue = pendingQueue.current.get(conversationId) ?? [];
+        queue.push(msg);
+        pendingQueue.current.set(conversationId, queue);
+      }
+
+      // Optimistic local update
+      const localMsg: DmMessageView = {
+        id: msg.id,
         conversationId,
         senderDid: did,
-        text,
-        createdAt: new Date().toISOString(),
-        pending: true,
+        text: msg.text,
+        createdAt: msg.ts,
       };
       setConversations((prev) =>
         prev.map((c) =>
           c.conversationId === conversationId
-            ? { ...c, messages: trimMessages([...c.messages, pendingMsg]) }
+            ? { ...c, messages: trimMessages([...c.messages, localMsg]) }
             : c,
         ),
       );
-
-      // H5: Timeout pending messages — mark as failed after 15s
-      const timer = setTimeout(() => {
-        setConversations((prev) =>
-          prev.map((c) => {
-            if (c.conversationId !== conversationId) return c;
-            return {
-              ...c,
-              messages: c.messages.filter((m) => m.id !== pendingId),
-            };
-          }),
-        );
-        pendingTimers.current.delete(pendingId);
-      }, PENDING_TIMEOUT_MS);
-      pendingTimers.current.set(pendingId, timer);
     },
-    [send, did],
+    [did],
   );
 
-  const sendTyping = useCallback(
-    (conversationId: string) => {
-      const now = Date.now();
-      const last = lastTypingSent.current.get(conversationId) ?? 0;
-      if (now - last < 3000) return;
-      lastTypingSent.current.set(conversationId, now);
-      send({ type: 'dm_typing', conversationId });
-    },
-    [send],
-  );
+  const sendTyping = useCallback((conversationId: string) => {
+    const now = Date.now();
+    const last = lastTypingSent.current.get(conversationId) ?? 0;
+    if (now - last < 3000) return;
+    lastTypingSent.current.set(conversationId, now);
 
-  const togglePersist = useCallback(
-    (conversationId: string, persist: boolean) => {
-      send({ type: 'dm_toggle_persist', conversationId, persist });
-    },
-    [send],
-  );
+    const peer = peersRef.current.get(conversationId);
+    if (peer?.state === 'open') {
+      peer.sendTyping();
+    }
+  }, []);
 
   const dismissNotification = useCallback((conversationId: string) => {
     setNotifications((prev) => prev.filter((n) => n.conversationId !== conversationId));
@@ -224,8 +390,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
     const unsub = subscribe((msg: ServerMessage) => {
       switch (msg.type) {
         case 'dm_opened': {
-          const { conversationId, recipientDid, persist, messages } = msg.data;
-          // Clear matching notification (safe — separate state, not inside updater)
+          const { conversationId, recipientDid } = msg.data;
+          // Clear matching notification
           setNotifications((prev) => prev.filter((n) => n.conversationId !== conversationId));
 
           const shouldMinimize = pendingMinimized.current.has(recipientDid);
@@ -237,17 +403,11 @@ export function DmProvider({ children }: { children: ReactNode }) {
             const newConvo: DmConversation = {
               conversationId,
               recipientDid,
-              messages: [...messages].reverse().map((m) => ({
-                id: m.id,
-                conversationId: m.conversationId,
-                senderDid: m.senderDid,
-                text: m.text,
-                createdAt: m.createdAt,
-              })),
-              persist,
+              messages: [],
               minimized: shouldMinimize,
               typing: false,
               unreadCount: 0,
+              peerState: 'connecting',
             };
 
             const updated = [...prev, newConvo];
@@ -262,7 +422,17 @@ export function DmProvider({ children }: { children: ReactNode }) {
             return updated;
           });
 
-          // In Tauri mode, main window spawns a DM window (child windows skip this)
+          // Check if we have a pending offer for this conversation (receiver flow)
+          const pending = pendingOffers.current.get(conversationId);
+          if (pending) {
+            pendingOffers.current.delete(conversationId);
+            void acceptPeerConnection(conversationId, recipientDid, pending.offer);
+          } else {
+            // Initiator flow — create offer
+            void initiatePeerConnection(conversationId, recipientDid);
+          }
+
+          // In Tauri mode, main window spawns a DM window
           if (IS_TAURI && !shouldMinimize) {
             void import('../lib/tauri-windows').then(({ openDmWindow, isMainWindow }) => {
               if (isMainWindow()) {
@@ -273,110 +443,34 @@ export function DmProvider({ children }: { children: ReactNode }) {
           break;
         }
 
-        case 'dm_message': {
-          const dmMsg = msg.data;
-          // C3: Check if sound is needed before the state update, using ref
-          const convo = conversationsRef.current.find(
-            (c) => c.conversationId === dmMsg.conversationId,
-          );
-          if (convo?.minimized && dmMsg.senderDid !== did) {
-            playImNotify();
-          }
+        case 'im_offer': {
+          const { conversationId, senderDid, offer } = msg.data;
+          // Check if conversation is already open
+          const convo = conversationsRef.current.find((c) => c.conversationId === conversationId);
 
-          setConversations((prev) =>
-            prev.map((c) => {
-              if (c.conversationId !== dmMsg.conversationId) return c;
+          if (convo) {
+            const existingPeer = peersRef.current.get(conversationId);
 
-              // L2: Dedup by message ID
-              if (c.messages.some((m) => m.id === dmMsg.id)) return c;
-
-              const confirmedMsg: DmMessageView = {
-                id: dmMsg.id,
-                conversationId: dmMsg.conversationId,
-                senderDid: dmMsg.senderDid,
-                text: dmMsg.text,
-                createdAt: dmMsg.createdAt,
-              };
-
-              let newMessages: DmMessageView[];
-              // L1: Dedup own pending messages — replace oldest pending
-              if (dmMsg.senderDid === did) {
-                const pendingIdx = c.messages.findIndex((m) => m.pending && m.senderDid === did);
-                if (pendingIdx !== -1) {
-                  const pendingMsg = c.messages[pendingIdx];
-                  // Clear pending timeout
-                  if (pendingMsg) {
-                    const timer = pendingTimers.current.get(pendingMsg.id);
-                    if (timer) {
-                      clearTimeout(timer);
-                      pendingTimers.current.delete(pendingMsg.id);
-                    }
-                  }
-                  newMessages = [...c.messages];
-                  newMessages[pendingIdx] = confirmedMsg;
-                } else {
-                  newMessages = [...c.messages, confirmedMsg];
-                }
-              } else {
-                newMessages = [...c.messages, confirmedMsg];
+            // Glare: both peers sent im_offer simultaneously. Use DID comparison
+            // to break the tie — lower DID is the "polite" peer that yields.
+            if (existingPeer?.isCaller && existingPeer.state === 'connecting' && did) {
+              const weArePolite = did < senderDid;
+              if (!weArePolite) {
+                // We're impolite — ignore incoming offer, wait for our answer
+                break;
               }
+              // We're polite — drop our offer, accept theirs
+            }
 
-              // H4: Cap messages
-              newMessages = trimMessages(newMessages);
-
-              const isMinimized = c.minimized;
-              return {
-                ...c,
-                messages: newMessages,
-                unreadCount:
-                  isMinimized && dmMsg.senderDid !== did ? c.unreadCount + 1 : c.unreadCount,
-              };
-            }),
-          );
-          break;
-        }
-
-        case 'dm_typing': {
-          const { conversationId, senderDid } = msg.data;
-          if (senderDid === did) break;
-
-          setConversations((prev) =>
-            prev.map((c) => (c.conversationId === conversationId ? { ...c, typing: true } : c)),
-          );
-
-          const prevTimer = typingTimers.current.get(conversationId);
-          if (prevTimer) clearTimeout(prevTimer);
-
-          const timer = setTimeout(() => {
-            setConversations((prev) =>
-              prev.map((c) => (c.conversationId === conversationId ? { ...c, typing: false } : c)),
-            );
-            typingTimers.current.delete(conversationId);
-          }, 3000);
-          typingTimers.current.set(conversationId, timer);
-          break;
-        }
-
-        case 'dm_persist_changed': {
-          const { conversationId, persist } = msg.data;
-          setConversations((prev) =>
-            prev.map((c) => (c.conversationId === conversationId ? { ...c, persist } : c)),
-          );
-          break;
-        }
-
-        case 'dm_incoming': {
-          const { conversationId, senderDid, preview } = msg.data;
-          // C3: Read conversations via ref, don't abuse setConversations as a reader
-          const alreadyOpen = conversationsRef.current.some(
-            (c) => c.conversationId === conversationId,
-          );
-          if (!alreadyOpen) {
+            // Reconnection or polite-peer yield — accept the offer
+            void acceptPeerConnection(conversationId, convo.recipientDid, offer);
+          } else {
+            // Buffer the offer, show notification
+            pendingOffers.current.set(conversationId, { senderDid, offer });
             playImNotify();
 
             if (IS_TAURI) {
-              // AIM behavior: auto-open a DM window for incoming messages.
-              // Sends dm_open → server responds dm_opened → window spawns.
+              // AIM behavior: auto-open a DM window for incoming IMs
               void import('../lib/tauri-windows').then(({ isMainWindow }) => {
                 if (isMainWindow()) {
                   send({ type: 'dm_open', recipientDid: senderDid });
@@ -385,13 +479,11 @@ export function DmProvider({ children }: { children: ReactNode }) {
             } else {
               setNotifications((n) => {
                 if (n.some((x) => x.conversationId === conversationId)) return n;
-                // L4: Cap notifications
                 const updated = [
                   ...n,
                   {
                     conversationId,
                     senderDid,
-                    preview,
                     receivedAt: new Date().toISOString(),
                   },
                 ];
@@ -400,6 +492,30 @@ export function DmProvider({ children }: { children: ReactNode }) {
                   : updated;
               });
             }
+          }
+          break;
+        }
+
+        case 'im_answer': {
+          const { conversationId, answer } = msg.data;
+          const peer = peersRef.current.get(conversationId);
+          if (!peer) break;
+          void peer.handleAnswer(answer).catch((err: unknown) => {
+            console.error('Failed to handle IM answer', err);
+          });
+          break;
+        }
+
+        case 'im_ice_candidate': {
+          const { conversationId, candidate } = msg.data;
+          const peer = peersRef.current.get(conversationId);
+          if (peer) {
+            peer.addBufferedCandidate(candidate);
+          } else {
+            // Buffer until peer is created
+            const buf = pendingIceCandidates.current.get(conversationId) ?? [];
+            buf.push(candidate);
+            pendingIceCandidates.current.set(conversationId, buf);
           }
           break;
         }
@@ -413,34 +529,42 @@ export function DmProvider({ children }: { children: ReactNode }) {
       }
       typingTimers.current.clear();
     };
-  }, [subscribe, did]);
+  }, [subscribe, send, did, initiatePeerConnection, acceptPeerConnection]);
 
-  // Clean up pending timers on unmount
+  // Clean up connection timers + peers on unmount
   useEffect(() => {
     return () => {
-      for (const timer of pendingTimers.current.values()) {
+      for (const timer of connectionTimers.current.values()) {
         clearTimeout(timer);
       }
-      pendingTimers.current.clear();
+      connectionTimers.current.clear();
+      for (const peer of peersRef.current.values()) {
+        peer.close();
+      }
+      peersRef.current.clear();
     };
   }, []);
 
-  // Tauri: when a DM child window sends dm_close through the IPC relay,
-  // the main window's DmContext doesn't hear about it (only the child's
-  // DmContext called closeDm). The relay dispatches a DOM event so we can
-  // clean up the stale conversation entry here.
+  // Tauri: clean up stale conversations from child window IPC relay
   useEffect(() => {
     if (!IS_TAURI) return;
     const handler = (e: Event) => {
       const { conversationId } = (e as CustomEvent<{ conversationId: string }>).detail;
-      // Clean up timers
       const typingTimer = typingTimers.current.get(conversationId);
       if (typingTimer) {
         clearTimeout(typingTimer);
         typingTimers.current.delete(conversationId);
       }
       lastTypingSent.current.delete(conversationId);
-      // Remove from state + eagerly update ref
+
+      // Close peer
+      const peer = peersRef.current.get(conversationId);
+      if (peer) {
+        peer.close();
+        peersRef.current.delete(conversationId);
+      }
+      pendingQueue.current.delete(conversationId);
+
       setConversations((prev) => prev.filter((c) => c.conversationId !== conversationId));
       conversationsRef.current = conversationsRef.current.filter(
         (c) => c.conversationId !== conversationId,
@@ -452,8 +576,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Safety net: if dm_opened handler didn't catch the pendingMinimized flag,
-  // minimize the conversation reactively when it appears in state
+  // Safety net: minimize conversations flagged via pendingMinimized
   useEffect(() => {
     if (pendingMinimized.current.size === 0) return;
     const toMinimize: string[] = [];
@@ -470,7 +593,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
     }
   }, [conversations]);
 
-  // M1: Memoize context value to prevent unnecessary consumer re-renders
   const value = useMemo<DmContextValue>(
     () => ({
       conversations,
@@ -481,7 +603,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
       toggleMinimize,
       sendDm,
       sendTyping,
-      togglePersist,
       dismissNotification,
       openFromNotification,
     }),
@@ -494,7 +615,6 @@ export function DmProvider({ children }: { children: ReactNode }) {
       toggleMinimize,
       sendDm,
       sendTyping,
-      togglePersist,
       dismissNotification,
       openFromNotification,
     ],
