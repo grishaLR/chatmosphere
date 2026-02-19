@@ -143,6 +143,9 @@
     "calling": "Ana kira...",
     "ringing": "Ana ƙara...",
     "reconnecting": "Ana sake haɗawa...",
+    "mute": "Kashe sauti",
+    "unmute": "Bude sauti",
+    "flipCamera": "Juya kyamara",
     "endCall": "Kawo ƙarshen kira",
     "error": {
       "mediaPermission": "Ana buƙatar izinin kyamara/makirufo don kiran bidiyo"

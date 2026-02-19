@@ -31,6 +31,17 @@
     "autoTranslateHint": "Tafsiri kiotomatiki machapisho na wasifu kwa lugha yako"
   },
 
+  "privacy": {
+    "title": "Faragha",
+    "ipProtectionLabel": "Ulinzi wa IP kwa simu",
+    "ipProtectionHint": "Kupitisha kunificha anwani yako ya IP lakini kunaweza kupunguza ubora wa simu. Muunganisho wa moja kwa moja ni wa haraka zaidi lakini unaonyesha IP yako kwa mpigaji mwingine.",
+    "options": {
+      "all": "Pitisha simu zote (faragha ya juu)",
+      "nonInnerCircle": "Pitisha watu wa nje wa karibu tu (inapendekezwa)",
+      "off": "Ruhusu moja kwa moja kwa wote (ubora bora)"
+    }
+  },
+
   "actions": {
     "title": "Vitendo",
     "signOut": "Toka"

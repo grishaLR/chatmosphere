@@ -31,6 +31,17 @@
     "autoTranslateHint": "Traducir automáticamente publicaciones y biografías a tu idioma"
   },
 
+  "privacy": {
+    "title": "Privacidad",
+    "ipProtectionLabel": "Protección IP para llamadas",
+    "ipProtectionHint": "El relay oculta tu dirección IP pero puede reducir la calidad de la llamada. Las conexiones directas son más rápidas pero exponen tu IP al otro usuario.",
+    "options": {
+      "all": "Relay en todas las llamadas (máxima privacidad)",
+      "nonInnerCircle": "Relay solo fuera del círculo íntimo (recomendado)",
+      "off": "Permitir conexión directa para todos (mejor calidad)"
+    }
+  },
+
   "actions": {
     "title": "Acciones",
     "signOut": "Cerrar sesión"
