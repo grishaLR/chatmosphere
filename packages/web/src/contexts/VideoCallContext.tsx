@@ -22,13 +22,48 @@ export interface VideoCall {
   remoteStream: MediaStream | undefined;
 }
 
+export type IpProtectionLevel = 'all' | 'non-inner-circle' | 'off';
+
+/** Snapshot of inner-circle DIDs for IP protection checks (set from RoomDirectoryPage) */
+let innerCircleDidsSnapshot: ReadonlySet<string> = new Set();
+
+export function setInnerCircleDidsForCalls(dids: ReadonlySet<string>) {
+  innerCircleDidsSnapshot = dids;
+}
+
+function getIpProtectionLevel(): IpProtectionLevel {
+  const stored = localStorage.getItem('protoimsg:ipProtection');
+  if (stored === 'all' || stored === 'non-inner-circle' || stored === 'off') return stored;
+  return 'non-inner-circle';
+}
+
+/**
+ * On localhost, only explicit 'all' forces relay — the 'non-inner-circle' default
+ * would break local dev where coturn often isn't fully working.
+ * Use ?forceRelay to test TURN locally regardless.
+ */
+const isLocalDev =
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+function shouldForceRelayForDid(recipientDid: string): boolean {
+  if (forceRelay) return true;
+  const level = getIpProtectionLevel();
+  if (level === 'all') return true;
+  if (level === 'off' || isLocalDev) return false;
+  // 'non-inner-circle' — relay unless recipient is in inner circle
+  return !innerCircleDidsSnapshot.has(recipientDid);
+}
+
 interface VideoCallContextValue {
   activeCall: VideoCall | null;
   callError: string | null;
+  isMuted: boolean;
   videoCall: (recipientDid: string) => void;
   acceptCall: () => Promise<void>;
   rejectCall: () => void;
   hangUp: () => void;
+  toggleMute: () => void;
+  flipCamera: () => Promise<void>;
 }
 
 const VideoCallContext = createContext<VideoCallContextValue | null>(null);
@@ -43,7 +78,10 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   const { did } = useAuth();
   const [activeCall, setActiveCall] = useState<VideoCall | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMutedRef = useRef(false);
+  const currentFacingMode = useRef<'user' | 'environment'>('user');
 
   // Refs for internal state that WS handlers need without triggering re-renders
   const peerConnection = useRef<PeerManager | null>(null);
@@ -68,6 +106,9 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       });
       localStream.current = null;
     }
+    isMutedRef.current = false;
+    setIsMuted(false);
+    currentFacingMode.current = 'user';
     incomingOffer.current = null;
     pendingIceCandidates.current = [];
     pendingCallDid.current = null;
@@ -120,8 +161,9 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         localStream.current = stream;
 
+        const useRelay = shouldForceRelayForDid(recipientDid);
         const pm = new PeerManager({
-          config: { iceServers, ...(forceRelay && { iceTransportPolicy: 'relay' as const }) },
+          config: { iceServers, ...(useRelay && { iceTransportPolicy: 'relay' as const }) },
           conversationId,
           send,
           onRemoteStream,
@@ -186,8 +228,9 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
 
     try {
       const iceServers = await fetchIceServers();
+      const useRelay = shouldForceRelayForDid(call.recipientDid);
       const pm = new PeerManager({
-        config: { iceServers, ...(forceRelay && { iceTransportPolicy: 'relay' as const }) },
+        config: { iceServers, ...(useRelay && { iceTransportPolicy: 'relay' as const }) },
         conversationId: call.conversationId,
         send,
         onRemoteStream,
@@ -247,13 +290,55 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     cleanUp();
   }, [send, cleanUp]);
 
-  const hangUp = useCallback(() => {
-    const call = activeCallRef.current;
-    if (!call) return;
+  // Semantically identical to rejectCall for now — both send reject_call + cleanUp
+  const hangUp = rejectCall;
 
-    send({ type: 'reject_call', conversationId: call.conversationId });
-    cleanUp();
-  }, [send, cleanUp]);
+  const toggleMute = useCallback(() => {
+    const stream = localStream.current;
+    if (!stream) return;
+    const next = !isMutedRef.current;
+    isMutedRef.current = next;
+    setIsMuted(next);
+    for (const track of stream.getAudioTracks()) {
+      track.enabled = !next;
+    }
+  }, []);
+
+  const flipCamera = useCallback(async () => {
+    const pm = peerConnection.current;
+    const stream = localStream.current;
+    if (!pm || !stream) return;
+
+    const newFacing = currentFacingMode.current === 'user' ? 'environment' : 'user';
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newFacing },
+        audio: false,
+      });
+      const newTrack = newStream.getVideoTracks()[0];
+      if (!newTrack) return;
+
+      // Replace track on the peer connection sender (no renegotiation needed)
+      const sender = pm.pc.getSenders().find((s) => s.track?.kind === 'video');
+      if (sender) {
+        await sender.replaceTrack(newTrack);
+      }
+
+      // Stop old video track and swap into local stream
+      const oldTrack = stream.getVideoTracks()[0];
+      if (oldTrack) {
+        stream.removeTrack(oldTrack);
+        oldTrack.stop();
+      }
+      stream.addTrack(newTrack);
+      currentFacingMode.current = newFacing;
+
+      // Trigger re-render so PIP updates
+      setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
+    } catch (err) {
+      console.error('Failed to flip camera', err);
+    }
+  }, []);
 
   // WS event handler
   useEffect(() => {
@@ -373,10 +458,13 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   const value: VideoCallContextValue = {
     activeCall,
     callError,
+    isMuted,
     videoCall,
     acceptCall,
     rejectCall,
     hangUp,
+    toggleMute,
+    flipCamera,
   };
 
   return <VideoCallContext.Provider value={value}>{children}</VideoCallContext.Provider>;
