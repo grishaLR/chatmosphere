@@ -17,13 +17,14 @@ import type { ServerMessage, IceCandidateInit } from '@protoimsg/shared';
 export interface VideoCall {
   conversationId: string;
   recipientDid: string;
-  status: 'outgoing' | 'incoming' | 'active';
+  status: 'outgoing' | 'incoming' | 'active' | 'reconnecting';
   localStream: MediaStream | null;
   remoteStream: MediaStream | undefined;
 }
 
 interface VideoCallContextValue {
   activeCall: VideoCall | null;
+  callError: string | null;
   videoCall: (recipientDid: string) => void;
   acceptCall: () => Promise<void>;
   rejectCall: () => void;
@@ -41,6 +42,8 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   const { send, subscribe } = useWebSocket();
   const { did } = useAuth();
   const [activeCall, setActiveCall] = useState<VideoCall | null>(null);
+  const [callError, setCallError] = useState<string | null>(null);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Refs for internal state that WS handlers need without triggering re-renders
   const peerConnection = useRef<PeerManager | null>(null);
@@ -80,6 +83,33 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     setActiveCall((prev) => (prev ? { ...prev, remoteStream: stream, status: 'active' } : prev));
   }, []);
 
+  /** Handle ICE connection state changes — surface reconnecting/failed to UI */
+  const onIceConnectionStateChange = useCallback(
+    (state: RTCIceConnectionState) => {
+      if (state === 'disconnected') {
+        setActiveCall((prev) =>
+          prev && prev.status === 'active' ? { ...prev, status: 'reconnecting' } : prev,
+        );
+      } else if (state === 'connected' || state === 'completed') {
+        setActiveCall((prev) =>
+          prev && prev.status === 'reconnecting' ? { ...prev, status: 'active' } : prev,
+        );
+      } else if (state === 'failed') {
+        cleanUp();
+      }
+    },
+    [cleanUp],
+  );
+
+  /** Show a temporary error message (auto-clears after 5s) */
+  const showCallError = useCallback((message: string) => {
+    setCallError(message);
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    errorTimerRef.current = setTimeout(() => {
+      setCallError(null);
+    }, 5000);
+  }, []);
+
   /** Start call after we have a conversationId */
   const initiateCall = useCallback(
     async (conversationId: string, recipientDid: string) => {
@@ -95,6 +125,7 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
           conversationId,
           send,
           onRemoteStream,
+          onIceConnectionStateChange,
           type: PeerConnectionType.Caller,
         });
 
@@ -116,10 +147,13 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
         });
       } catch (err) {
         console.error('Failed to start call', err);
+        if (err instanceof DOMException && err.name === 'NotAllowedError') {
+          showCallError('videoCall.error.mediaPermission');
+        }
         cleanUp();
       }
     },
-    [send, did, onRemoteStream, cleanUp],
+    [send, did, onRemoteStream, onIceConnectionStateChange, showCallError, cleanUp],
   );
 
   const videoCall = useCallback(
@@ -157,6 +191,7 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
         conversationId: call.conversationId,
         send,
         onRemoteStream,
+        onIceConnectionStateChange,
         type: PeerConnectionType.Callee,
       });
 
@@ -197,9 +232,12 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       incomingOffer.current = null;
     } catch (err) {
       console.error('Failed to accept call', err);
+      if (err instanceof DOMException && err.name === 'NotAllowedError') {
+        showCallError('videoCall.error.mediaPermission');
+      }
       cleanUp();
     }
-  }, [send, did, onRemoteStream, cleanUp]);
+  }, [send, did, onRemoteStream, onIceConnectionStateChange, showCallError, cleanUp]);
 
   const rejectCall = useCallback(() => {
     const call = activeCallRef.current;
@@ -326,11 +364,15 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       if (incomingCallTimer.current) {
         clearTimeout(incomingCallTimer.current);
       }
+      if (errorTimerRef.current) {
+        clearTimeout(errorTimerRef.current);
+      }
     };
   }, []);
 
   const value: VideoCallContextValue = {
     activeCall,
+    callError,
     videoCall,
     acceptCall,
     rejectCall,

@@ -131,6 +131,24 @@
     "back": "Ar Ais"
   },
 
+  "videoCall": {
+    "incoming": {
+      "ariaLabel": "Físghlao ag teacht isteach",
+      "label": "Glao ag teacht isteach...",
+      "accept": "Glac leis an nglao",
+      "acceptAriaLabel": "Glac leis an nglao atá ag teacht isteach",
+      "reject": "Diúltaigh don ghlao",
+      "rejectAriaLabel": "Diúltaigh don ghlao atá ag teacht isteach"
+    },
+    "calling": "Ag glaoch...",
+    "ringing": "Ag bualadh...",
+    "reconnecting": "Ag athcheangal...",
+    "endCall": "Cuir deireadh leis an nglao",
+    "error": {
+      "mediaPermission": "Teastaíonn cead ceamara/micreafóin le haghaidh físghlaonna"
+    }
+  },
+
   "poll": {
     "createPoll": "Cruthaigh Vótáil",
     "questionLabel": "Ceist",
