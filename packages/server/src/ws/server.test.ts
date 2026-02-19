@@ -11,11 +11,12 @@ import { GlobalAllowlistService } from '../moderation/global-allowlist-service.j
 import { createPresenceService } from '../presence/service.js';
 import { InMemoryPresenceTracker } from '../presence/tracker.js';
 import type { DmService } from '../dms/service.js';
+import { createImRegistry } from '../dms/registry.js';
 
 // Minimal mock for Sql — ws server only passes it through
 const mockSql = {} as never;
 
-// Minimal mock DmService — ws server only passes it through
+// Minimal mock DmService — ws server only passes it through (video calls still use it)
 const mockDmService = {
   openConversation: () => Promise.resolve({ conversation: {}, messages: [] }),
   sendMessage: () => Promise.resolve({ message: {}, recipientDid: '' }),
@@ -35,6 +36,7 @@ function setup() {
   const blockService = new BlockService();
   const globalBans = new GlobalBanService();
   const globalAllowlist = new GlobalAllowlistService(false);
+  const imRegistry = createImRegistry();
   const wss = createWsServer(
     httpServer,
     mockSql,
@@ -42,6 +44,7 @@ function setup() {
     sessions,
     rateLimiter,
     mockDmService,
+    imRegistry,
     blockService,
     globalBans,
     globalAllowlist,

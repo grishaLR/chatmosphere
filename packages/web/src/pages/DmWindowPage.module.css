@@ -71,9 +71,18 @@
   box-shadow: var(--cm-pressed);
 }
 
-.persistActive {
-  box-shadow: var(--cm-pressed);
-  background: var(--color-base-100);
+.connectionState {
+  font-size: var(--cm-text-xs);
+  opacity: 0.7;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.connectionFailed {
+  font-size: var(--cm-text-xs);
+  color: var(--color-error);
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .body {

@@ -13,7 +13,6 @@ interface DmPopoverProps {
   onToggleMinimize: () => void;
   onSend: (text: string) => void;
   onTyping: () => void;
-  onTogglePersist: (persist: boolean) => void;
   onVideoCall: () => void;
 }
 
@@ -24,11 +23,10 @@ export function DmPopover({
   onToggleMinimize,
   onSend,
   onTyping,
-  onTogglePersist,
   onVideoCall,
 }: DmPopoverProps) {
   const { t } = useTranslation('dm');
-  const { recipientDid, messages, persist, minimized, typing, unreadCount } = conversation;
+  const { recipientDid, messages, minimized, typing, unreadCount, peerState } = conversation;
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // H7: Focus the input when popover expands
@@ -81,6 +79,15 @@ export function DmPopover({
             {displayUnread}
           </span>
         )}
+        {peerState === 'connecting' && (
+          <span className={styles.connectionState}>{t('popover.connecting')}</span>
+        )}
+        {peerState === 'failed' && (
+          <span className={styles.connectionFailed}>{t('popover.connectionFailed')}</span>
+        )}
+        {peerState === 'closed' && (
+          <span className={styles.connectionFailed}>{t('popover.peerOffline')}</span>
+        )}
         <div className={styles.headerActions}>
           <button
             className={styles.headerBtn}
@@ -92,22 +99,6 @@ export function DmPopover({
             aria-label={'Start video call'}
           >
             {'\uD83D\uDCF9'}
-          </button>
-          <button
-            className={`${styles.persistBtn} ${persist ? styles.persistActive : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onTogglePersist(!persist);
-            }}
-            title={persist ? t('popover.persist.titleActive') : t('popover.persist.titleInactive')}
-            aria-label={
-              persist
-                ? t('popover.persist.ariaLabel.disable')
-                : t('popover.persist.ariaLabel.enable')
-            }
-            aria-pressed={persist}
-          >
-            {persist ? '\uD83D\uDCBE' : '\u2601\uFE0F'}
           </button>
           <button
             className={styles.headerBtn}

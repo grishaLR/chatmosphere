@@ -18,6 +18,7 @@ import { BlockService } from './moderation/block-service.js';
 import { GlobalBanService } from './moderation/global-ban-service.js';
 import { GlobalAllowlistService } from './moderation/global-allowlist-service.js';
 import { createDmService } from './dms/service.js';
+import { createImRegistry } from './dms/registry.js';
 import { createTranslateService, getSupportedLanguages } from './translate/service.js';
 import { ChallengeStore } from './auth/challenge.js';
 import { RedisChallengeStore } from './auth/challenge-redis.js';
@@ -53,8 +54,9 @@ async function main() {
     ? new RedisRateLimiter(redis, { windowMs: 60_000, maxRequests: 10 })
     : new InMemoryRateLimiter({ windowMs: 60_000, maxRequests: 10 });
 
-  // DM service + block service (shared by HTTP presence route and WS)
+  // DM service (video calls still use DB), IM registry (P2P signaling), block service
   const dmService = createDmService(db);
+  const imRegistry = createImRegistry();
   const blockService = new BlockService();
 
   // Global account bans — load into memory for O(1) checks
@@ -140,6 +142,7 @@ async function main() {
     sessions,
     rateLimiter,
     dmService,
+    imRegistry,
     blockService,
     globalBans,
     globalAllowlist,

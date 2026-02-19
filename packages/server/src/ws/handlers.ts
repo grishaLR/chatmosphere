@@ -1,6 +1,5 @@
 import type { WebSocket } from 'ws';
-import { DM_LIMITS, ERROR_CODES } from '@protoimsg/shared';
-import { filterText } from '../moderation/filter.js';
+import { ERROR_CODES } from '@protoimsg/shared';
 import type { ValidatedClientMessage } from './validation.js';
 import type { RoomSubscriptions } from './rooms.js';
 import type { DmSubscriptions } from '../dms/subscriptions.js';
@@ -8,6 +7,7 @@ import type { UserSockets } from './server.js';
 import type { CommunityWatchers } from './buddy-watchers.js';
 import type { PresenceService } from '../presence/service.js';
 import type { DmService } from '../dms/service.js';
+import type { ImRegistry } from '../dms/registry.js';
 import type { PresenceVisibility } from '@protoimsg/shared';
 import type { Sql } from '../db/client.js';
 import type { RateLimiterStore } from '../moderation/rate-limiter-store.js';
@@ -20,6 +20,7 @@ import {
   isCommunityMember,
   isInnerCircle,
 } from '../community/queries.js';
+import { computeConversationId, sortDids } from '../dms/queries.js';
 import { resolveVisibleStatus } from '../presence/visibility.js';
 
 /**
@@ -43,6 +44,7 @@ export async function handleClientMessage(
   userSockets: UserSockets,
   dmService: DmService,
   blockService: BlockService,
+  imRegistry: ImRegistry,
 ): Promise<void> {
   // Rate limit per-socket so multi-tab users get separate quotas
   const socketId = (ws as WebSocket & { socketId?: string }).socketId ?? did;
@@ -231,131 +233,33 @@ export async function handleClientMessage(
         break;
       }
 
-      try {
-        const { conversation, messages } = await dmService.openConversation(did, data.recipientDid);
-        dmSubs.subscribe(conversation.id, ws);
+      {
+        const [did1, did2] = sortDids(did, data.recipientDid);
+        const conversationId = computeConversationId(did, data.recipientDid);
+        imRegistry.register(conversationId, did1, did2);
+        dmSubs.subscribe(conversationId, ws);
 
         ws.send(
           JSON.stringify({
             type: 'dm_opened',
             data: {
-              conversationId: conversation.id,
+              conversationId,
               recipientDid: data.recipientDid,
-              persist: conversation.persist,
-              messages: messages.map((m) => ({
-                id: m.id,
-                conversationId: m.conversation_id,
-                senderDid: m.sender_did,
-                text: m.text,
-                createdAt: m.created_at.toISOString(),
-              })),
             },
           }),
-        );
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to open DM';
-        ws.send(
-          JSON.stringify({ type: 'error', message: msg, errorCode: ERROR_CODES.SERVER_ERROR }),
-        );
-      }
-      break;
-    }
-
-    case 'dm_send': {
-      if (data.text.length > DM_LIMITS.maxMessageLength) {
-        ws.send(
-          JSON.stringify({
-            type: 'error',
-            message: `Message exceeds ${String(DM_LIMITS.maxMessageLength)} characters`,
-            errorCode: ERROR_CODES.MESSAGE_TOO_LONG,
-          }),
-        );
-        break;
-      }
-
-      // M17: Fail-fast content filter in WS handler — reject spam/abuse before
-      // hitting the DB in the service layer (service still re-checks as defense-in-depth)
-      {
-        const filter = filterText(data.text);
-        if (!filter.passed) {
-          ws.send(
-            JSON.stringify({
-              type: 'error',
-              message: filter.reason ?? 'Message blocked',
-              errorCode: ERROR_CODES.CONTENT_FILTERED,
-            }),
-          );
-          break;
-        }
-      }
-
-      // Check blocks before sending
-      {
-        const recipient = await dmService.getRecipientDid(data.conversationId, did);
-        if (recipient && blockService.isBlocked(did, recipient)) {
-          ws.send(
-            JSON.stringify({
-              type: 'error',
-              message: 'Cannot message this user',
-              errorCode: ERROR_CODES.BLOCKED_USER,
-            }),
-          );
-          break;
-        }
-      }
-
-      try {
-        const { message, recipientDid } = await dmService.sendMessage(
-          data.conversationId,
-          did,
-          data.text,
-        );
-
-        const event = {
-          type: 'dm_message' as const,
-          data: {
-            id: message.id,
-            conversationId: message.conversation_id,
-            senderDid: message.sender_did,
-            text: message.text,
-            createdAt: message.created_at.toISOString(),
-          },
-        };
-
-        // Broadcast to all sockets subscribed to this conversation
-        dmSubs.broadcast(data.conversationId, event);
-
-        // Send dm_incoming to recipient's sockets that don't have this convo open
-        const recipientSockets = userSockets.get(recipientDid);
-        const convoSubscribers = dmSubs.getSubscribers(data.conversationId);
-        const preview = data.text.slice(0, DM_LIMITS.maxPreviewLength);
-
-        for (const recipientWs of recipientSockets) {
-          if (!convoSubscribers.has(recipientWs) && recipientWs.readyState === recipientWs.OPEN) {
-            recipientWs.send(
-              JSON.stringify({
-                type: 'dm_incoming',
-                data: {
-                  conversationId: data.conversationId,
-                  senderDid: did,
-                  preview,
-                },
-              }),
-            );
-          }
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to send DM';
-        ws.send(
-          JSON.stringify({ type: 'error', message: msg, errorCode: ERROR_CODES.SERVER_ERROR }),
         );
       }
       break;
     }
 
     case 'dm_close': {
-      const isParticipant = await dmService.isParticipant(data.conversationId, did);
-      if (!isParticipant) {
+      // Check both ImRegistry (IM conversations) and DmService (video call conversations)
+      const isImParticipant = imRegistry.isParticipant(data.conversationId, did);
+      const isDmParticipant = !isImParticipant
+        ? await dmService.isParticipant(data.conversationId, did)
+        : false;
+
+      if (!isImParticipant && !isDmParticipant) {
         ws.send(
           JSON.stringify({
             type: 'error',
@@ -368,16 +272,57 @@ export async function handleClientMessage(
 
       dmSubs.unsubscribe(data.conversationId, ws);
 
-      // If no subscribers remain, clean up ephemeral conversation
       if (!dmSubs.hasSubscribers(data.conversationId)) {
-        void dmService.cleanupIfEmpty(data.conversationId);
+        if (isImParticipant) {
+          imRegistry.unregister(data.conversationId);
+        } else {
+          void dmService.cleanupIfEmpty(data.conversationId);
+        }
       }
       break;
     }
 
-    case 'dm_typing': {
-      const isParticipant = await dmService.isParticipant(data.conversationId, did);
-      if (!isParticipant) {
+    case 'im_offer': {
+      if (!imRegistry.isParticipant(data.conversationId, did)) {
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            message: 'Not a participant',
+            errorCode: ERROR_CODES.NOT_PARTICIPANT,
+          }),
+        );
+        break;
+      }
+
+      // Subscribe unsubscribed recipient sockets (same race condition fix as make_call)
+      const recipientDid = imRegistry.getRecipientDid(data.conversationId, did);
+      if (recipientDid) {
+        const recipientSockets = userSockets.get(recipientDid);
+        const convoSubscribers = dmSubs.getSubscribers(data.conversationId);
+        for (const recipientWs of recipientSockets) {
+          if (!convoSubscribers.has(recipientWs) && recipientWs.readyState === recipientWs.OPEN) {
+            dmSubs.subscribe(data.conversationId, recipientWs);
+          }
+        }
+      }
+
+      dmSubs.broadcast(
+        data.conversationId,
+        {
+          type: 'im_offer',
+          data: {
+            conversationId: data.conversationId,
+            senderDid: did,
+            offer: data.offer,
+          },
+        },
+        ws,
+      );
+      break;
+    }
+
+    case 'im_answer': {
+      if (!imRegistry.isParticipant(data.conversationId, did)) {
         ws.send(
           JSON.stringify({
             type: 'error',
@@ -391,32 +336,40 @@ export async function handleClientMessage(
       dmSubs.broadcast(
         data.conversationId,
         {
-          type: 'dm_typing',
-          data: { conversationId: data.conversationId, senderDid: did },
+          type: 'im_answer',
+          data: {
+            conversationId: data.conversationId,
+            answer: data.answer,
+          },
         },
-        ws, // exclude sender
+        ws,
       );
       break;
     }
 
-    case 'dm_toggle_persist': {
-      try {
-        await dmService.togglePersist(data.conversationId, did, data.persist);
+    case 'im_ice_candidate': {
+      if (!imRegistry.isParticipant(data.conversationId, did)) {
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            message: 'Not a participant',
+            errorCode: ERROR_CODES.NOT_PARTICIPANT,
+          }),
+        );
+        break;
+      }
 
-        dmSubs.broadcast(data.conversationId, {
-          type: 'dm_persist_changed',
+      dmSubs.broadcast(
+        data.conversationId,
+        {
+          type: 'im_ice_candidate',
           data: {
             conversationId: data.conversationId,
-            persist: data.persist,
-            changedBy: did,
+            candidate: data.candidate,
           },
-        });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to toggle persist';
-        ws.send(
-          JSON.stringify({ type: 'error', message: msg, errorCode: ERROR_CODES.SERVER_ERROR }),
-        );
-      }
+        },
+        ws,
+      );
       break;
     }
 
