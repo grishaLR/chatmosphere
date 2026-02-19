@@ -1,52 +1,75 @@
 # protoimsg
 
-## What this is
+**Find your people. Build your feed.**
 
-protoimsg is **not a feed-first app**. The main pillars are your **buddy list**, **topic-based group chat**, **consent**, and **peer-to-peer, ephemeral direct communication**.
+protoimsg is a real-time communications platform built on the AT Protocol. Public chat rooms are where you discover people. Your buddy list is where you keep them. Peer-to-peer video and messaging is how you stay connected. Your inner circle gets pure peer-to-peer by default (unless you opt out), everyone else is routed through our relay to hide your IP address. You can switch to pure P2P anytime. The relay exists only to protect you: nothing is stored, no media is logged, and all traffic is encrypted end-to-end (DTLS-SRTP) so even the relay can't see your data.
 
-**Group chat** — Rooms have topics, descriptions, and purposes (discussion, event, mutual aid, community, support). Browse the directory, find people interested in the same thing, join, and chat in real time. Like what someone says? Follow them. Now they're in your feed — Blacksky, North Sky, Bluesky, whatever you use. protoimsg is antoher way to _build_ your feed: discover people through topic chat, connect, follow. Beyond just scrolling and replying. Rooms are AT Proto records in the creator's repo, so they're portable and user-owned.
+Your identity, contacts, and public chat history are yours, portable across any app that implements the [Lexicon](./PROTOCOL.md).
 
-The buddy list is about **consent**. You choose who can see you online and who can start a conversation with you. If you're not in someone's circle, you can't message that person and vice versa.
+**Early alpha.** [protoimsg.app](https://protoimsg.app) is live but gated. Reach out on [Bluesky](https://bsky.app/profile/grishalr.bsky.social) or [email](mailto:protoimsg@gmail.com) for early access.
 
-Your buddy list is organized into groups: **Everyone**, **Community**, **Inner Circle**, and **Blocked**. These map to a tiered visibility system:
+## What it is
 
-| Visibility       | Who can see you online and start a DM                 |
-| ---------------- | ----------------------------------------------------- |
-| **Everyone**     | Anyone in your community list (and room participants) |
-| **Community**    | Only people in your community list                    |
-| **Inner Circle** | Only people in groups marked Inner Circle             |
-| **No one**       | You appear offline to everyone                        |
+- **Peer-to-peer video calling** — Free video calls powered by WebRTC. Pure P2P for your inner circle: direct connection, zero latency. Everyone else routes through our TURN relay to keep your IP address private. You can override this anytime. Tested NYC to Europe with clear video and no lag.
 
-**Inner Circle is special:** when you're "offline to everyone" (`no-one`), your inner circle can still reach you. You can be invisible to the world and still chat with the people who matter.
+- **Public chat rooms** — Join rooms by interest, meet people, and follow the ones you vibe with. The chat rooms have treaded replies, rich text, polls, GIF search (/giphy, /klipy), and room history that persists so you can discover people even after the conversation has moved on.
 
-**IMs will be peer-to-peer and ephemeral.** Powered by WebRTC, direct messages go device-to-device — nobody owns them. Even E2E encrypted apps store ciphertext; we aim for conversations that never hit our servers at all. If P2P fails, we fall back to the server, but still ephemeral (in-memory only). We'll alert you if that happens so you can kill the conversation before anything is stored. Want persistent DMs? We'll point you to [Germ](https://germnetwork.com) — E2E encrypted, works with your AT Proto handle.
+- **Instant messaging** — Real-time chat over WebRTC data channels (shipping next). Same trust-aware routing as video: pure P2P for your inner circle, relay for everyone else. The relay can't read your messages either way.
 
-**What's private:** Your presence (who can see you online, your away message) and your instant messages — ephemeral by default, or saved for up to 7 days only if both parties consent. That's it.
+- **Community list, not follow graph** — Your buddy list is separate from who you follow. You might want to chat with people you don't follow, and you might not want to chat with people you do follow. Your community list is organized into groups: **Everyone**, **Community**, and **Inner Circle**. Each tier controls who can see you online and who can start a conversation. Inner Circle is special: even when you're invisible to the world, your inner circle can still reach you.
 
-## On top of that, **you own your data**. All records live in your AT Protocol repository. We don't host them. If you leave protoimsg, you take your account — your DID, your handles, your content — to Bluesky, Blacksky, or any other AT Proto app. The worst outcome is that you end up with a portable identity you can use anywhere.
+- **Translation** — The entire UI, chat rooms, messages, and feed available in 8 languages (English, Spanish, Russian, Arabic, Ukrainian, Irish, Swahili, Hausa). Turn on auto-translate in settings or translate individual messages on demand. Powered by NLLB and LibreTranslate, both self-hosted. No data sent to third parties. Migrating fully to NLLB.
 
-**Not yet beta / not ready for public use.** We’re shipping when the planned features below are done.
+- **E2E encrypted DMs (coming)** — Integration with [Germ](https://germnetwork.com) for persistent, end-to-end encrypted private messaging.
 
-## Planned before beta
+- **Moderation** — Block/report users, room bans, account age gates, slow mode, allowlists. ATProto labeler integration respects your existing moderation preferences.
 
-| #   | Feature                       | Tier     |
-| --- | ----------------------------- | -------- |
-| 6   | Polls in chat rooms           | Core     |
-| 7   | Private chat rooms            | Social   |
-| 8   | Mobile: member list toggle    | Mobile   |
-| 9   | Mobile: remove duplicate nav  | Mobile   |
-| 10  | ATProto labeler integration   | Social   |
-| 11  | `dmConfig` self-record        | Protocol |
-| 12  | /giphy support                | Polish   |
-| 13  | WebRTC: P2P DMs + audio/video | Moonshot |
+- **Desktop & mobile apps** — Native desktop app via Tauri, in active development. Mobile is coming. Both will be in the Apple and Google stores.
 
-Full details: [`V1_AUDIT.md`](./V1_AUDIT.md#planned-features-not-bugs).
+- **Themeable** — 12 design themes including the default '98 Classic.
 
----
+## How it works
 
-Group chat as an [atproto Lexicon](https://atproto.com/guides/lexicon). Chat rooms, community lists, presence, away messages — all as user-owned records in the AT Protocol.
+Sign in with your atproto handle from any PDS: Bluesky, Blacksky, North Sky, or your own. No new account, no phone number, no email. Your existing AT Protocol identity is your identity on protoimsg.
 
-## Getting Started
+The product is built on a three-layer architecture:
+
+| Layer         | Technology                     | What it does                                                                                  |
+| ------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
+| **Identity**  | AT Protocol                    | Portable, user-owned identity. No account lock-in.                                            |
+| **Trust**     | Community lists + inner-circle | Who sees your presence, who gets P2P vs relay routing.                                        |
+| **Transport** | WebRTC                         | Trust-aware routing. Close friends get STUN (pure P2P). Others get TURN (relayed, IP hidden). |
+
+### Messaging tiers
+
+Different conversations need different infrastructure:
+
+- **Live/ephemeral** — WebRTC data channels. P2P, no server, no persistence. For real-time chat when both people are online.
+- **Persistent E2E DMs** — Germ integration. For async private messages that survive both parties being offline. End-to-end encrypted via MLS.
+- **Room chat** — ATProto records via the protoimsg server. For group rooms, public/community chat. Durable, searchable, portable.
+
+## Not feed-first
+
+ATProto has great feed-based apps, and protoimsg is meant to complement them. You join a room, meet people, and build your social graph from there, then follow them on whatever ATProto client you use. The chat room is the discovery mechanism for your feed, not the other way around.
+
+This is where you _build_ your feed: discover people through conversation, follow the ones you connect with. Your atproto feed is here if you want it. Browse and post without leaving the app. But we're not trying to be a feed client. There are better ones out there: [Blacksky](https://blacksky.app), [Skeets](https://www.skeetsapp.com/), [Bluesky](https://bsky.app), [Graysky](https://graysky.app), and others. We're focused on the conversations.
+
+## Planned
+
+| Feature                     | Notes                                                                     |
+| --------------------------- | ------------------------------------------------------------------------- |
+| Private chat rooms          | Multi-party, peer-to-peer via WebRTC. Nothing stored server-side.         |
+| ATProto labeler integration | Subscribe to community labelers (e.g. Blacksky) for structured moderation |
+| WebRTC P2P DMs              | Device-to-device messaging, no server touches the data                    |
+| Custom theme creator        | Build your own theme, stored in ATProto for portability                   |
+
+## Protocol
+
+All records live under the `app.protoimsg.chat.*` namespace in user repositories and are portable across any application that implements this Lexicon.
+
+Full Lexicon reference including all record schemas (room, message, community, presence, poll, vote, ban, role, allowlist) is available in [PROTOCOL.md](./PROTOCOL.md).
+
+## Getting started
 
 **Prerequisites:** Node.js 22+, [pnpm](https://pnpm.io/) 9+, Docker (for Postgres).
 
@@ -54,313 +77,26 @@ Group chat as an [atproto Lexicon](https://atproto.com/guides/lexicon). Chat roo
 # Install dependencies
 pnpm install
 
-# Start Postgres (port 5433 → 5432 in container)
+# Start Postgres
 docker compose up -d
 
 # Server: copy env and run migrations
 cp packages/server/.env.example packages/server/.env
-# Edit packages/server/.env and set DATABASE_URL if needed (default: postgres://protoimsg:localdev@localhost:5433/protoimsg)
 pnpm --filter @protoimsg/server db:migrate
 
-# Run everything (server + web)
+# Run everything
 pnpm dev
 ```
 
-- **Server** — `http://localhost:3000` (API + WebSocket).
-- **Web app** — `http://localhost:5173` (Vite dev server).
+- **Server** at `http://localhost:3000` (API + WebSocket)
+- **Web app** at `http://localhost:5173` (Vite dev server)
 
-Other commands: `pnpm build`, `pnpm test`, `pnpm lint`, `pnpm typecheck`. See `packages/server/.env.example` for server configuration.
+Other commands: `pnpm build`, `pnpm test`, `pnpm lint`, `pnpm typecheck`.
 
-## Namespace
+## Stack
 
-```
-app.protoimsg.chat.*
-```
+TypeScript monorepo (Turborepo + pnpm workspaces). Vite + React 19 web client. Node.js server with WebSocket. WebRTC for P2P video/voice/data. Tauri v2 desktop app. PostgreSQL + Redis. NLLB + LibreTranslate translation servers. Deployed on Fly.io (server, TURN, translation) + Vercel (web). Full CI/CD via GitHub Actions.
 
-All records live in user repositories and are portable across any application that implements this Lexicon.
+## License
 
-## Record Schemas
-
-### `app.protoimsg.chat.room`
-
-Declares a chat room. Created by whoever starts the room. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.room",
-  "name": "Gotham FC Match Day",
-  "topic": "Live chat during Gotham FC games",
-  "description": "Pre-game, live, and post-game discussion for NJ/NY Gotham FC matches",
-  "purpose": "discussion",
-  "createdAt": "2026-02-07T00:00:00Z",
-  "settings": {
-    "visibility": "public",
-    "minAccountAgeDays": 7,
-    "slowModeSeconds": 0,
-    "allowlistEnabled": false
-  }
-}
-```
-
-| Field         | Type             | Required | Description                                         |
-| ------------- | ---------------- | -------- | --------------------------------------------------- |
-| `name`        | string (max 100) | yes      | Display name for the room                           |
-| `topic`       | string (max 200) | yes      | Room topic for sorting, filtering, and discovery    |
-| `description` | string (max 500) | no       | What the room is about                              |
-| `purpose`     | string           | yes      | `discussion` \| `event` \| `community` \| `support` |
-| `createdAt`   | datetime         | yes      | Timestamp of room creation                          |
-| `settings`    | object           | no       | Room configuration (see below)                      |
-
-**`settings` object:**
-
-| Field               | Type    | Default  | Description                                                                         |
-| ------------------- | ------- | -------- | ----------------------------------------------------------------------------------- |
-| `visibility`        | string  | `public` | `public` (listed in directory) \| `unlisted` (link only) \| `private` (invite only) |
-| `minAccountAgeDays` | integer | `0`      | Minimum atproto account age in days to participate                                  |
-| `slowModeSeconds`   | integer | `0`      | Minimum seconds between messages per user (0 = off)                                 |
-| `allowlistEnabled`  | boolean | `false`  | When true, only allowlisted users can send messages                                 |
-
----
-
-### `app.protoimsg.chat.message`
-
-A chat message. Lives in the sender's repo, points to a room. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.message",
-  "room": "at://did:plc:xxx/app.protoimsg.chat.room/room-id",
-  "text": "What a goal by Lavelle!",
-  "facets": [],
-  "reply": {
-    "root": "at://did:plc:yyy/app.protoimsg.chat.message/root-id",
-    "parent": "at://did:plc:yyy/app.protoimsg.chat.message/parent-id"
-  },
-  "createdAt": "2026-02-07T20:31:00Z"
-}
-```
-
-| Field       | Type                                      | Required | Description                                                                  |
-| ----------- | ----------------------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `room`      | at-uri                                    | yes      | AT-URI of the room record                                                    |
-| `text`      | string (max 3000 bytes / 1000 graphemes)  | yes      | Message content                                                              |
-| `facets`    | richTextFacet[]                           | no       | Rich text annotations (mentions, links) — same format as Bluesky post facets |
-| `reply`     | replyRef                                  | no       | Structured thread reference (root + parent)                                  |
-| `embed`     | imageEmbed \| videoEmbed \| externalEmbed | no       | Embedded media or link card                                                  |
-| `createdAt` | datetime                                  | yes      | Timestamp of message creation                                                |
-
-**Rich text facets** follow the same `byteSlice` + features model as `app.bsky.feed.post`. Each facet targets a byte range and annotates it as a `#mention` (with `did`) or `#link` (with `uri`).
-
-**Reply threading** uses a structured `reply` object with both `root` (thread root) and `parent` (direct parent) AT-URIs for efficient deep thread traversal, matching the pattern used by `app.bsky.feed.post`.
-
-**Embeds** support three types: `#imageEmbed` (up to 4 images with alt text and aspect ratio), `#videoEmbed` (single video with optional thumbnail), and `#externalEmbed` (link card with title, description, and thumb).
-
----
-
-### `app.protoimsg.chat.community`
-
-The user's community list. Portable across any app implementing the Lexicon. Key: `literal:self` (singleton per user).
-
-```json
-{
-  "$type": "app.protoimsg.chat.community",
-  "groups": [
-    {
-      "name": "Inner Circle",
-      "isInnerCircle": true,
-      "members": [
-        { "did": "did:plc:abc", "addedAt": "2026-01-15T00:00:00Z" },
-        { "did": "did:plc:def", "addedAt": "2026-01-20T00:00:00Z" }
-      ]
-    },
-    {
-      "name": "Soccer People",
-      "isInnerCircle": false,
-      "members": [{ "did": "did:plc:ghi", "addedAt": "2026-02-01T00:00:00Z" }]
-    }
-  ]
-}
-```
-
-| Field    | Type                      | Required | Description                       |
-| -------- | ------------------------- | -------- | --------------------------------- |
-| `groups` | communityGroup[] (max 50) | yes      | Named groups of community members |
-
-**`communityGroup` object:**
-
-| Field           | Type                        | Required             | Description                                                     |
-| --------------- | --------------------------- | -------------------- | --------------------------------------------------------------- |
-| `name`          | string (max 100)            | yes                  | Group label                                                     |
-| `isInnerCircle` | boolean                     | no (default `false`) | Whether members of this group can see your real presence status |
-| `members`       | communityMember[] (max 500) | yes                  | DIDs of group members                                           |
-
-**`communityMember` object:**
-
-| Field     | Type     | Required | Description                |
-| --------- | -------- | -------- | -------------------------- |
-| `did`     | did      | yes      | The member's DID           |
-| `addedAt` | datetime | yes      | When this member was added |
-
----
-
-### `app.protoimsg.chat.presence`
-
-User's current presence status. Lives in their repo, updated by their client. Key: `literal:self` (singleton per user).
-
-```json
-{
-  "$type": "app.protoimsg.chat.presence",
-  "status": "online",
-  "visibleTo": "inner-circle",
-  "awayMessage": "only my people know I'm here",
-  "updatedAt": "2026-02-07T19:00:00Z"
-}
-```
-
-| Field         | Type             | Required | Description                                              |
-| ------------- | ---------------- | -------- | -------------------------------------------------------- |
-| `status`      | string           | yes      | `online` \| `away` \| `idle` \| `offline` \| `invisible` |
-| `visibleTo`   | string           | yes      | `everyone` \| `community` \| `inner-circle` \| `no-one`  |
-| `awayMessage` | string (max 300) | no       | Custom status text (the AIM away message)                |
-| `updatedAt`   | datetime         | yes      | When presence was last updated                           |
-
-See [Presence Visibility](#presence-visibility) for how `visibleTo` interacts with the community list.
-
----
-
-### `app.protoimsg.chat.poll`
-
-A poll within a chat room. Lives in the creator's repo. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.poll",
-  "room": "at://did:plc:xxx/app.protoimsg.chat.room/room-id",
-  "question": "MOTM?",
-  "options": ["Lavelle", "Shaw", "Sonnett", "Berger"],
-  "allowMultiple": false,
-  "expiresAt": "2026-02-07T22:00:00Z",
-  "createdAt": "2026-02-07T20:45:00Z"
-}
-```
-
-| Field           | Type                                | Required             | Description                                |
-| --------------- | ----------------------------------- | -------------------- | ------------------------------------------ |
-| `room`          | at-uri                              | yes                  | AT-URI of the room                         |
-| `question`      | string (max 200)                    | yes                  | The poll question                          |
-| `options`       | string[] (2-10 items, max 100 each) | yes                  | Answer options                             |
-| `allowMultiple` | boolean                             | no (default `false`) | Whether voters can select multiple options |
-| `expiresAt`     | datetime                            | no                   | When the poll closes (omit for no expiry)  |
-| `createdAt`     | datetime                            | yes                  | Timestamp of poll creation                 |
-
----
-
-### `app.protoimsg.chat.vote`
-
-A vote on a poll. Lives in the voter's repo. Votes are separate records so they're user-owned and independently verifiable. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.vote",
-  "poll": "at://did:plc:xxx/app.protoimsg.chat.poll/poll-id",
-  "selectedOptions": [0],
-  "createdAt": "2026-02-07T20:46:00Z"
-}
-```
-
-| Field             | Type      | Required | Description                         |
-| ----------------- | --------- | -------- | ----------------------------------- |
-| `poll`            | at-uri    | yes      | AT-URI of the poll being voted on   |
-| `selectedOptions` | integer[] | yes      | 0-based indices of selected options |
-| `createdAt`       | datetime  | yes      | Timestamp of vote                   |
-
----
-
-### `app.protoimsg.chat.ban`
-
-A ban issued by a room owner or moderator. Lives in the issuer's repo. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.ban",
-  "room": "at://did:plc:xxx/app.protoimsg.chat.room/room-id",
-  "subject": "did:plc:banned-user",
-  "reason": "Spam",
-  "createdAt": "2026-02-07T21:00:00Z"
-}
-```
-
-| Field       | Type             | Required | Description                           |
-| ----------- | ---------------- | -------- | ------------------------------------- |
-| `room`      | at-uri           | yes      | AT-URI of the room the ban applies to |
-| `subject`   | did              | yes      | DID of the banned user                |
-| `reason`    | string (max 300) | no       | Reason for the ban                    |
-| `createdAt` | datetime         | yes      | Timestamp of ban                      |
-
----
-
-### `app.protoimsg.chat.role`
-
-Assigns a moderator or owner role to a user for a specific room. Lives in the assigner's repo. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.role",
-  "room": "at://did:plc:xxx/app.protoimsg.chat.room/room-id",
-  "subject": "did:plc:trusted-user",
-  "role": "moderator",
-  "createdAt": "2026-02-07T21:00:00Z"
-}
-```
-
-| Field       | Type     | Required | Description                             |
-| ----------- | -------- | -------- | --------------------------------------- |
-| `room`      | at-uri   | yes      | AT-URI of the room                      |
-| `subject`   | did      | yes      | DID of the user being assigned the role |
-| `role`      | string   | yes      | `moderator` \| `owner`                  |
-| `createdAt` | datetime | yes      | Timestamp of role assignment            |
-
----
-
-### `app.protoimsg.chat.allowlist`
-
-An allowlist entry for a room. When a room has `allowlistEnabled: true`, only allowlisted users can send messages. Lives in the room owner/mod's repo. Key: `tid`.
-
-```json
-{
-  "$type": "app.protoimsg.chat.allowlist",
-  "room": "at://did:plc:xxx/app.protoimsg.chat.room/room-id",
-  "subject": "did:plc:allowed-user",
-  "createdAt": "2026-02-07T21:00:00Z"
-}
-```
-
-| Field       | Type     | Required | Description                                 |
-| ----------- | -------- | -------- | ------------------------------------------- |
-| `room`      | at-uri   | yes      | AT-URI of the room the allowlist applies to |
-| `subject`   | did      | yes      | DID of the allowlisted user                 |
-| `createdAt` | datetime | yes      | Timestamp of allowlist entry creation       |
-
----
-
-## Presence Visibility
-
-The presence model has an inner-circle design inspired by AIM's buddy list visibility. Your `presence` record declares both your status and _who gets to see it_.
-
-**`visibleTo` values:**
-
-- **`everyone`** — all community members and room participants see your real status and away message.
-- **`community`** — only users in your community list see your real status. Everyone else sees `offline`.
-- **`inner-circle`** — only users in community groups where `isInnerCircle: true` see your real status. Everyone else sees `offline`.
-- **`no-one`** — you appear `offline` to everyone. Like `invisible` status, but explicit in the record.
-
-**How it works at the protocol level:**
-
-1. Alice sets her presence to `{ status: "online", visibleTo: "inner-circle" }`.
-2. Bob requests Alice's presence from the server.
-3. The server checks Alice's `community` record — is Bob's DID in any group where `isInnerCircle: true`?
-4. If yes: Bob sees `online`. If no: Bob sees `offline`.
-
-The away message follows the same visibility rules. If you can't see someone's status, you can't see their away message either.
-
-This keeps the community list portable (it's a user-owned atproto record) and the visibility logic simple enough for any implementing server to enforce.
+MIT
