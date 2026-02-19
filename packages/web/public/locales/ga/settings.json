@@ -31,6 +31,17 @@
     "autoTranslateHint": "Aistrigh postálacha fotha agus beathaisnéisí go huathoibríoch go do theanga"
   },
 
+  "privacy": {
+    "title": "Príobháideachas",
+    "ipProtectionLabel": "Cosaint IP do ghlaonna",
+    "ipProtectionHint": "Ceileann an sealaíocht do sheoladh IP ach d'fhéadfadh sé caighdeán an ghlao a laghdú. Tá naisc dhíreacha níos tapúla ach nochtann siad do IP don ghlaoiteoir eile.",
+    "options": {
+      "all": "Sealaigh gach glao (uasmhéid príobháideachais)",
+      "nonInnerCircle": "Sealaigh lasmuigh den chiorcal inmheánach amháin (molta)",
+      "off": "Ceadaigh díreach do chách (caighdeán is fearr)"
+    }
+  },
+
   "actions": {
     "title": "Gníomhartha",
     "signOut": "Sínigh Amach"

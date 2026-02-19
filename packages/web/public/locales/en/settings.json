@@ -31,6 +31,17 @@
     "autoTranslateHint": "Automatically translate feed posts and bios into your language"
   },
 
+  "privacy": {
+    "title": "Privacy",
+    "ipProtectionLabel": "IP protection for calls",
+    "ipProtectionHint": "Relay hides your IP address but may reduce call quality. Direct connections are faster but expose your IP to the other caller.",
+    "options": {
+      "all": "Relay all calls (max privacy)",
+      "nonInnerCircle": "Relay non-inner-circle only (recommended)",
+      "off": "Allow direct for all (best quality)"
+    }
+  },
+
   "actions": {
     "title": "Actions",
     "signOut": "Sign Out"
