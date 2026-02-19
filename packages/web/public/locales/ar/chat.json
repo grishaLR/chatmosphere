@@ -137,6 +137,24 @@
     "back": "رجوع"
   },
 
+  "videoCall": {
+    "incoming": {
+      "ariaLabel": "مكالمة فيديو واردة",
+      "label": "مكالمة واردة...",
+      "accept": "قبول المكالمة",
+      "acceptAriaLabel": "قبول المكالمة الواردة",
+      "reject": "رفض المكالمة",
+      "rejectAriaLabel": "رفض المكالمة الواردة"
+    },
+    "calling": "جارٍ الاتصال...",
+    "ringing": "جارٍ الرنين...",
+    "reconnecting": "إعادة الاتصال...",
+    "endCall": "إنهاء المكالمة",
+    "error": {
+      "mediaPermission": "يلزم إذن الكاميرا/الميكروفون لمكالمات الفيديو"
+    }
+  },
+
   "poll": {
     "createPoll": "إنشاء استطلاع",
     "questionLabel": "السؤال",

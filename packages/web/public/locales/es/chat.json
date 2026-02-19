@@ -131,6 +131,24 @@
     "back": "Volver"
   },
 
+  "videoCall": {
+    "incoming": {
+      "ariaLabel": "Videollamada entrante",
+      "label": "Llamada entrante...",
+      "accept": "Aceptar llamada",
+      "acceptAriaLabel": "Aceptar llamada entrante",
+      "reject": "Rechazar llamada",
+      "rejectAriaLabel": "Rechazar llamada entrante"
+    },
+    "calling": "Llamando...",
+    "ringing": "Sonando...",
+    "reconnecting": "Reconectando...",
+    "endCall": "Finalizar llamada",
+    "error": {
+      "mediaPermission": "Se requiere permiso de cámara/micrófono para videollamadas"
+    }
+  },
+
   "poll": {
     "createPoll": "Crear Encuesta",
     "questionLabel": "Pregunta",
