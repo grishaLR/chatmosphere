@@ -143,6 +143,9 @@
     "calling": "Llamando...",
     "ringing": "Sonando...",
     "reconnecting": "Reconectando...",
+    "mute": "Silenciar",
+    "unmute": "Activar sonido",
+    "flipCamera": "Cambiar cámara",
     "endCall": "Finalizar llamada",
     "error": {
       "mediaPermission": "Se requiere permiso de cámara/micrófono para videollamadas"
