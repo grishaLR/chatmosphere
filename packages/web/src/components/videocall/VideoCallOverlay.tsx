@@ -6,7 +6,8 @@ import styles from './VideoCallOverlay.module.css';
 
 export function VideoCallOverlay() {
   const { t } = useTranslation('chat');
-  const { activeCall, callError, acceptCall, rejectCall, hangUp } = useVideoCall();
+  const { activeCall, callError, isMuted, acceptCall, rejectCall, hangUp, toggleMute, flipCamera } =
+    useVideoCall();
 
   // Position: top-left corner of the container (null = use CSS default)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -22,15 +23,13 @@ export function VideoCallOverlay() {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Reset position/size when call ends and restarts
-  const prevCallId = useRef<string | null>(null);
-  if (activeCall?.conversationId !== prevCallId.current) {
-    prevCallId.current = activeCall?.conversationId ?? null;
-    if (activeCall && !prevCallId.current) {
+  // Reset position/size when a new call starts
+  useEffect(() => {
+    if (activeCall) {
       setPos(null);
       setSize(null);
     }
-  }
+  }, [activeCall?.conversationId]);
 
   const localVideoRef = useCallback(
     (el: HTMLVideoElement | null) => {
@@ -286,6 +285,36 @@ export function VideoCallOverlay() {
           {'\u2715'}
         </button>
       </div>
+
+      {(activeCall.status === 'active' || activeCall.status === 'reconnecting') && (
+        <div className={styles.controlBar}>
+          <button
+            className={`${styles.controlBtn} ${isMuted ? styles.controlBtnActive : ''}`}
+            onClick={toggleMute}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            aria-pressed={isMuted}
+            title={isMuted ? t('videoCall.unmute') : t('videoCall.mute')}
+            aria-label={isMuted ? t('videoCall.unmute') : t('videoCall.mute')}
+          >
+            {isMuted ? '\uD83D\uDD07' : '\uD83D\uDD0A'}
+          </button>
+          <button
+            className={`${styles.controlBtn} ${styles.flipBtn}`}
+            onClick={() => {
+              void flipCamera();
+            }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            title={t('videoCall.flipCamera')}
+            aria-label={t('videoCall.flipCamera')}
+          >
+            {'\uD83D\uDD04'}
+          </button>
+        </div>
+      )}
 
       {activeCall.status === 'outgoing' && (
         <div className={styles.ringing}>

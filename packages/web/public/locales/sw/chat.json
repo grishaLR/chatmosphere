@@ -143,6 +143,9 @@
     "calling": "Inapiga simu...",
     "ringing": "Inalia...",
     "reconnecting": "Inaunganisha tena...",
+    "mute": "Nyamazisha",
+    "unmute": "Washa sauti",
+    "flipCamera": "Geuza kamera",
     "endCall": "Maliza simu",
     "error": {
       "mediaPermission": "Ruhusa ya kamera/maikrofoni inahitajika kwa simu za video"

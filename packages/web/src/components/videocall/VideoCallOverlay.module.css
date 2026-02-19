@@ -250,6 +250,47 @@
   cursor: sw-resize;
 }
 
+/* Control bar — mute, flip camera */
+.controlBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cm-space-3);
+  padding: var(--cm-space-2) 0;
+  background: var(--cm-titlebar);
+  border-top: 1px solid var(--cm-surface);
+  flex-shrink: 0;
+}
+
+.controlBtn {
+  width: var(--cm-icon-lg);
+  height: var(--cm-icon-lg);
+  border-radius: var(--cm-radius-sm);
+  border: none;
+  background: var(--cm-surface-button);
+  color: var(--cm-chrome-text);
+  font-size: var(--cm-text-base);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.controlBtn:hover {
+  opacity: 0.85;
+}
+
+.controlBtnActive {
+  background: var(--color-error);
+  color: var(--color-error-content);
+}
+
+.flipBtn {
+  display: none;
+}
+
 /* Reconnecting overlay — semi-transparent over frozen video */
 .reconnectingOverlay {
   position: absolute;
@@ -292,10 +333,14 @@
   animation: slideDown 0.2s ease-out;
 }
 
-/* Touch devices — larger hit areas for fingers */
+/* Touch devices — larger hit areas for fingers, show flip button */
 @media (pointer: coarse) {
   :root {
     --cm-call-resize-edge: 12px;
     --cm-call-resize-corner: 20px;
+  }
+
+  .flipBtn {
+    display: flex;
   }
 }

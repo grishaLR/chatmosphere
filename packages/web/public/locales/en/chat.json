@@ -143,6 +143,9 @@
     "calling": "Calling...",
     "ringing": "Ringing...",
     "reconnecting": "Reconnecting...",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "flipCamera": "Flip camera",
     "endCall": "End call",
     "error": {
       "mediaPermission": "Camera/mic permission required for video calls"

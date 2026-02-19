@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import { Header } from '../components/layout/Header';
@@ -15,7 +15,7 @@ import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useDm } from '../contexts/DmContext';
-import { useVideoCall } from '../contexts/VideoCallContext';
+import { useVideoCall, setInnerCircleDidsForCalls } from '../contexts/VideoCallContext';
 import { useBlocks } from '../contexts/BlockContext';
 import { IS_TAURI } from '../lib/config';
 import styles from './RoomDirectoryPage.module.css';
@@ -35,11 +35,17 @@ export function RoomDirectoryPage() {
     removeBuddy,
     toggleInnerCircle,
     blockBuddy,
+    innerCircleDids,
     createGroup,
     renameGroup,
     deleteGroup,
     moveBuddy,
   } = useBuddyList();
+  // Sync inner-circle DIDs to VideoCallContext for IP protection decisions
+  useEffect(() => {
+    setInnerCircleDidsForCalls(innerCircleDids);
+  }, [innerCircleDids]);
+
   const { openDm, openDmMinimized } = useDm();
   const { videoCall } = useVideoCall();
   const { blockedDids, toggleBlock } = useBlocks();
