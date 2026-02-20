@@ -31,6 +31,12 @@
     "autoTranslateHint": "Traducir automáticamente publicaciones y biografías a tu idioma"
   },
 
+  "notifications": {
+    "title": "Notificaciones",
+    "enableSounds": "Activar sonidos",
+    "enableSoundsHint": "Reproducir sonidos para entrada/salida, nuevos mensajes y llamadas entrantes"
+  },
+
   "privacy": {
     "title": "Privacidad",
     "ipProtectionLabel": "Protección IP para llamadas",

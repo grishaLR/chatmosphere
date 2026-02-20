@@ -1,9 +1,14 @@
 .inputArea {
   display: flex;
+  flex-direction: column;
+  background: var(--color-base-100);
+}
+
+.inputRow {
+  display: flex;
   align-items: flex-end;
   gap: var(--cm-space-1);
-  padding: var(--cm-space-2);
-  background: var(--color-base-100);
+  padding: 0 var(--cm-space-2) var(--cm-space-2);
 }
 
 .textarea {

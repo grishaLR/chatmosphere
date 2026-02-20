@@ -31,6 +31,12 @@
     "autoTranslateHint": "Automatically translate feed posts and bios into your language"
   },
 
+  "notifications": {
+    "title": "Notifications",
+    "enableSounds": "Enable sounds",
+    "enableSoundsHint": "Play sounds for door open/close, new messages, and incoming calls"
+  },
+
   "privacy": {
     "title": "Privacy",
     "ipProtectionLabel": "IP protection for calls",

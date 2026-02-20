@@ -11,6 +11,7 @@
       "chatRooms": "Чат-кімнати",
       "feed": "Стрічка"
     },
+    "unreadIm": "{{count}} непрочитаних",
     "groups": {
       "innerCircle": "Близьке коло",
       "community": "Спільнота",
@@ -30,7 +31,10 @@
     "moveTo": "Перемістити до...",
     "block": "Заблокувати",
     "unblock": "Розблокувати",
-    "remove": "Видалити"
+    "remove": "Видалити",
+    "messageOnGerm": "Написати в Germ",
+    "sendImDisabled": "Користувач не в мережі",
+    "videoCallDisabled": "Користувач не в мережі"
   },
 
   "memberMenu": {
@@ -147,6 +151,8 @@
     "unmute": "Увімкнути мікрофон",
     "flipCamera": "Переключити камеру",
     "endCall": "Завершити дзвінок",
+    "shareScreen": "Демонстрація екрану",
+    "stopSharing": "Зупинити показ",
     "error": {
       "mediaPermission": "Для відеодзвінків потрібен доступ до камери та мікрофона"
     }

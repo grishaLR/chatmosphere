@@ -31,6 +31,12 @@
     "autoTranslateHint": "Aistrigh postálacha fotha agus beathaisnéisí go huathoibríoch go do theanga"
   },
 
+  "notifications": {
+    "title": "Fógraí",
+    "enableSounds": "Cumasaigh fuaimeanna",
+    "enableSoundsHint": "Seinn fuaimeanna le haghaidh doras oscailte/dúnta, teachtaireachtaí nua agus glaonna ag teacht isteach"
+  },
+
   "privacy": {
     "title": "Príobháideachas",
     "ipProtectionLabel": "Cosaint IP do ghlaonna",

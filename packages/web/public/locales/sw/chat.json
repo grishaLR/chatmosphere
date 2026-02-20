@@ -11,6 +11,7 @@
       "chatRooms": "Vyumba vya Mazungumzo",
       "feed": "Mlisho"
     },
+    "unreadIm": "{{count}} hazijasomwa",
     "groups": {
       "innerCircle": "Watu wa Karibu",
       "community": "Jamii",
@@ -30,7 +31,10 @@
     "moveTo": "Hamisha hadi...",
     "block": "Zuia",
     "unblock": "Ondoa kuzuia",
-    "remove": "Ondoa"
+    "remove": "Ondoa",
+    "messageOnGerm": "Tuma ujumbe kwenye Germ",
+    "sendImDisabled": "Mtumiaji hayuko mtandaoni",
+    "videoCallDisabled": "Mtumiaji hayuko mtandaoni"
   },
 
   "memberMenu": {
@@ -147,6 +151,8 @@
     "unmute": "Washa sauti",
     "flipCamera": "Geuza kamera",
     "endCall": "Maliza simu",
+    "shareScreen": "Shiriki skrini",
+    "stopSharing": "Acha kushiriki",
     "error": {
       "mediaPermission": "Ruhusa ya kamera/maikrofoni inahitajika kwa simu za video"
     }

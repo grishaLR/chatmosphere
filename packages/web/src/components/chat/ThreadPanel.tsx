@@ -105,7 +105,16 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
   return (
     <aside className={styles.panel} aria-label={t('threadPanel.ariaLabel')}>
       <header className={styles.header}>
-        {!isAtRoot && (
+        {isAtRoot ? (
+          <button
+            className={styles.closeBackBtn}
+            onClick={onClose}
+            type="button"
+            aria-label={t('threadPanel.closeAriaLabel')}
+          >
+            &larr;
+          </button>
+        ) : (
           <button
             className={styles.backBtn}
             onClick={handleBack}
