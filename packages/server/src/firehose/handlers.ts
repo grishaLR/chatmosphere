@@ -35,6 +35,7 @@ import {
   voteRecordSchema,
 } from './record-schemas.js';
 import type { PresenceService } from '../presence/service.js';
+import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
 
 const log = createLogger('firehose');
@@ -81,7 +82,12 @@ function isSlowModeViolation(roomId: string, did: string, slowModeSeconds: numbe
   return false;
 }
 
-export function createHandlers(db: Sql, wss: WsServer, presenceService: PresenceService) {
+export function createHandlers(
+  db: Sql,
+  wss: WsServer,
+  presenceService: PresenceService,
+  labelerService: LabelerService,
+) {
   const handlers: Record<string, (event: FirehoseEvent) => Promise<void>> = {
     [NSID.Room]: async (event) => {
       if (event.operation === 'delete') {
@@ -175,8 +181,9 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
       // Jetstream batch, the ban handler may still be mid-index when the
       // pre-insert check runs. Re-checking here gives the ban time to land.
       const banned = await isUserBanned(db, roomId, event.did);
+      const restricted = await labelerService.shouldRestrict(event.did);
 
-      if (!banned && !slowModeViolation) {
+      if (!banned && !restricted && !slowModeViolation) {
         wss.broadcastToRoom(roomId, {
           type: 'message',
           data: {

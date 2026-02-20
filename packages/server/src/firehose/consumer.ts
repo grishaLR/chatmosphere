@@ -5,6 +5,7 @@ import { getCursor, saveCursor } from './cursor.js';
 import { createHandlers, type FirehoseEvent } from './handlers.js';
 import type { WsServer } from '../ws/server.js';
 import type { PresenceService } from '../presence/service.js';
+import type { LabelerService } from '../moderation/labeler-service.js';
 import type { SessionStore } from '../auth/session-store.js';
 import { createLogger } from '../logger.js';
 import { Sentry } from '../sentry.js';
@@ -69,8 +70,9 @@ export function createFirehoseConsumer(
   wss: WsServer,
   presenceService: PresenceService,
   sessions: SessionStore,
+  labelerService: LabelerService,
 ): FirehoseConsumer {
-  const handlers = createHandlers(db, wss, presenceService);
+  const handlers = createHandlers(db, wss, presenceService, labelerService);
   let ws: WebSocket | null = null;
   let shouldReconnect = true;
   let eventCount = 0;

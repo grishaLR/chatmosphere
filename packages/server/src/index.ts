@@ -17,6 +17,7 @@ import { RedisRateLimiter } from './moderation/rate-limiter-redis.js';
 import { BlockService } from './moderation/block-service.js';
 import { GlobalBanService } from './moderation/global-ban-service.js';
 import { GlobalAllowlistService } from './moderation/global-allowlist-service.js';
+import { LabelerService } from './moderation/labeler-service.js';
 import { createDmService } from './dms/service.js';
 import { createImRegistry } from './dms/registry.js';
 import { createTranslateService, getSupportedLanguages } from './translate/service.js';
@@ -66,6 +67,9 @@ async function main() {
   // Global allowlist — when enabled, only listed DIDs can authenticate
   const globalAllowlist = new GlobalAllowlistService(config.REQUIRE_ALLOWLIST);
   await globalAllowlist.load(db);
+
+  // Labeler service — checks profile labels via public API for server-side enforcement
+  const labelerService = new LabelerService();
 
   // Auth challenge store (Redis when available, else in-memory)
   const challenges = redis ? new RedisChallengeStore(redis) : new ChallengeStore();
@@ -146,12 +150,20 @@ async function main() {
     blockService,
     globalBans,
     globalAllowlist,
+    labelerService,
   );
   log.info('WebSocket server attached');
 
   // Firehose consumer
   // Jetstream consumer (atproto event stream)
-  const firehose = createFirehoseConsumer(config.JETSTREAM_URL, db, wss, presenceService, sessions);
+  const firehose = createFirehoseConsumer(
+    config.JETSTREAM_URL,
+    db,
+    wss,
+    presenceService,
+    sessions,
+    labelerService,
+  );
   firehose.start();
 
   // Periodic cleanup (every 60s for sessions/rate limiter, message retention checked each cycle)

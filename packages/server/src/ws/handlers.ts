@@ -13,6 +13,7 @@ import type { Sql } from '../db/client.js';
 import type { RateLimiterStore } from '../moderation/rate-limiter-store.js';
 import { checkUserAccess } from '../moderation/service.js';
 import type { BlockService } from '../moderation/block-service.js';
+import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
 import {
   syncCommunityMembers,
@@ -45,6 +46,7 @@ export async function handleClientMessage(
   dmService: DmService,
   blockService: BlockService,
   imRegistry: ImRegistry,
+  labelerService: LabelerService,
 ): Promise<void> {
   // Rate limit per-socket so multi-tab users get separate quotas
   const socketId = (ws as WebSocket & { socketId?: string }).socketId ?? did;
@@ -61,7 +63,7 @@ export async function handleClientMessage(
 
   switch (data.type) {
     case 'join_room': {
-      const access = await checkUserAccess(sql, data.roomId, did);
+      const access = await checkUserAccess(sql, data.roomId, did, labelerService);
       if (!access.allowed) {
         ws.send(
           JSON.stringify({

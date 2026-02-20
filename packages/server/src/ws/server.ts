@@ -17,6 +17,7 @@ import type { RateLimiterStore } from '../moderation/rate-limiter-store.js';
 import { BlockService } from '../moderation/block-service.js';
 import type { GlobalBanService } from '../moderation/global-ban-service.js';
 import type { GlobalAllowlistService } from '../moderation/global-allowlist-service.js';
+import type { LabelerService } from '../moderation/labeler-service.js';
 import { ERROR_CODES } from '@protoimsg/shared';
 
 import { createLogger } from '../logger.js';
@@ -93,6 +94,7 @@ export function createWsServer(
   blockService: BlockService,
   globalBans: GlobalBanService,
   globalAllowlist: GlobalAllowlistService,
+  labelerService: LabelerService,
 ): WsServer {
   const connectionTracker = new WsConnectionTracker();
 
@@ -259,6 +261,7 @@ export function createWsServer(
             dmService,
             blockService,
             imRegistry,
+            labelerService,
           ),
         )
         .catch((err: unknown) => {
