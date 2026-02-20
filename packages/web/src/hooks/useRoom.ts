@@ -2,14 +2,30 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchRoom, NotFoundError } from '../lib/api';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { playDoorOpen, playDoorClose } from '../lib/sounds';
-import type { RoomView, MemberPresence } from '../types';
-import type { ServerMessage } from '@protoimsg/shared';
+import type { RoomView, ChannelView, MemberPresence } from '../types';
+import type { ServerMessage, ChannelInfo } from '@protoimsg/shared';
 
 export type DoorEvent = 'join' | 'leave';
+
+function channelInfoToView(info: ChannelInfo): ChannelView {
+  return {
+    id: info.id,
+    uri: info.uri,
+    did: info.did,
+    roomId: info.roomId,
+    name: info.name,
+    description: info.description,
+    position: info.position,
+    postPolicy: info.postPolicy,
+    isDefault: info.isDefault,
+    createdAt: info.createdAt,
+  };
+}
 
 export function useRoom(roomId: string) {
   const [room, setRoom] = useState<RoomView | null>(null);
   const [members, setMembers] = useState<MemberPresence[]>([]);
+  const [channels, setChannels] = useState<ChannelView[]>([]);
   const [doorEvents, setDoorEvents] = useState<Record<string, DoorEvent>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +98,18 @@ export function useRoom(roomId: string) {
         if (msg.roomId === roomId) {
           knownDidsRef.current = new Set(msg.members);
           setMembers(msg.members.map((did) => ({ did, status: 'online' })));
+          setChannels(msg.channels.map(channelInfoToView));
+        }
+      } else if (msg.type === 'channel_created') {
+        if (msg.data.roomId === roomId) {
+          setChannels((prev) => {
+            const updated = [...prev, channelInfoToView(msg.data)];
+            return updated.sort((a, b) => a.position - b.position);
+          });
+        }
+      } else if (msg.type === 'channel_deleted') {
+        if (msg.data.roomId === roomId) {
+          setChannels((prev) => prev.filter((ch) => ch.id !== msg.data.channelId));
         }
       } else if (msg.type === 'presence') {
         const { did, status: s, awayMessage: away } = msg.data;
@@ -117,5 +145,5 @@ export function useRoom(roomId: string) {
     };
   }, [room, roomId, send, subscribe]);
 
-  return { room, members, doorEvents, loading, error };
+  return { room, members, channels, doorEvents, loading, error };
 }

@@ -1,6 +1,7 @@
 import type { Sql } from '../db/client.js';
 import {
   getMessagesByRoom,
+  getMessagesByChannel,
   getThreadMessages,
   getReplyCountsByRootUris,
   type MessageRow,
@@ -20,13 +21,21 @@ export async function getRoomMessages(
   return getMessagesByRoom(sql, roomId, options);
 }
 
+export async function getChannelMessages(
+  sql: Sql,
+  channelId: string,
+  options: MessageHistoryOptions = {},
+): Promise<MessageRow[]> {
+  return getMessagesByChannel(sql, channelId, options);
+}
+
 export async function getThreadMessagesByRoot(
   sql: Sql,
-  roomId: string,
+  channelId: string,
   rootUri: string,
   options: { limit?: number } = {},
 ): Promise<MessageRow[]> {
-  return getThreadMessages(sql, roomId, rootUri, options);
+  return getThreadMessages(sql, channelId, rootUri, options);
 }
 
 /**

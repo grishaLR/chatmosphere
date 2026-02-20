@@ -6,6 +6,7 @@ export interface PollRow {
   did: string;
   cid: string | null;
   room_id: string;
+  channel_id: string;
   question: string;
   options: string[];
   allow_multiple: boolean;
@@ -20,6 +21,7 @@ export interface InsertPollInput {
   did: string;
   cid: string | null;
   roomId: string;
+  channelId: string;
   question: string;
   options: string[];
   allowMultiple: boolean;
@@ -29,13 +31,14 @@ export interface InsertPollInput {
 
 export async function insertPoll(sql: Sql, input: InsertPollInput): Promise<void> {
   await sql`
-    INSERT INTO polls (id, uri, did, cid, room_id, question, options, allow_multiple, expires_at, created_at)
+    INSERT INTO polls (id, uri, did, cid, room_id, channel_id, question, options, allow_multiple, expires_at, created_at)
     VALUES (
       ${input.id},
       ${input.uri},
       ${input.did},
       ${input.cid},
       ${input.roomId},
+      ${input.channelId},
       ${input.question},
       ${sql.json(input.options as JsonValue)},
       ${input.allowMultiple},
@@ -44,6 +47,7 @@ export async function insertPoll(sql: Sql, input: InsertPollInput): Promise<void
     )
     ON CONFLICT (id) DO UPDATE SET
       cid = EXCLUDED.cid,
+      channel_id = EXCLUDED.channel_id,
       question = EXCLUDED.question,
       options = EXCLUDED.options,
       allow_multiple = EXCLUDED.allow_multiple,
@@ -65,6 +69,14 @@ export async function getPollsByRoom(sql: Sql, roomId: string): Promise<PollRow[
   return sql<PollRow[]>`
     SELECT * FROM polls
     WHERE room_id = ${roomId}
+    ORDER BY created_at DESC
+  `;
+}
+
+export async function getPollsByChannel(sql: Sql, channelId: string): Promise<PollRow[]> {
+  return sql<PollRow[]>`
+    SELECT * FROM polls
+    WHERE channel_id = ${channelId}
     ORDER BY created_at DESC
   `;
 }

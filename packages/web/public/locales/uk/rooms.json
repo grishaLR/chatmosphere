@@ -50,6 +50,10 @@
     "invalidId": "Недійсний ID кімнати",
     "loading": "Кімната налаштовується...",
     "notFound": "Кімнату не знайдено",
-    "backToRooms": "Кімнати"
+    "backToRooms": "Кімнати",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

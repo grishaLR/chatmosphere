@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import styles from './BuddyListPanel.module.css';
 
 const OFFLINE_GROUP = 'Offline';
@@ -41,7 +42,7 @@ export function GroupHeaderRow({
         className={styles.collapseBtn}
         aria-label={isCollapsed ? t('groupHeader.expand') : t('groupHeader.collapse')}
       >
-        {isCollapsed ? '\u25B6' : '\u25BC'}
+        {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
       </button>
       <span className={styles.groupName}>
         {GROUP_I18N_KEYS[groupName]

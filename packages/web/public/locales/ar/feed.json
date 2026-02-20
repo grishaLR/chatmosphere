@@ -47,7 +47,9 @@
     "translateBio": "ترجمة السيرة الذاتية",
     "translating": "جارٍ الترجمة...",
     "translatedTo": "مُترجم إلى {{lang}}",
-    "showOriginal": "عرض الأصلي"
+    "showOriginal": "عرض الأصلي",
+    "messageOnGerm": "مراسلة عبر Germ",
+    "germDm": "Germ DM"
   },
 
   "threadView": {

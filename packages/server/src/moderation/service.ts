@@ -3,6 +3,7 @@ import { filterText, type FilterResult } from './filter.js';
 import { isUserBanned } from './queries.js';
 import { getRoomById } from '../rooms/queries.js';
 import { getDidCreationDate, getAccountAgeDays } from './account-age.js';
+import type { LabelerService } from './labeler-service.js';
 
 export function checkMessageContent(text: string): FilterResult {
   return filterText(text);
@@ -28,6 +29,7 @@ export async function checkUserAccess(
   sql: Sql,
   roomId: string,
   did: string,
+  labelerService?: LabelerService,
 ): Promise<AccessResult> {
   const banned = await isUserBanned(sql, roomId, did);
   if (banned) {
@@ -44,6 +46,14 @@ export async function checkUserAccess(
     const allowed = await isUserAllowlisted(sql, roomId, did);
     if (!allowed) {
       return { allowed: false, reason: 'This room requires an invite to join' };
+    }
+  }
+
+  // Labeler check — allowlisted users and room creators bypass this gate
+  if (labelerService && room.did !== did) {
+    const restricted = await labelerService.shouldRestrict(did);
+    if (restricted) {
+      return { allowed: false, reason: 'Account restricted by moderation service' };
     }
   }
 

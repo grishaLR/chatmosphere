@@ -22,7 +22,7 @@
     "unreadOverflow": "99+",
     "connecting": "Ag ceangal\u2026",
     "connectionFailed": "Theip ar an gceangal",
-    "peerOffline": "T\u00e1 an \u00fas\u00e1ideoir as l\u00edne. \u00das\u00e1id Germ le haghaidh teachtaireachta\u00ed as l\u00edne.",
+    "peerClosed": "D\u00fanadh an comhr\u00e1. \u00das\u00e1id Germ le haghaidh teachtaireachta\u00ed as l\u00edne.",
     "minimize": {
       "titleExpand": "Leathnaigh",
       "titleMinimize": "\u00cdoslaghda\u00edgh",

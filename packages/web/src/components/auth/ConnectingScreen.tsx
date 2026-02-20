@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import type { AuthPhase } from '../../contexts/AuthContext';
+import { Check, ChevronRight, Circle } from 'lucide-react';
 import { claimDialup } from '../../lib/sounds';
 import { preloadApp } from '../../lib/preload';
 import styles from './ConnectingScreen.module.css';
@@ -132,11 +133,13 @@ export function ConnectingScreen() {
                 }
               >
                 <span>
-                  {step.status === 'done'
-                    ? '\u2713'
-                    : step.status === 'active'
-                      ? '\u25B6'
-                      : '\u25CB'}
+                  {step.status === 'done' ? (
+                    <Check size={14} />
+                  ) : step.status === 'active' ? (
+                    <ChevronRight size={14} />
+                  ) : (
+                    <Circle size={14} />
+                  )}
                 </span>
                 <span>{t(step.labelKey as 'connecting.step.connecting')}</span>
               </div>

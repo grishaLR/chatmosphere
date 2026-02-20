@@ -1,8 +1,29 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CommunityGroup } from '@protoimsg/lexicon';
+import { MoreVertical, Video, ChevronUp, ChevronDown } from 'lucide-react';
+import { useGermDeclaration } from '../../hooks/useGermDeclaration';
 import type { MemberWithPresence } from '../../types';
 import styles from './BuddyListPanel.module.css';
+
+function GermMenuItem({ did, onClose }: { did: string; onClose: () => void }) {
+  const { t } = useTranslation('chat');
+  const { canMessage, germUrl } = useGermDeclaration(did);
+
+  if (!canMessage || !germUrl) return null;
+
+  return (
+    <button
+      className={styles.menuItem}
+      onClick={() => {
+        window.open(germUrl, '_blank', 'noopener,noreferrer');
+        onClose();
+      }}
+    >
+      {t('buddyMenu.messageOnGerm')}
+    </button>
+  );
+}
 
 const OFFLINE_GROUP = 'Offline';
 const BLOCKED_GROUP = 'Blocked';
@@ -60,6 +81,9 @@ export function BuddyMenu({
     (g) => g.name !== groupName && g.name !== OFFLINE_GROUP && g.name !== BLOCKED_GROUP,
   );
 
+  const isOffline = buddy.status === 'offline';
+  const canIm = !isOffline || !!buddy.isInnerCircle;
+
   return (
     <div className={styles.menuWrap} ref={menuRef}>
       <button
@@ -70,32 +94,42 @@ export function BuddyMenu({
         title={t('buddyMenu.button.title')}
         aria-label={t('buddyMenu.button.ariaLabel')}
       >
-        <span className={styles.menuIcon} />
+        <MoreVertical size={12} />
       </button>
       {open && (
         <div className={styles.menuDropdown}>
           {onSendIm && (
             <button
-              className={styles.menuItem}
+              className={`${styles.menuItem} ${!canIm ? styles.menuItemDisabled : ''}`}
+              disabled={!canIm}
               onClick={() => {
                 onSendIm();
                 setOpen(false);
               }}
+              title={!canIm ? t('buddyMenu.sendImDisabled') : undefined}
             >
               {t('buddyMenu.sendIm')}
             </button>
           )}
           {onVideoCall && (
             <button
-              className={styles.menuItem}
+              className={`${styles.menuItem} ${isOffline ? styles.menuItemDisabled : ''}`}
+              disabled={isOffline}
               onClick={() => {
                 onVideoCall();
                 setOpen(false);
               }}
+              title={isOffline ? t('buddyMenu.videoCallDisabled') : undefined}
             >
-              {'\uD83D\uDCF9'} Video Call
+              <Video size={14} /> Video Call
             </button>
           )}
+          <GermMenuItem
+            did={buddy.did}
+            onClose={() => {
+              setOpen(false);
+            }}
+          />
           <button
             className={styles.menuItem}
             onClick={() => {
@@ -116,7 +150,9 @@ export function BuddyMenu({
                 }}
               >
                 <span>{t('buddyMenu.moveTo')}</span>{' '}
-                <span className={styles.moveCaret}>{moveOpen ? '\u25B2' : '\u25BC'}</span>
+                <span className={styles.moveCaret}>
+                  {moveOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </span>
               </button>
               {moveOpen &&
                 moveTargets.map((g) => (

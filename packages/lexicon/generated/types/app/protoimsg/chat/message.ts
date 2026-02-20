@@ -7,8 +7,8 @@ import { lexicons } from '../../../../lexicons';
 import { CID } from 'multiformats/cid';
 
 export interface Record {
-  /** AT-URI of the room record this message belongs to. */
-  room: string;
+  /** AT-URI of the channel record this message belongs to. */
+  channel: string;
   /** Message text content. */
   text: string;
   /** Rich text annotations (mentions, links, tags, formatting). Extends the Bluesky facet convention with additional formatting features. */

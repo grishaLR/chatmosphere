@@ -46,7 +46,7 @@ interface DmContextValue {
   openDmMinimized: (recipientDid: string) => void;
   closeDm: (conversationId: string) => void;
   toggleMinimize: (conversationId: string) => void;
-  sendDm: (conversationId: string, text: string) => void;
+  sendDm: (conversationId: string, text: string, facets?: unknown[], embed?: unknown) => void;
   sendTyping: (conversationId: string) => void;
   dismissNotification: (conversationId: string) => void;
   openFromNotification: (notification: DmNotification) => void;
@@ -115,6 +115,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
                 text: msg.text,
                 createdAt: msg.ts,
               };
+              if (msg.facets && msg.facets.length > 0) remoteMsg.facets = msg.facets;
+              if (msg.embed) remoteMsg.embed = msg.embed;
               return {
                 ...c,
                 messages: trimMessages([...c.messages, remoteMsg]),
@@ -324,7 +326,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const sendDm = useCallback(
-    (conversationId: string, text: string) => {
+    (conversationId: string, text: string, facets?: unknown[], embed?: unknown) => {
       if (!did) return;
       const msg: DcTextMessage = {
         type: 'text',
@@ -332,6 +334,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
         text,
         ts: new Date().toISOString(),
       };
+      if (facets && facets.length > 0) msg.facets = facets;
+      if (embed) msg.embed = embed;
 
       const peer = peersRef.current.get(conversationId);
       if (peer?.state === 'open') {
@@ -350,6 +354,8 @@ export function DmProvider({ children }: { children: ReactNode }) {
         text: msg.text,
         createdAt: msg.ts,
       };
+      if (facets && facets.length > 0) localMsg.facets = facets;
+      if (embed) localMsg.embed = embed;
       setConversations((prev) =>
         prev.map((c) =>
           c.conversationId === conversationId

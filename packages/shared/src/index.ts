@@ -1,6 +1,7 @@
 export type {
   RoomVisibility,
   RoomPurpose,
+  ChannelPostPolicy,
   PresenceStatus,
   PresenceVisibility,
   ModeratorRole,
@@ -8,7 +9,7 @@ export type {
   WsDirection,
 } from './types.js';
 
-export { NSID, NSID_PREFIX, ROOM_DEFAULTS, LIMITS, DM_LIMITS } from './constants.js';
+export { NSID, NSID_PREFIX, ROOM_DEFAULTS, LIMITS, DM_LIMITS, APP_LABELERS } from './constants.js';
 
 export { ERROR_CODES } from './error-codes.js';
 export type { ErrorCode } from './error-codes.js';
@@ -28,7 +29,7 @@ export type {
   ImOfferMessage,
   ImAnswerMessage,
   ImIceCandidateMessage,
-  RoomTypingMessage,
+  ChannelTypingMessage,
   SyncBlocksMessage,
   CallInitMessage,
   MakeCallMessage,
@@ -36,18 +37,23 @@ export type {
   RejectCallMessage,
   NewIceCandidateMessage,
   ClientMessage,
+  ChannelInfo,
   NewMessageEvent,
   PresenceUpdateEvent,
   CommunityPresenceEvent,
   RoomJoinedEvent,
   PongEvent,
   ErrorEvent,
-  RoomTypingEvent,
+  ChannelTypingEvent,
+  ChannelCreatedEvent,
+  ChannelDeletedEvent,
   DmOpenedEvent,
   ImOfferEvent,
   ImAnswerEvent,
   ImIceCandidateEvent,
   MentionNotificationEvent,
+  PollCreatedEvent,
+  PollVoteEvent,
   CallReadyEvent,
   IncomingCallEvent,
   AcceptCallEvent,

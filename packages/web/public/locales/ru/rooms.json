@@ -50,6 +50,10 @@
     "invalidId": "Неверный ID комнаты",
     "loading": "Подготовка комнаты...",
     "notFound": "Комната не найдена",
-    "backToRooms": "Комнаты"
+    "backToRooms": "Комнаты",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

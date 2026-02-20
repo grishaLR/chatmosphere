@@ -4,6 +4,9 @@ export type RoomVisibility = 'public' | 'unlisted' | 'private';
 /** Room purpose categorization */
 export type RoomPurpose = 'discussion' | 'event' | 'community' | 'support';
 
+/** Who can post in a channel */
+export type ChannelPostPolicy = 'everyone' | 'owner' | 'moderators';
+
 /** Real-time presence status */
 export type PresenceStatus = 'online' | 'away' | 'idle' | 'offline' | 'invisible';
 

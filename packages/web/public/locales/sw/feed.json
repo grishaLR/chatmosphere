@@ -47,7 +47,9 @@
     "translateBio": "Tafsiri wasifu",
     "translating": "Inatafsiri...",
     "translatedTo": "Imetafsiriwa kwa {{lang}}",
-    "showOriginal": "Onyesha asili"
+    "showOriginal": "Onyesha asili",
+    "messageOnGerm": "Tuma ujumbe kwenye Germ",
+    "germDm": "Germ DM"
   },
 
   "threadView": {

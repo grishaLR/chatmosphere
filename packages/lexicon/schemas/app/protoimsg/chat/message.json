@@ -4,16 +4,16 @@
   "defs": {
     "main": {
       "type": "record",
-      "description": "A chat message. Lives in the sender's repo, points to a room.",
+      "description": "A chat message. Lives in the sender's repo, points to a channel.",
       "key": "tid",
       "record": {
         "type": "object",
-        "required": ["room", "text", "createdAt"],
+        "required": ["channel", "text", "createdAt"],
         "properties": {
-          "room": {
+          "channel": {
             "type": "string",
             "format": "at-uri",
-            "description": "AT-URI of the room record this message belongs to."
+            "description": "AT-URI of the channel record this message belongs to."
           },
           "text": {
             "type": "string",

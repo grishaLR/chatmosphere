@@ -6,6 +6,7 @@ import { schemas } from './lexicons';
 import { CID } from 'multiformats/cid';
 import * as AppProtoimsgChatAllowlist from './types/app/protoimsg/chat/allowlist';
 import * as AppProtoimsgChatBan from './types/app/protoimsg/chat/ban';
+import * as AppProtoimsgChatChannel from './types/app/protoimsg/chat/channel';
 import * as AppProtoimsgChatCommunity from './types/app/protoimsg/chat/community';
 import * as AppProtoimsgChatMessage from './types/app/protoimsg/chat/message';
 import * as AppProtoimsgChatPoll from './types/app/protoimsg/chat/poll';
@@ -16,6 +17,7 @@ import * as AppProtoimsgChatVote from './types/app/protoimsg/chat/vote';
 
 export * as AppProtoimsgChatAllowlist from './types/app/protoimsg/chat/allowlist';
 export * as AppProtoimsgChatBan from './types/app/protoimsg/chat/ban';
+export * as AppProtoimsgChatChannel from './types/app/protoimsg/chat/channel';
 export * as AppProtoimsgChatCommunity from './types/app/protoimsg/chat/community';
 export * as AppProtoimsgChatMessage from './types/app/protoimsg/chat/message';
 export * as AppProtoimsgChatPoll from './types/app/protoimsg/chat/poll';
@@ -62,6 +64,7 @@ export class AppProtoimsgChatNS {
   _client: XrpcClient;
   allowlist: AllowlistRecord;
   ban: BanRecord;
+  channel: ChannelRecord;
   community: CommunityRecord;
   message: MessageRecord;
   poll: PollRecord;
@@ -74,6 +77,7 @@ export class AppProtoimsgChatNS {
     this._client = client;
     this.allowlist = new AllowlistRecord(client);
     this.ban = new BanRecord(client);
+    this.channel = new ChannelRecord(client);
     this.community = new CommunityRecord(client);
     this.message = new MessageRecord(client);
     this.poll = new PollRecord(client);
@@ -193,6 +197,64 @@ export class BanRecord {
       'com.atproto.repo.deleteRecord',
       undefined,
       { collection: 'app.protoimsg.chat.ban', ...params },
+      { headers },
+    );
+  }
+}
+
+export class ChannelRecord {
+  _client: XrpcClient;
+
+  constructor(client: XrpcClient) {
+    this._client = client;
+  }
+
+  async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
+    cursor?: string;
+    records: { uri: string; value: AppProtoimsgChatChannel.Record }[];
+  }> {
+    const res = await this._client.call('com.atproto.repo.listRecords', {
+      collection: 'app.protoimsg.chat.channel',
+      ...params,
+    });
+    return res.data;
+  }
+
+  async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
+    uri: string;
+    cid: string;
+    value: AppProtoimsgChatChannel.Record;
+  }> {
+    const res = await this._client.call('com.atproto.repo.getRecord', {
+      collection: 'app.protoimsg.chat.channel',
+      ...params,
+    });
+    return res.data;
+  }
+
+  async create(
+    params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
+    record: AppProtoimsgChatChannel.Record,
+    headers?: Record<string, string>,
+  ): Promise<{ uri: string; cid: string }> {
+    record.$type = 'app.protoimsg.chat.channel';
+    const res = await this._client.call(
+      'com.atproto.repo.createRecord',
+      undefined,
+      { collection: 'app.protoimsg.chat.channel', ...params, record },
+      { encoding: 'application/json', headers },
+    );
+    return res.data;
+  }
+
+  async delete(
+    params: Omit<ComAtprotoRepoDeleteRecord.InputSchema, 'collection'>,
+    headers?: Record<string, string>,
+  ): Promise<void> {
+    await this._client.call(
+      'com.atproto.repo.deleteRecord',
+      undefined,
+      { collection: 'app.protoimsg.chat.channel', ...params },
       { headers },
     );
   }

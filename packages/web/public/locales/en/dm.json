@@ -22,7 +22,7 @@
     "unreadOverflow": "99+",
     "connecting": "Connecting\u2026",
     "connectionFailed": "Connection failed",
-    "peerOffline": "User is offline. Use Germ for offline messaging.",
+    "peerClosed": "Chat closed. Use Germ for offline messaging.",
     "minimize": {
       "titleExpand": "Expand",
       "titleMinimize": "Minimize",

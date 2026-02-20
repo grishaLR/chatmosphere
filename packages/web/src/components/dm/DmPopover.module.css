@@ -1,4 +1,5 @@
 .popover {
+  position: fixed;
   width: var(--cm-panel-width-dm);
   max-width: calc(100vw - var(--cm-space-16));
   height: var(--cm-dm-popover-h);
@@ -9,8 +10,9 @@
   border: none;
   border-radius: var(--cm-radius-lg);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
-  overflow: hidden;
-  /* respects rounded corners on header */
+  overflow: visible;
+  z-index: var(--cm-z-dm);
+  pointer-events: auto;
 }
 
 .minimized {
@@ -26,8 +28,16 @@
   height: var(--cm-header-h);
   background: var(--cm-titlebar);
   color: var(--cm-chrome-text);
-  cursor: pointer;
+  cursor: grab;
   flex-shrink: 0;
+  touch-action: none;
+  user-select: none;
+  border-radius: var(--cm-radius-lg) var(--cm-radius-lg) 0 0;
+  overflow: hidden;
+}
+
+.minimized .header {
+  border-radius: var(--cm-radius-lg);
 }
 
 .headerIdentity {
@@ -81,12 +91,20 @@
   font-size: var(--cm-text-xs);
   opacity: 0.7;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .connectionFailed {
   font-size: var(--cm-text-xs);
   color: var(--color-error);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
 .body {
@@ -94,6 +112,8 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
+  border-radius: 0 0 var(--cm-radius-lg) var(--cm-radius-lg);
 }
 
 .bodyHidden {
@@ -114,4 +134,74 @@
   font-size: var(--cm-text-xs);
   font-weight: 700;
   line-height: 1;
+}
+
+/* Resize handles — invisible hit areas around all edges and corners */
+.resizeHandle {
+  position: absolute;
+  z-index: 3;
+}
+
+.resizeN {
+  top: calc(var(--cm-call-resize-edge) / -2);
+  left: var(--cm-call-resize-corner);
+  right: var(--cm-call-resize-corner);
+  height: var(--cm-call-resize-edge);
+  cursor: n-resize;
+}
+
+.resizeS {
+  bottom: calc(var(--cm-call-resize-edge) / -2);
+  left: var(--cm-call-resize-corner);
+  right: var(--cm-call-resize-corner);
+  height: var(--cm-call-resize-edge);
+  cursor: s-resize;
+}
+
+.resizeE {
+  top: var(--cm-call-resize-corner);
+  bottom: var(--cm-call-resize-corner);
+  right: calc(var(--cm-call-resize-edge) / -2);
+  width: var(--cm-call-resize-edge);
+  cursor: e-resize;
+}
+
+.resizeW {
+  top: var(--cm-call-resize-corner);
+  bottom: var(--cm-call-resize-corner);
+  left: calc(var(--cm-call-resize-edge) / -2);
+  width: var(--cm-call-resize-edge);
+  cursor: w-resize;
+}
+
+.resizeNE {
+  top: calc(var(--cm-call-resize-edge) / -2);
+  right: calc(var(--cm-call-resize-edge) / -2);
+  width: var(--cm-call-resize-corner);
+  height: var(--cm-call-resize-corner);
+  cursor: ne-resize;
+}
+
+.resizeNW {
+  top: calc(var(--cm-call-resize-edge) / -2);
+  left: calc(var(--cm-call-resize-edge) / -2);
+  width: var(--cm-call-resize-corner);
+  height: var(--cm-call-resize-corner);
+  cursor: nw-resize;
+}
+
+.resizeSE {
+  bottom: calc(var(--cm-call-resize-edge) / -2);
+  right: calc(var(--cm-call-resize-edge) / -2);
+  width: var(--cm-call-resize-corner);
+  height: var(--cm-call-resize-corner);
+  cursor: se-resize;
+}
+
+.resizeSW {
+  bottom: calc(var(--cm-call-resize-edge) / -2);
+  left: calc(var(--cm-call-resize-edge) / -2);
+  width: var(--cm-call-resize-corner);
+  height: var(--cm-call-resize-corner);
+  cursor: sw-resize;
 }

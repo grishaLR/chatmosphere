@@ -22,7 +22,7 @@
     "unreadOverflow": "99+",
     "connecting": "Ana ha\u0257awa\u2026",
     "connectionFailed": "Ha\u0257in ya gaza",
-    "peerOffline": "Mai amfani ba ya shiga ba. Yi amfani da Germ don sa\u0199onni ba tare da ha\u0257i ba.",
+    "peerClosed": "An rufe tattaunawa. Yi amfani da Germ don sa\u0199onni ba tare da ha\u0257i ba.",
     "minimize": {
       "titleExpand": "Bu\u0257e",
       "titleMinimize": "Rage",
