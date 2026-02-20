@@ -74,6 +74,53 @@ export const schemaDict = {
       },
     },
   },
+  AppProtoimsgChatChannel: {
+    lexicon: 1,
+    id: 'app.protoimsg.chat.channel',
+    defs: {
+      main: {
+        type: 'record',
+        description: 'A channel within a chat room. Created by the room owner.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['room', 'name', 'createdAt'],
+          properties: {
+            room: {
+              type: 'string',
+              format: 'at-uri',
+              description: 'AT-URI of the room this channel belongs to.',
+            },
+            name: {
+              type: 'string',
+              maxLength: 100,
+              description: 'Display name for the channel.',
+            },
+            description: {
+              type: 'string',
+              maxLength: 500,
+              description: 'What the channel is about.',
+            },
+            position: {
+              type: 'integer',
+              minimum: 0,
+              description: 'Sort position within the room. Lower numbers appear first.',
+            },
+            postPolicy: {
+              type: 'string',
+              knownValues: ['everyone', 'owner', 'moderators'],
+              description: 'Who can post messages in this channel.',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'Timestamp of channel creation.',
+            },
+          },
+        },
+      },
+    },
+  },
   AppProtoimsgChatCommunity: {
     lexicon: 1,
     id: 'app.protoimsg.chat.community',
@@ -149,16 +196,16 @@ export const schemaDict = {
     defs: {
       main: {
         type: 'record',
-        description: "A chat message. Lives in the sender's repo, points to a room.",
+        description: "A chat message. Lives in the sender's repo, points to a channel.",
         key: 'tid',
         record: {
           type: 'object',
-          required: ['room', 'text', 'createdAt'],
+          required: ['channel', 'text', 'createdAt'],
           properties: {
-            room: {
+            channel: {
               type: 'string',
               format: 'at-uri',
-              description: 'AT-URI of the room record this message belongs to.',
+              description: 'AT-URI of the channel record this message belongs to.',
             },
             text: {
               type: 'string',
@@ -448,16 +495,16 @@ export const schemaDict = {
     defs: {
       main: {
         type: 'record',
-        description: "A poll within a chat room. Lives in the creator's repo.",
+        description: "A poll within a chat channel. Lives in the creator's repo.",
         key: 'tid',
         record: {
           type: 'object',
-          required: ['room', 'question', 'options', 'createdAt'],
+          required: ['channel', 'question', 'options', 'createdAt'],
           properties: {
-            room: {
+            channel: {
               type: 'string',
               format: 'at-uri',
-              description: 'AT-URI of the room this poll belongs to.',
+              description: 'AT-URI of the channel this poll belongs to.',
             },
             question: {
               type: 'string',
@@ -687,6 +734,7 @@ export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
   AppProtoimsgChatAllowlist: 'app.protoimsg.chat.allowlist',
   AppProtoimsgChatBan: 'app.protoimsg.chat.ban',
+  AppProtoimsgChatChannel: 'app.protoimsg.chat.channel',
   AppProtoimsgChatCommunity: 'app.protoimsg.chat.community',
   AppProtoimsgChatMessage: 'app.protoimsg.chat.message',
   AppProtoimsgChatPoll: 'app.protoimsg.chat.poll',

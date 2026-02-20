@@ -51,6 +51,10 @@
     "loading": "Room is being set up...",
     "notFound": "Room not found",
     "backToRooms": "Rooms",
-    "members": "Members"
+    "members": "Members",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

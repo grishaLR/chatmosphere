@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getPollsByRoom,
+  getPollsByChannel,
   getPollById,
   getVoteTallies,
   getTotalVoters,
@@ -11,7 +12,36 @@ import type { Sql } from '../db/client.js';
 export function pollsRouter(sql: Sql): Router {
   const router = Router();
 
-  // GET /api/rooms/:id/polls — list polls for a room (with tallies + user vote)
+  // GET /api/rooms/:id/channels/:channelId/polls — list polls for a channel
+  router.get('/:id/channels/:channelId/polls', async (req, res, next) => {
+    try {
+      const userDid = (req as unknown as { did: string }).did;
+      const polls = await getPollsByChannel(sql, req.params.channelId);
+
+      const pollViews = await Promise.all(
+        polls.map(async (poll) => {
+          const [tallies, totalVoters, myVote] = await Promise.all([
+            getVoteTallies(sql, poll.id),
+            getTotalVoters(sql, poll.id),
+            getUserVote(sql, poll.id, userDid),
+          ]);
+
+          return {
+            ...poll,
+            tallies,
+            totalVoters,
+            myVote: myVote ? myVote.selected_options : null,
+          };
+        }),
+      );
+
+      res.json({ polls: pollViews });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /api/rooms/:id/polls — fallback: all polls in room
   router.get('/:id/polls', async (req, res, next) => {
     try {
       const roomId = req.params.id;

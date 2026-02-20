@@ -30,9 +30,10 @@ const requestCommunityPresence = z.object({
   dids: z.array(did).max(100),
 });
 
-const roomTyping = z.object({
-  type: z.literal('room_typing'),
+const channelTyping = z.object({
+  type: z.literal('channel_typing'),
   roomId: z.string().min(1),
+  channelId: z.string().min(1),
 });
 
 const syncBlocks = z.object({
@@ -129,7 +130,7 @@ const clientMessage = z.discriminatedUnion('type', [
   statusChange,
   ping,
   requestCommunityPresence,
-  roomTyping,
+  channelTyping,
   syncBlocks,
   syncCommunity,
   dmOpen,

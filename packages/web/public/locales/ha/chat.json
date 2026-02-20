@@ -158,6 +158,29 @@
     }
   },
 
+  "channel": {
+    "heading": "Channels",
+    "listAriaLabel": "Channel list",
+    "create": "Create Channel",
+    "createTitle": "Create Channel",
+    "nameLabel": "Name",
+    "namePlaceholder": "Channel name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What's this channel about?",
+    "postPolicyLabel": "Who can post",
+    "postPolicy": {
+      "everyone": "Everyone",
+      "moderators": "Moderators only",
+      "owner": "Owner only"
+    },
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "createSubmit": "Create",
+    "error": {
+      "default": "Failed to create channel"
+    }
+  },
+
   "poll": {
     "createPoll": "\u0136ir\u0137iri Za\u0253e",
     "questionLabel": "Tambaya",

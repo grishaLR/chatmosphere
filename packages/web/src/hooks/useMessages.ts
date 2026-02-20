@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RichText as RichTextAPI } from '@atproto/api';
-import { fetchMessages } from '../lib/api';
+import { fetchChannelMessages } from '../lib/api';
 import { NSID } from '@protoimsg/shared';
 import { createMessageRecord, generateTid, type CreateMessageInput } from '../lib/atproto';
 import { parseMarkdownFacets } from '../lib/markdown-facets';
@@ -12,7 +12,7 @@ import type { MessageView } from '../types';
 
 const MAX_MESSAGES = 500;
 
-export function useMessages(roomId: string) {
+export function useMessages(roomId: string, channelId: string | null) {
   const [messages, setMessages] = useState<MessageView[]>([]);
   const [replyCounts, setReplyCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -22,13 +22,26 @@ export function useMessages(roomId: string) {
   const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastTypingSent = useRef(0);
 
-  // Load message history
+  // Load message history — reset when channelId changes
   useEffect(() => {
+    if (!channelId) {
+      setMessages([]);
+      setReplyCounts({});
+      setLoading(false);
+      return;
+    }
+
     const ac = new AbortController();
+    setLoading(true);
+    setMessages([]);
+    setReplyCounts({});
+    setTypingUsers([]);
 
     async function load() {
       try {
-        const result = await fetchMessages(roomId, { signal: ac.signal });
+        const result = await fetchChannelMessages(roomId, channelId as string, {
+          signal: ac.signal,
+        });
         if (!ac.signal.aborted) {
           setMessages(result.messages.reverse());
           setReplyCounts(result.replyCounts);
@@ -45,14 +58,16 @@ export function useMessages(roomId: string) {
     return () => {
       ac.abort();
     };
-  }, [roomId]);
+  }, [roomId, channelId]);
 
   // Listen for real-time messages + typing via WS
   useEffect(() => {
+    if (!channelId) return;
+
     const unsub = subscribe((msg) => {
       if (msg.type === 'message') {
         const event = msg;
-        if (event.data.roomId !== roomId) return;
+        if (event.data.roomId !== roomId || event.data.channelId !== channelId) return;
 
         // Clear typing indicator for the sender (they just sent a message)
         setTypingUsers((prev) => prev.filter((d) => d !== event.data.did));
@@ -86,6 +101,7 @@ export function useMessages(roomId: string) {
               uri: event.data.uri,
               did: event.data.did,
               room_id: event.data.roomId,
+              channel_id: event.data.channelId,
               text: event.data.text,
               facets: event.data.facets,
               embed: event.data.embed,
@@ -106,6 +122,7 @@ export function useMessages(roomId: string) {
               uri: event.data.uri,
               did: event.data.did,
               room_id: event.data.roomId,
+              channel_id: event.data.channelId,
               text: event.data.text,
               facets: event.data.facets,
               embed: event.data.embed,
@@ -117,9 +134,9 @@ export function useMessages(roomId: string) {
           ];
           return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next;
         });
-      } else if (msg.type === 'room_typing') {
-        const { roomId: typingRoomId, did: typingDid } = msg.data;
-        if (typingRoomId !== roomId || typingDid === did) return;
+      } else if (msg.type === 'channel_typing') {
+        const { roomId: typingRoomId, channelId: typingChannelId, did: typingDid } = msg.data;
+        if (typingRoomId !== roomId || typingChannelId !== channelId || typingDid === did) return;
 
         setTypingUsers((prev) => (prev.includes(typingDid) ? prev : [...prev, typingDid]));
 
@@ -142,17 +159,17 @@ export function useMessages(roomId: string) {
       }
       typingTimers.current.clear();
     };
-  }, [roomId, subscribe, did]);
+  }, [roomId, channelId, subscribe, did]);
 
   // Send a message with optimistic update
   const sendMessage = useCallback(
     async (
       text: string,
-      roomUri: string,
+      channelUri: string,
       reply?: { root: string; parent: string },
       embed?: Record<string, unknown>,
     ) => {
-      if (!agent || !did) return;
+      if (!agent || !did || !channelId) return;
 
       // Parse markdown → cleaned text + formatting facets
       const { text: cleaned, facets: mdFacets } = parseMarkdownFacets(text);
@@ -176,6 +193,7 @@ export function useMessages(roomId: string) {
           uri,
           did,
           room_id: roomId,
+          channel_id: channelId,
           text: cleaned,
           facets: allFacets.length > 0 ? allFacets : undefined,
           embed,
@@ -188,7 +206,7 @@ export function useMessages(roomId: string) {
       ]);
 
       const input: CreateMessageInput = {
-        roomUri,
+        channelUri,
         text: cleaned,
         facets: allFacets.length > 0 ? allFacets : undefined,
         reply,
@@ -204,15 +222,16 @@ export function useMessages(roomId: string) {
         throw err;
       }
     },
-    [agent, did, roomId],
+    [agent, did, roomId, channelId],
   );
 
   const sendTyping = useCallback(() => {
+    if (!channelId) return;
     const now = Date.now();
     if (now - lastTypingSent.current < 3000) return;
     lastTypingSent.current = now;
-    send({ type: 'room_typing', roomId });
-  }, [send, roomId]);
+    send({ type: 'channel_typing', roomId, channelId });
+  }, [send, roomId, channelId]);
 
   return { messages, replyCounts, loading, typingUsers, sendMessage, sendTyping };
 }

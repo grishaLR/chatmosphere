@@ -11,12 +11,12 @@ import styles from './ThreadPanel.module.css';
 
 interface ThreadPanelProps {
   thread: ChatThreadState;
-  roomUri: string;
+  channelUri: string;
   liveMessages: MessageView[];
   onClose: () => void;
 }
 
-export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPanelProps) {
+export function ThreadPanel({ thread, channelUri, liveMessages, onClose }: ThreadPanelProps) {
   const { t } = useTranslation('chat');
   const { messages, loading, sendReply } = useChatThread(thread, liveMessages);
   const { blockedDids } = useBlocks();
@@ -165,10 +165,10 @@ export function ThreadPanel({ thread, roomUri, liveMessages, onClose }: ThreadPa
       </div>
       <MessageInput
         onSend={(text) => {
-          void sendReply(text, roomUri, focusUri);
+          void sendReply(text, channelUri, focusUri);
         }}
         onSendWithEmbed={(text, embed) => {
-          void sendReply(text, roomUri, focusUri, embed);
+          void sendReply(text, channelUri, focusUri, embed);
         }}
         placeholder={t('threadPanel.inputPlaceholder')}
       />

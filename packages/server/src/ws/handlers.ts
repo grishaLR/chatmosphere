@@ -15,6 +15,8 @@ import { checkUserAccess } from '../moderation/service.js';
 import type { BlockService } from '../moderation/block-service.js';
 import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
+import { getChannelsByRoom, ensureDefaultChannel } from '../channels/queries.js';
+import { getRoomById } from '../rooms/queries.js';
 import {
   syncCommunityMembers,
   upsertCommunityList,
@@ -77,12 +79,45 @@ export async function handleClientMessage(
 
       roomSubs.subscribe(data.roomId, ws);
       await service.handleJoinRoom(did, data.roomId);
-      const members = await service.getRoomPresence(data.roomId);
+      const [members, initialChannelRows] = await Promise.all([
+        service.getRoomPresence(data.roomId),
+        getChannelsByRoom(sql, data.roomId),
+      ]);
+
+      // Self-healing: create default channel for rooms that predate the channels feature
+      let channelRows = initialChannelRows;
+      if (channelRows.length === 0) {
+        const roomRow = await getRoomById(sql, data.roomId);
+        if (roomRow) {
+          const created = await ensureDefaultChannel(
+            sql,
+            data.roomId,
+            roomRow.uri,
+            roomRow.did,
+            roomRow.created_at.toISOString(),
+          );
+          channelRows = [created];
+        }
+      }
+
+      const channels = channelRows.map((ch) => ({
+        id: ch.id,
+        uri: ch.uri,
+        did: ch.did,
+        roomId: ch.room_id,
+        name: ch.name,
+        description: ch.description,
+        position: ch.position,
+        postPolicy: ch.post_policy,
+        isDefault: ch.is_default,
+        createdAt: ch.created_at.toISOString(),
+      }));
       ws.send(
         JSON.stringify({
           type: 'room_joined',
           roomId: data.roomId,
           members,
+          channels,
         }),
       );
       // Notify room of new member (include awayMessage if present).
@@ -164,12 +199,12 @@ export async function handleClientMessage(
       break;
     }
 
-    case 'room_typing': {
+    case 'channel_typing': {
       // Only broadcast if the user is actually in the room
       const roomMembers = roomSubs.getSubscribers(data.roomId);
       if (roomMembers.has(ws)) {
-        // Per-user-per-room throttle: one typing broadcast per TYPING_THROTTLE_MS
-        const throttleKey = `${data.roomId}:${did}`;
+        // Per-user-per-channel throttle: one typing broadcast per TYPING_THROTTLE_MS
+        const throttleKey = `${data.channelId}:${did}`;
         const now = Date.now();
         const lastTyping = typingThrottle.get(throttleKey);
         if (lastTyping && now - lastTyping < TYPING_THROTTLE_MS) break;
@@ -177,7 +212,10 @@ export async function handleClientMessage(
 
         roomSubs.broadcast(
           data.roomId,
-          { type: 'room_typing', data: { roomId: data.roomId, did } },
+          {
+            type: 'channel_typing',
+            data: { roomId: data.roomId, channelId: data.channelId, did },
+          },
           ws,
         );
       }
@@ -233,6 +271,24 @@ export async function handleClientMessage(
           }),
         );
         break;
+      }
+
+      {
+        const recipientPresence = await service.getPresence(data.recipientDid);
+        if (recipientPresence.status === 'offline') {
+          // Inner circle members can message each other offline
+          const inCircle = await isInnerCircle(sql, did, data.recipientDid);
+          if (!inCircle) {
+            ws.send(
+              JSON.stringify({
+                type: 'error',
+                message: 'User is offline',
+                errorCode: ERROR_CODES.RECIPIENT_OFFLINE,
+              }),
+            );
+            break;
+          }
+        }
       }
 
       {
@@ -399,6 +455,20 @@ export async function handleClientMessage(
           }),
         );
         break;
+      }
+
+      {
+        const recipientPresence = await service.getPresence(data.recipientDid);
+        if (recipientPresence.status === 'offline') {
+          ws.send(
+            JSON.stringify({
+              type: 'error',
+              message: 'User is offline',
+              errorCode: ERROR_CODES.RECIPIENT_OFFLINE,
+            }),
+          );
+          break;
+        }
       }
 
       try {

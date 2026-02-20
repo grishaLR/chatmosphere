@@ -7,8 +7,8 @@ import { lexicons } from '../../../../lexicons';
 import { CID } from 'multiformats/cid';
 
 export interface Record {
-  /** AT-URI of the room this poll belongs to. */
-  room: string;
+  /** AT-URI of the channel this poll belongs to. */
+  channel: string;
   /** The poll question. */
   question: string;
   /** Poll answer options. */
