@@ -102,6 +102,7 @@ function ImageEmbed({ embed }: { embed: AppBskyEmbedImages.View }) {
     <div className={`${styles.imageGrid} ${gridClass}`}>
       {embed.images.map((img, i) => (
         <div key={i} className={styles.mediaContainer}>
+          {/* eslint-disable no-restricted-syntax -- img URLs validated by isSafeUrl() */}
           {isSafeUrl(img.fullsize) ? (
             <a href={img.fullsize} target="_blank" rel="noopener noreferrer">
               <img
@@ -114,6 +115,7 @@ function ImageEmbed({ embed }: { embed: AppBskyEmbedImages.View }) {
           ) : (
             <img className={styles.embedImage} src={img.thumb} alt={img.alt || ''} loading="lazy" />
           )}
+          {/* eslint-enable no-restricted-syntax */}
           <MediaPills type="IMG" alt={img.alt || undefined} />
         </div>
       ))}
@@ -181,6 +183,7 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
           : undefined;
     return (
       <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        {/* eslint-disable-next-line no-restricted-syntax -- constructed from hardcoded https://i.giphy.com prefix */}
         <img src={giphyMedia} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
         <MediaPills type="GIF" alt={altText} />
       </div>
@@ -197,6 +200,7 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
           : undefined;
     return (
       <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        {/* eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() + isTenorUrl() above */}
         <img src={ext.uri} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
         <MediaPills type="GIF" alt={altText} />
       </div>
@@ -213,6 +217,7 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
           : undefined;
     return (
       <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        {/* eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() + isKlipyUrl() above */}
         <img src={ext.uri} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
         <MediaPills type="GIF" alt={altText} />
       </div>
@@ -220,7 +225,9 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
   }
 
   return (
+    // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() at function entry
     <a className={styles.linkCard} href={ext.uri} target="_blank" rel="noopener noreferrer">
+      {/* eslint-disable-next-line no-restricted-syntax -- thumb from Bluesky API external embed */}
       {ext.thumb && <img className={styles.linkCardThumb} src={ext.thumb} alt="" loading="lazy" />}
       <div className={styles.linkCardBody}>
         <div className={styles.linkCardTitle}>{ext.title}</div>
@@ -244,6 +251,7 @@ function QuoteEmbed({ embed }: { embed: AppBskyEmbedRecord.View }) {
     <div className={styles.quotePost}>
       <div className={styles.quoteAuthor}>
         {author.avatar && isSafeUrl(author.avatar) && (
+          // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
           <img className={styles.quoteAvatar} src={author.avatar} alt="" />
         )}
         <span className={styles.quoteName}>{author.displayName || author.handle}</span>
@@ -365,6 +373,7 @@ export const FeedPost = memo(function FeedPost({
         {post.author.avatar && isSafeUrl(post.author.avatar) && (
           <img
             className={styles.avatar}
+            // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
             src={post.author.avatar}
             alt=""
             role="button"

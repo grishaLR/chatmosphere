@@ -25,6 +25,26 @@ export default tseslint.config(
     },
   },
   {
+    files: ['packages/web/src/**/*.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector:
+            'JSXAttribute[name.name="href"][value.type="JSXExpressionContainer"]:not([value.expression.type="Literal"]):not([value.expression.type="TemplateLiteral"])',
+          message:
+            'Dynamic href detected. Validate with isSafeUrl() before rendering to prevent javascript: URL injection.',
+        },
+        {
+          selector:
+            'JSXAttribute[name.name="src"][value.type="JSXExpressionContainer"]:not([value.expression.type="Literal"]):not([value.expression.type="TemplateLiteral"])',
+          message:
+            'Dynamic src detected. Validate with isSafeUrl() before rendering to prevent unsafe URL injection.',
+        },
+      ],
+    },
+  },
+  {
     files: ['packages/server/src/**/*.ts'],
     rules: {
       'no-console': 'error',

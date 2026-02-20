@@ -81,6 +81,7 @@ export function SettingsView({ onBack }: SettingsViewProps) {
               <>
                 <div className={styles.avatarRow}>
                   {avatarPreview && (
+                    // eslint-disable-next-line no-restricted-syntax -- blob URL from local file upload
                     <img className={styles.avatarPreview} src={avatarPreview} alt="" />
                   )}
                   <button
