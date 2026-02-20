@@ -50,6 +50,11 @@ export const LIMITS = {
   defaultPageSize: 50,
 } as const;
 
+/** Labelers enforced server-side and included in profile fetch headers. */
+export const APP_LABELERS = [
+  { did: 'did:plc:d2mkddsbmnrgr3domzg5qexf' }, // Blacksky
+] as const;
+
 /** DM-specific limits */
 export const DM_LIMITS = {
   /** Maximum DM message text length in characters */

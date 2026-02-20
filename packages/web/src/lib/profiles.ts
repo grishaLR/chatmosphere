@@ -1,4 +1,5 @@
 import type { AppBskyActorDefs } from '@atproto/api';
+import { APP_LABELERS } from '@protoimsg/shared';
 
 export interface ProfileInfo {
   did: string;
@@ -10,6 +11,7 @@ export interface ProfileInfo {
 
 const BATCH_SIZE = 25;
 const PUBLIC_API = 'https://public.api.bsky.app/xrpc/app.bsky.actor.getProfiles';
+const LABELER_HEADER = APP_LABELERS.map((l) => `${l.did};redact`).join(', ');
 
 export async function fetchProfiles(dids: string[]): Promise<ProfileInfo[]> {
   const results: ProfileInfo[] = [];
@@ -21,7 +23,9 @@ export async function fetchProfiles(dids: string[]): Promise<ProfileInfo[]> {
       params.append('actors', did);
     }
 
-    const res = await fetch(`${PUBLIC_API}?${params.toString()}`);
+    const res = await fetch(`${PUBLIC_API}?${params.toString()}`, {
+      headers: { 'atproto-accept-labelers': LABELER_HEADER },
+    });
     if (!res.ok) continue;
 
     const data = (await res.json()) as {
