@@ -9,13 +9,16 @@ primary_region = 'iad'
   PORT = '6060'
   OMP_NUM_THREADS = '1'
 
-# Internal-only service — Fly needs this to route private network traffic
-[http_service]
+# This ensures it is NOT reachable via protoimsg-nllb.fly.dev.
+[[services]]
   internal_port = 6060
-  force_https = true
-  auto_stop_machines = false
-  auto_start_machines = true
-  min_machines_running = 1
+  protocol = "tcp"
+
+# This allows the internal load balancer to speak HTTP/2 (gRPC) to your container
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 25
+    soft_limit = 20
 
 [checks]
   [checks.health]
