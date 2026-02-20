@@ -8,15 +8,19 @@ Binds to [::] (IPv6 dual-stack) so both IPv4 health checks and Fly's IPv6
 internal networking (.internal DNS) work.
 """
 
-import json
+import asyncio
 import os
 import shutil
-import socket
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import signal
 from pathlib import Path
 
 import ctranslate2
+import grpc
+from grpc_health.v1 import health, health_pb2, health_pb2_grpc
 from transformers import AutoTokenizer
+
+import translator_pb2
+import translator_pb2_grpc
 
 MODEL_ID = os.environ.get("NLLB_MODEL", "facebook/nllb-200-distilled-600M")
 CT2_MODEL_DIR = os.environ.get("CT2_MODEL_DIR", "/models/ct2-nllb-600M-int8")
@@ -63,92 +67,91 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 print(f"Model loaded. CTranslate2 {ctranslate2.__version__}", flush=True)
 
 
-class DualStackHTTPServer(HTTPServer):
-    """HTTPServer that listens on IPv6 with dual-stack (accepts IPv4 too)."""
-
-    address_family = socket.AF_INET6
-
-    def server_bind(self):
-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
-        super().server_bind()
+def get_or_default(v, default):
+    if v == "" or v == None:
+        return default
+    return v
 
 
-class Handler(BaseHTTPRequestHandler):
-    def _check_auth(self) -> bool:
-        """Validate Bearer token. Health endpoint is exempt."""
-        if not API_KEY:
-            return True
-        token = self.headers.get("Authorization", "")
-        if token == f"Bearer {API_KEY}":
-            return True
-        self.send_error(401, "Unauthorized")
-        return False
+class AsyncTranslatorService(translator_pb2_grpc.TranslationService):
+    async def Translate(self, request, context):
+        loop = asyncio.get_running_loop()
 
-    def do_GET(self):
-        if self.path == "/health":
-            self._json_response({"status": "ok"})
-        else:
-            self.send_error(404)
+        result = await loop.run_in_executor(None, self._translate, request)
+        return result
 
-    def do_POST(self):
-        if not self._check_auth():
-            return
+    def _translate(self, request):
+        sources = get_or_default(request.sources, [])
+        src_lang = get_or_default(request.src_lang, "eng_Latn")
+        tgt_lang = get_or_default(request.tgt_lang, "eng_Latn")
 
-        if self.path == "/translate":
-            length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(length)
-            data = json.loads(body)
+        if not sources:
+            return translator_pb2.TranslateResponse(translations=[])
 
-            sources = data.get("source", [])
-            src_lang = data.get("src_lang", "eng_Latn")
-            tgt_lang = data.get("tgt_lang", "eng_Latn")
+        # Tokenize all texts to token strings for CTranslate2
+        tokenizer.src_lang = src_lang
+        all_source_tokens = []
+        for text in sources:
+            encoded = tokenizer(text, return_tensors=None)["input_ids"]
+            tokens = tokenizer.convert_ids_to_tokens(encoded)
+            all_source_tokens.append(tokens)
 
-            if not sources:
-                self._json_response({"translation": []})
-                return
+        # CTranslate2 batch translation — handles variable-length
+        # sequences efficiently without padding waste
+        results = translator.translate_batch(
+            all_source_tokens,
+            target_prefix=[[tgt_lang]] * len(sources),
+            max_decoding_length=256,
+        )
 
-            # Tokenize all texts to token strings for CTranslate2
-            tokenizer.src_lang = src_lang
-            all_source_tokens = []
-            for text in sources:
-                encoded = tokenizer(text, return_tensors=None)["input_ids"]
-                tokens = tokenizer.convert_ids_to_tokens(encoded)
-                all_source_tokens.append(tokens)
+        # Decode token strings back to text
+        translations = []
+        for result in results:
+            target_tokens = result.hypotheses[0]
+            target_ids = tokenizer.convert_tokens_to_ids(target_tokens)
+            translations.append(tokenizer.decode(target_ids, skip_special_tokens=True))
 
-            # CTranslate2 batch translation — handles variable-length
-            # sequences efficiently without padding waste
-            results = translator.translate_batch(
-                all_source_tokens,
-                target_prefix=[[tgt_lang]] * len(sources),
-                max_decoding_length=256,
-            )
+        return translator_pb2.TranslateResponse(translations=translations)
 
-            # Decode token strings back to text
-            translations = []
-            for result in results:
-                target_tokens = result.hypotheses[0]
-                target_ids = tokenizer.convert_tokens_to_ids(target_tokens)
-                translations.append(
-                    tokenizer.decode(target_ids, skip_special_tokens=True)
-                )
 
-            self._json_response({"translation": translations})
-        else:
-            self.send_error(404)
+async def serve():
+    server = grpc.aio.server()
 
-    def _json_response(self, obj):
-        body = json.dumps(obj).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+    translator_pb2_grpc.add_TranslationServiceServicer_to_server(
+        AsyncTranslatorService(), server
+    )
 
-    def log_message(self, fmt, *args):
-        print(f"{self.client_address[0]} {fmt % args}", flush=True)
+    health_servicer = health.HealthServicer(experimental_non_blocking=True)
+    health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)
+    health_servicer.set("", health_pb2.HealthCheckResponse.SERVING)
+
+    listen_addr = f"[{HOST}]:{PORT}"
+    server.add_insecure_port(listen_addr)
+    print(f"Async gRPC server starting on {listen_addr}")
+
+    await server.start()
+
+    shutdown_event = asyncio.Event()
+
+    # Define a helper to trigger the event
+    def signal_handler():
+        print("\nShutdown signal received...")
+        shutdown_event.set()
+
+    # Register handlers for Ctrl+C (SIGINT) and container stops (SIGTERM)
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, signal_handler)
+
+    # Wait until the shutdown event is set
+    await shutdown_event.wait()
+
+    # Start the graceful shutdown period
+    # 5 seconds allows in-flight translations to finish
+    print("Stopping server gracefully...")
+    await server.stop(5)
+    print("Server stopped.")
 
 
 if __name__ == "__main__":
-    server = DualStackHTTPServer((HOST, PORT), Handler)
-    print(f"Serving on [{HOST}]:{PORT}", flush=True)
-    server.serve_forever()
+    asyncio.run(serve())

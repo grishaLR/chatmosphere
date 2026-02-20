@@ -1,0 +1,9 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+transformers>=4.48
+sentencepiece
+ctranslate2
+torch
+grpcio
+grpcio-tools
+grpcio-health-checking

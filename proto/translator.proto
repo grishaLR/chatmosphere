@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package nllb;
+
+// The NLLB Translation Service
+service TranslationService {
+  // Translates a batch of texts from a source language to a target language.
+  rpc Translate (TranslateRequest) returns (TranslateResponse) {}
+}
+
+message TranslateRequest {
+  // The list of sentences/texts to translate (mapped from 'source' in your JSON)
+  repeated string sources = 1;
+
+  // Source language code (e.g., "eng_Latn")
+  string src_lang = 2;
+
+  // Target language code (e.g., "fra_Latn")
+  string tgt_lang = 3;
+}
+
+message TranslateResponse {
+  // The list of translated texts in the same order as the sources
+  repeated string translations = 1;
+}
