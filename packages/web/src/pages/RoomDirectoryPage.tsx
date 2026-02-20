@@ -1,5 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import { Header } from '../components/layout/Header';
 import { MobileTabBar } from '../components/layout/MobileTabBar';
@@ -14,6 +15,7 @@ import { SettingsView } from '../components/settings/SettingsView';
 import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { LoadingBars } from '../components/LoadingBars';
 import { useDm } from '../contexts/DmContext';
 import { useVideoCall, setInnerCircleDidsForCalls } from '../contexts/VideoCallContext';
 import { useBlocks } from '../contexts/BlockContext';
@@ -24,6 +26,7 @@ type View = 'rooms' | 'feed' | 'buddies' | 'profile' | 'thread' | 'settings';
 
 export function RoomDirectoryPage() {
   const { t } = useTranslation('rooms');
+  const location = useLocation();
   const { rooms, loading, error, refresh } = useRooms();
   const {
     buddies,
@@ -46,15 +49,33 @@ export function RoomDirectoryPage() {
     setInnerCircleDidsForCalls(innerCircleDids);
   }, [innerCircleDids]);
 
-  const { openDm, openDmMinimized } = useDm();
+  const { openDm, openDmMinimized, conversations, notifications } = useDm();
+
+  const imUnreadMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of conversations) {
+      if (c.unreadCount > 0) map.set(c.recipientDid, c.unreadCount);
+    }
+    for (const n of notifications) {
+      map.set(n.senderDid, (map.get(n.senderDid) ?? 0) + 1);
+    }
+    return map;
+  }, [conversations, notifications]);
   const { videoCall } = useVideoCall();
   const { blockedDids, toggleBlock } = useBlocks();
   const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [view, setView] = useState<View>(() =>
-    window.matchMedia('(max-width: 767px)').matches ? 'buddies' : 'rooms',
-  );
+  const locState = location.state as { tab?: View } | null;
+  const [view, setView] = useState<View>(() => {
+    if (locState?.tab) return locState.tab;
+    return window.matchMedia('(max-width: 767px)').matches ? 'buddies' : 'rooms';
+  });
+
+  // When navigating back with state (e.g., from a chat room), switch to the requested tab
+  useEffect(() => {
+    if (locState?.tab) setView(locState.tab);
+  }, [locState?.tab]);
   const [profileTarget, setProfileTarget] = useState<string | null>(null);
   const [threadStack, setThreadStack] = useState<string[]>([]);
   const [prevView, setPrevView] = useState<'rooms' | 'feed' | 'buddies'>('feed');
@@ -152,6 +173,7 @@ export function RoomDirectoryPage() {
         toggleBlock(did);
       });
     },
+    imUnreadMap,
     onSendIm: openDm,
     onVideoCall: videoCall,
     onBuddyClick: (did: string) => {
@@ -233,7 +255,13 @@ export function RoomDirectoryPage() {
                 </button>
               </div>
               {error && <p className={styles.error}>{error}</p>}
-              {loading ? <p>{t('directory.loading')}</p> : <RoomList rooms={filtered} />}
+              {loading ? (
+                <div className={styles.loadingBody}>
+                  <LoadingBars />
+                </div>
+              ) : (
+                <RoomList rooms={filtered} />
+              )}
             </>
           )}
 

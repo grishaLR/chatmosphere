@@ -12,7 +12,9 @@ import { MessageList } from '../components/chat/MessageList';
 import { MessageInput } from '../components/chat/MessageInput';
 import { MemberList } from '../components/chat/MemberList';
 import { ThreadPanel } from '../components/chat/ThreadPanel';
+import { ArrowLeft } from 'lucide-react';
 import { WindowControls } from '../components/layout/WindowControls';
+import { LoadingBars } from '../components/LoadingBars';
 import type { ChatThreadState } from '../hooks/useChatThread';
 import styles from './ChatRoomPage.module.css';
 
@@ -65,6 +67,7 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
 
   // Thread panel state
   const [activeThread, setActiveThread] = useState<ChatThreadState | null>(null);
+  const [showMembers, setShowMembers] = useState(false);
 
   const filteredMessages = useMemo(
     () => messages.filter((m) => !blockedDids.has(m.did)),
@@ -86,7 +89,21 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     setActiveThread(null);
   }, []);
 
-  if (roomLoading) return <div className={styles.loading}>{t('chatRoom.loading')}</div>;
+  if (roomLoading)
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          {!IS_TAURI && (
+            <Link to="/" state={{ tab: 'rooms' }} className={styles.back}>
+              <ArrowLeft size={14} /> {t('chatRoom.backToRooms')}
+            </Link>
+          )}
+        </header>
+        <div className={styles.loadingBody}>
+          <LoadingBars />
+        </div>
+      </div>
+    );
   if (roomError) return <div className={styles.error}>{roomError}</div>;
   if (!room) return <div className={styles.error}>{t('chatRoom.notFound')}</div>;
 
@@ -94,8 +111,8 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     <div className={styles.page}>
       <header className={styles.header} data-tauri-drag-region="">
         {!IS_TAURI && (
-          <Link to="/" className={styles.back}>
-            {'\u2190'} {t('chatRoom.backToRooms')}
+          <Link to="/" state={{ tab: 'rooms' }} className={styles.back}>
+            <ArrowLeft size={14} /> {t('chatRoom.backToRooms')}
           </Link>
         )}
         <h1 className={styles.roomName}>
@@ -106,6 +123,15 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
             {(autoTranslate && getTranslation(room.description)) || room.description}
           </span>
         )}
+        <button
+          className={styles.membersBtn}
+          type="button"
+          onClick={() => {
+            setShowMembers((v) => !v);
+          }}
+        >
+          {t('chatRoom.members')}
+        </button>
         <WindowControls />
       </header>
       <div className={styles.content}>
@@ -142,7 +168,16 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
             onClose={handleCloseThread}
           />
         )}
-        <aside className={styles.sidebar}>
+        <aside className={`${styles.sidebar} ${showMembers ? styles.sidebarOpen : ''}`}>
+          <button
+            className={styles.membersPanelClose}
+            type="button"
+            onClick={() => {
+              setShowMembers(false);
+            }}
+          >
+            <ArrowLeft size={14} />
+          </button>
           <MemberList members={members} doorEvents={doorEvents} />
         </aside>
       </div>

@@ -39,6 +39,21 @@
   color: var(--color-primary);
 }
 
+.closeBackBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--cm-chrome-text);
+  font-size: var(--cm-text-md);
+  cursor: pointer;
+  padding: 0 var(--cm-space-1);
+  line-height: 1;
+}
+
+.closeBackBtn:hover {
+  color: var(--color-primary);
+}
+
 .closeBtn {
   background: none;
   border: none;
@@ -96,5 +111,13 @@
     bottom: 0;
     width: 100%;
     z-index: var(--cm-z-popover);
+  }
+
+  .closeBackBtn {
+    display: block;
+  }
+
+  .closeBtn {
+    display: none;
   }
 }

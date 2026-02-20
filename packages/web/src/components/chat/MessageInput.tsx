@@ -4,6 +4,7 @@ import { LIMITS } from '@protoimsg/shared';
 import type { GifSource } from '../../lib/api';
 import type { MessageView } from '../../types';
 import { useGifCapabilities } from '../../hooks/useGifCapabilities';
+import { BarChart3 } from 'lucide-react';
 import { FormattingToolbar } from './FormattingToolbar';
 import { CreatePollModal } from './CreatePollModal';
 import { GifSearchModal } from './GifSearchModal';
@@ -147,7 +148,7 @@ export function MessageInput({
             aria-label={t('poll.createPoll')}
             title={t('poll.createPoll')}
           >
-            {'\u2630'}
+            <BarChart3 size={14} />
           </button>
         )}
         <button className={styles.sendButton} onClick={send} disabled={!text.trim()}>

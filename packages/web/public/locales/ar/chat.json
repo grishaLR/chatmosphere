@@ -11,6 +11,7 @@
       "chatRooms": "غرف المحادثة",
       "feed": "الخلاصة"
     },
+    "unreadIm": "{{count}} غير مقروءة",
     "groups": {
       "innerCircle": "الدائرة الداخلية",
       "community": "المجتمع",
@@ -30,7 +31,10 @@
     "moveTo": "نقل إلى...",
     "block": "حظر",
     "unblock": "إلغاء الحظر",
-    "remove": "إزالة"
+    "remove": "إزالة",
+    "messageOnGerm": "مراسلة عبر Germ",
+    "sendImDisabled": "المستخدم غير متصل",
+    "videoCallDisabled": "المستخدم غير متصل"
   },
 
   "memberMenu": {
@@ -153,6 +157,8 @@
     "unmute": "إلغاء كتم الصوت",
     "flipCamera": "تبديل الكاميرا",
     "endCall": "إنهاء المكالمة",
+    "shareScreen": "مشاركة الشاشة",
+    "stopSharing": "إيقاف المشاركة",
     "error": {
       "mediaPermission": "يلزم إذن الكاميرا/الميكروفون لمكالمات الفيديو"
     }

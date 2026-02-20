@@ -11,6 +11,7 @@
       "chatRooms": "Чат-комнаты",
       "feed": "Лента"
     },
+    "unreadIm": "{{count}} непрочитанных",
     "groups": {
       "innerCircle": "Ближний круг",
       "community": "Сообщество",
@@ -30,7 +31,10 @@
     "moveTo": "Переместить в...",
     "block": "Заблокировать",
     "unblock": "Разблокировать",
-    "remove": "Удалить"
+    "remove": "Удалить",
+    "messageOnGerm": "Написать в Germ",
+    "sendImDisabled": "Пользователь не в сети",
+    "videoCallDisabled": "Пользователь не в сети"
   },
 
   "memberMenu": {
@@ -148,6 +152,8 @@
     "unmute": "Включить микрофон",
     "flipCamera": "Переключить камеру",
     "endCall": "Завершить звонок",
+    "shareScreen": "Демонстрация экрана",
+    "stopSharing": "Остановить показ",
     "error": {
       "mediaPermission": "Для видеозвонков требуется доступ к камере и микрофону"
     }

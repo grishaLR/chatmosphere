@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { X } from 'lucide-react';
 import type { DmNotification } from '../../contexts/DmContext';
 import { UserIdentity } from '../chat/UserIdentity';
 import styles from './DmNotificationBadge.module.css';
@@ -46,7 +47,7 @@ export function DmNotificationBadge({ notification, onOpen, onDismiss }: DmNotif
         aria-label={t('notification.dismiss.ariaLabel')}
         type="button"
       >
-        {'\u2715'}
+        <X size={12} />
       </button>
     </div>
   );

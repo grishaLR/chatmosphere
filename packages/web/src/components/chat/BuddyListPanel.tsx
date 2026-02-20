@@ -24,6 +24,7 @@ interface BuddyListPanelProps {
   onRemoveBuddy: (did: string) => Promise<void>;
   onToggleInnerCircle: (did: string) => Promise<void>;
   onBlockBuddy: (did: string) => void;
+  imUnreadMap?: Map<string, number>;
   onSendIm?: (did: string) => void;
   onVideoCall?: (did: string) => void;
   onBuddyClick?: (did: string) => void;
@@ -54,6 +55,7 @@ export function BuddyListPanel({
   onRemoveBuddy,
   onToggleInnerCircle,
   onBlockBuddy,
+  imUnreadMap,
   onSendIm,
   onVideoCall,
   onBuddyClick,
@@ -245,7 +247,11 @@ export function BuddyListPanel({
   return (
     <div className={styles.panel}>
       <div className={styles.searchSection}>
+        <label className={styles.searchLabel} htmlFor="add-buddy-search">
+          {t('buddyList.addBuddyLabel')}
+        </label>
         <ActorSearch
+          id="add-buddy-search"
           onSelect={handleBuddySelect}
           isOptionDisabled={(actor) => buddyDids.has(actor.did)}
           placeholder={t('buddyList.searchPlaceholder')}
@@ -331,6 +337,7 @@ export function BuddyListPanel({
 
               // Buddy row
               const buddy = row.buddy;
+              const imUnreadCount = imUnreadMap?.get(buddy.did) ?? 0;
               const door = doorEvents[buddy.did];
               const hasAwayMessage = buddy.awayMessage && buddy.status !== 'offline';
               const awayTooltip = hasAwayMessage
@@ -394,6 +401,18 @@ export function BuddyListPanel({
                       <UserIdentity did={buddy.did} showAvatar />
                     </span>
                   </div>
+                  {imUnreadCount > 0 && (
+                    <button
+                      className={styles.imUnreadBadge}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSendIm?.(buddy.did);
+                      }}
+                      aria-label={t('buddyList.unreadIm', { count: imUnreadCount })}
+                    >
+                      {imUnreadCount > 99 ? '99+' : imUnreadCount}
+                    </button>
+                  )}
                   <BuddyMenu
                     buddy={buddy}
                     groupName={row.groupName}

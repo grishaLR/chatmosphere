@@ -8,6 +8,7 @@ import type {
   AppBskyEmbedRecordWithMedia,
   AppBskyEmbedVideo,
 } from '@atproto/api';
+import { MessageCircle, Repeat2, Heart } from 'lucide-react';
 import { RichText, type GenericFacet } from '../chat/RichText';
 import { isSafeUrl } from '../../lib/sanitize';
 import { usePostInteractions } from '../../hooks/usePostInteractions';
@@ -343,7 +344,7 @@ export const FeedPost = memo(function FeedPost({
       )}
       {isRepost && repostAuthor && (
         <div className={styles.repostBar}>
-          {'\u21BB'} {t('post.repostedBy')}{' '}
+          <Repeat2 size={14} /> {t('post.repostedBy')}{' '}
           <span
             className={styles.handle}
             role="button"
@@ -493,21 +494,21 @@ export const FeedPost = memo(function FeedPost({
           }}
           type="button"
         >
-          &#x1F4AC; {replyCount}
+          <MessageCircle size={14} /> {replyCount}
         </button>
         <button
           className={`${styles.engagementButton} ${isReposted ? styles.repostActive : ''}`}
           onClick={toggleRepost}
           type="button"
         >
-          &#x21BB; {repostCount}
+          <Repeat2 size={14} /> {repostCount}
         </button>
         <button
           className={`${styles.engagementButton} ${isLiked ? styles.likeActive : ''}`}
           onClick={toggleLike}
           type="button"
         >
-          {isLiked ? '\u2665' : '\u2661'} {likeCount}
+          <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} /> {likeCount}
         </button>
         {translateAvailable && text && (
           <button

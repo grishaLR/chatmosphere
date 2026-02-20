@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
+import { Menu, Settings, Minus } from 'lucide-react';
 import { usePresence } from '../../hooks/usePresence';
 import { StatusIndicator } from '../chat/StatusIndicator';
 import { WindowControls } from './WindowControls';
@@ -58,7 +59,7 @@ export function Header({ onOpenSettings }: HeaderProps) {
               }}
               title={t('header.menu')}
             >
-              <span className={styles.hamburgerIcon} />
+              <Menu size={14} />
             </button>
             {open && (
               <div className={styles.dropdown}>
@@ -136,14 +137,14 @@ export function Header({ onOpenSettings }: HeaderProps) {
                       setOpen(false);
                     }}
                   >
-                    {'\u2699'} {t('header.settings')}
+                    <Settings size={14} /> {t('header.settings')}
                   </button>
                 )}
 
                 {/* Minimize (Tauri only) */}
                 {IS_TAURI && (
                   <button className={styles.dropdownItem} onClick={handleMinimize}>
-                    {'\u2013'} {t('header.minimize')}
+                    <Minus size={14} /> {t('header.minimize')}
                   </button>
                 )}
 

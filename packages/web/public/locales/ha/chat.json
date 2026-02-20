@@ -11,6 +11,7 @@
       "chatRooms": "\u0110akunan Tattaunawa",
       "feed": "Labarai"
     },
+    "unreadIm": "{{count}} ba a karanta ba",
     "groups": {
       "innerCircle": "Na Kusa",
       "community": "Al'umma",
@@ -30,7 +31,10 @@
     "moveTo": "Matsa zuwa...",
     "block": "Toshe",
     "unblock": "Cire toshe",
-    "remove": "Cire"
+    "remove": "Cire",
+    "messageOnGerm": "Aika saƙo a Germ",
+    "sendImDisabled": "Mai amfani ba a kan layi ba",
+    "videoCallDisabled": "Mai amfani ba a kan layi ba"
   },
 
   "memberMenu": {
@@ -147,6 +151,8 @@
     "unmute": "Bude sauti",
     "flipCamera": "Juya kyamara",
     "endCall": "Kawo ƙarshen kira",
+    "shareScreen": "Raba allon",
+    "stopSharing": "Daina rabawa",
     "error": {
       "mediaPermission": "Ana buƙatar izinin kyamara/makirufo don kiran bidiyo"
     }

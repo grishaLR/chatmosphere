@@ -13,6 +13,8 @@ export interface DcTextMessage {
   id: string;
   text: string;
   ts: string;
+  facets?: unknown[];
+  embed?: unknown;
 }
 
 export interface DcTypingMessage {

@@ -1,17 +1,23 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Video, ChevronUp, Minus, X } from 'lucide-react';
 import type { DmConversation } from '../../contexts/DmContext';
+import { useDragResize } from '../../hooks/useDragResize';
 import { UserIdentity } from '../chat/UserIdentity';
 import { DmMessageList } from './DmMessageList';
 import { DmInput } from './DmInput';
 import styles from './DmPopover.module.css';
 
+const DRAG_THRESHOLD = 4;
+
 interface DmPopoverProps {
   conversation: DmConversation;
   currentDid: string;
+  initialPos?: { x: number; y: number } | null;
   onClose: () => void;
   onToggleMinimize: () => void;
-  onSend: (text: string) => void;
+  onSend: (text: string, facets?: unknown[]) => void;
+  onSendWithEmbed: (text: string, embed: Record<string, unknown>) => void;
   onTyping: () => void;
   onVideoCall: () => void;
 }
@@ -19,15 +25,41 @@ interface DmPopoverProps {
 export function DmPopover({
   conversation,
   currentDid,
+  initialPos,
   onClose,
   onToggleMinimize,
   onSend,
+  onSendWithEmbed,
   onTyping,
   onVideoCall,
 }: DmPopoverProps) {
   const { t } = useTranslation('dm');
   const { recipientDid, messages, minimized, typing, unreadCount, peerState } = conversation;
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const expanded = !minimized;
+  const {
+    containerRef,
+    posStyle,
+    sizeStyle,
+    onDragStart,
+    onPointerMove,
+    onPointerUp,
+    onResizeStart,
+    reset,
+  } = useDragResize({
+    initialPos,
+    minWidth: 240,
+    minHeight: 180,
+    enabled: expanded,
+  });
+
+  // Reset position/size when minimized
+  useEffect(() => {
+    if (minimized) {
+      reset();
+    }
+  }, [minimized, reset]);
 
   // H7: Focus the input when popover expands
   useEffect(() => {
@@ -42,31 +74,126 @@ export function DmPopover({
     }
   }, [minimized]);
 
+  // Drag/click disambiguation: track pointer movement on header
+  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
+  const didDrag = useRef(false);
+
+  const handleHeaderPointerDown = (e: React.PointerEvent) => {
+    // Let button clicks through
+    if ((e.target as HTMLElement).closest('button')) return;
+
+    if (expanded) {
+      dragStartPos.current = { x: e.clientX, y: e.clientY };
+      didDrag.current = false;
+      onDragStart(e);
+    }
+  };
+
+  const handleHeaderPointerUp = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+
+    if (dragStartPos.current) {
+      const dx = e.clientX - dragStartPos.current.x;
+      const dy = e.clientY - dragStartPos.current.y;
+      const moved = Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD;
+      dragStartPos.current = null;
+
+      // If we didn't drag, treat as a click to toggle minimize
+      if (!moved) {
+        onToggleMinimize();
+      }
+    } else if (minimized) {
+      // When minimized, header click always toggles
+      onToggleMinimize();
+    }
+  };
+
+  const handleHeaderKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggleMinimize();
+    }
+  };
+
   const displayUnread = unreadCount > 99 ? t('popover.unreadOverflow') : String(unreadCount);
 
   return (
     <div
+      ref={containerRef}
       className={`${styles.popover} ${minimized ? styles.minimized : ''}`}
+      style={{ ...posStyle, ...sizeStyle }}
       role="log"
       aria-label={t('popover.ariaLabel', { recipientDid })}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
     >
+      {/* Resize handles — only when expanded */}
+      {expanded && (
+        <>
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeN}`}
+            onPointerDown={(e) => {
+              onResizeStart('n', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeS}`}
+            onPointerDown={(e) => {
+              onResizeStart('s', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeE}`}
+            onPointerDown={(e) => {
+              onResizeStart('e', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeW}`}
+            onPointerDown={(e) => {
+              onResizeStart('w', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeNE}`}
+            onPointerDown={(e) => {
+              onResizeStart('ne', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeNW}`}
+            onPointerDown={(e) => {
+              onResizeStart('nw', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeSE}`}
+            onPointerDown={(e) => {
+              onResizeStart('se', e);
+            }}
+          />
+          <div
+            className={`${styles.resizeHandle} ${styles.resizeSW}`}
+            onPointerDown={(e) => {
+              onResizeStart('sw', e);
+            }}
+          />
+        </>
+      )}
+
       <div
         className={styles.header}
-        onClick={onToggleMinimize}
+        onPointerDown={handleHeaderPointerDown}
+        onPointerUp={handleHeaderPointerUp}
         role="button"
         tabIndex={0}
-        aria-expanded={!minimized}
+        aria-expanded={expanded}
         aria-label={
           minimized
             ? t('popover.header.ariaLabel.expand', { recipientDid })
             : t('popover.header.ariaLabel.minimize', { recipientDid })
         }
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onToggleMinimize();
-          }
-        }}
+        onKeyDown={handleHeaderKeyDown}
       >
         <span className={styles.headerIdentity}>
           <UserIdentity did={recipientDid} showAvatar size="sm" />
@@ -86,7 +213,7 @@ export function DmPopover({
           <span className={styles.connectionFailed}>{t('popover.connectionFailed')}</span>
         )}
         {peerState === 'closed' && (
-          <span className={styles.connectionFailed}>{t('popover.peerOffline')}</span>
+          <span className={styles.connectionFailed}>{t('popover.peerClosed')}</span>
         )}
         <div className={styles.headerActions}>
           <button
@@ -95,16 +222,22 @@ export function DmPopover({
               e.stopPropagation();
               onVideoCall();
             }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
             title={'Start video call'}
             aria-label={'Start video call'}
           >
-            {'\uD83D\uDCF9'}
+            <Video size={14} />
           </button>
           <button
             className={styles.headerBtn}
             onClick={(e) => {
               e.stopPropagation();
               onToggleMinimize();
+            }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
             }}
             title={
               minimized ? t('popover.minimize.titleExpand') : t('popover.minimize.titleMinimize')
@@ -115,7 +248,7 @@ export function DmPopover({
                 : t('popover.minimize.ariaLabel.minimize')
             }
           >
-            {minimized ? '\u25B2' : '\u2013'}
+            {minimized ? <ChevronUp size={14} /> : <Minus size={14} />}
           </button>
           <button
             className={styles.headerBtn}
@@ -123,17 +256,25 @@ export function DmPopover({
               e.stopPropagation();
               onClose();
             }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
             title={t('popover.close.title')}
             aria-label={t('popover.close.ariaLabel')}
           >
-            {'\u2715'}
+            <X size={14} />
           </button>
         </div>
       </div>
       {/* L4/M3: Use CSS class instead of unmounting to preserve draft text and scroll */}
       <div className={minimized ? `${styles.body} ${styles.bodyHidden}` : styles.body}>
         <DmMessageList messages={messages} currentDid={currentDid} typing={typing} />
-        <DmInput onSend={onSend} onTyping={onTyping} ref={inputRef} />
+        <DmInput
+          onSend={onSend}
+          onSendWithEmbed={onSendWithEmbed}
+          onTyping={onTyping}
+          ref={inputRef}
+        />
       </div>
     </div>
   );

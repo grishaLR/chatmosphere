@@ -87,6 +87,8 @@ export interface DmMessageView {
   text: string;
   createdAt: string;
   pending?: boolean;
+  facets?: unknown[];
+  embed?: unknown;
 }
 
 export interface FeedInfo {

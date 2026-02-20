@@ -31,6 +31,12 @@
     "autoTranslateHint": "ترجمة المنشورات والسير الذاتية تلقائياً إلى لغتك"
   },
 
+  "notifications": {
+    "title": "الإشعارات",
+    "enableSounds": "تفعيل الأصوات",
+    "enableSoundsHint": "تشغيل أصوات الدخول/الخروج والرسائل الجديدة والمكالمات الواردة"
+  },
+
   "privacy": {
     "title": "الخصوصية",
     "ipProtectionLabel": "حماية عنوان IP للمكالمات",

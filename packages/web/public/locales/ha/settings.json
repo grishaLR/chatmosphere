@@ -31,6 +31,12 @@
     "autoTranslateHint": "Fassara bugaggu da bayanai ta atomatik zuwa harshinka"
   },
 
+  "notifications": {
+    "title": "Sanarwa",
+    "enableSounds": "Kunna sautuka",
+    "enableSoundsHint": "Kunna sautin buɗe/rufe ƙofa, saƙonni sababbi da kira mai shigowa"
+  },
+
   "privacy": {
     "title": "Sirri",
     "ipProtectionLabel": "Kariyar IP don kira",
