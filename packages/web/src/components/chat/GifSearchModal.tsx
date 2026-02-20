@@ -114,6 +114,7 @@ export function GifSearchModal({
         {selected ? (
           <div className={styles.confirmPanel}>
             <img
+              // eslint-disable-next-line no-restricted-syntax -- URL from server-proxied GIF API
               src={selected.previewUrl}
               alt={selected.title}
               className={styles.confirmGif}
@@ -189,6 +190,7 @@ export function GifSearchModal({
                   title={gif.title}
                 >
                   <img
+                    // eslint-disable-next-line no-restricted-syntax -- URL from server-proxied GIF API
                     src={gif.previewUrl}
                     alt={gif.title}
                     width={gif.previewWidth}

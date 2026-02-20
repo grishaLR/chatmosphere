@@ -163,6 +163,7 @@ export function ProfileView({
       {profile && (
         <div className={styles.profileHeader}>
           {profile.banner && isSafeUrl(profile.banner) ? (
+            // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
             <img className={styles.banner} src={profile.banner} alt="" />
           ) : (
             <div className={styles.banner} />
@@ -170,6 +171,7 @@ export function ProfileView({
           <div className={styles.profileInfo}>
             <div className={styles.avatarRow}>
               {profile.avatar && isSafeUrl(profile.avatar) ? (
+                // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
                 <img className={styles.profileAvatar} src={profile.avatar} alt="" />
               ) : (
                 <div className={styles.profileAvatar} />

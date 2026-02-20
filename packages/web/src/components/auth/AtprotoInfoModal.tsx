@@ -124,6 +124,7 @@ export function AtprotoInfoModal({ onClose }: AtprotoInfoModalProps) {
               <a
                 key={provider.nameKey}
                 className={styles.providerCard}
+                // eslint-disable-next-line no-restricted-syntax -- hardcoded provider URLs
                 href={provider.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -146,6 +147,7 @@ export function AtprotoInfoModal({ onClose }: AtprotoInfoModalProps) {
               <a
                 key={provider.nameKey}
                 className={styles.providerCard}
+                // eslint-disable-next-line no-restricted-syntax -- hardcoded provider URLs
                 href={provider.url}
                 target="_blank"
                 rel="noopener noreferrer"

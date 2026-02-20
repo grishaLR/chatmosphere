@@ -128,6 +128,7 @@ export function FeedComposer({ replyTo, onClearReply, onPostSuccess }: FeedCompo
         <div className={styles.imagePreviews}>
           {images.map((file, i) => (
             <div key={`${file.name}${String(file.lastModified)}`} className={styles.imagePreview}>
+              {/* eslint-disable-next-line no-restricted-syntax -- blob URL from URL.createObjectURL() */}
               <img src={imageUrls[i]} alt="" />
               <button
                 className={styles.removeImage}
@@ -154,6 +155,7 @@ export function FeedComposer({ replyTo, onClearReply, onPostSuccess }: FeedCompo
 
       {gif && (
         <div className={styles.gifPreview}>
+          {/* eslint-disable-next-line no-restricted-syntax -- URL from server-proxied GIF API */}
           <img src={gif.previewUrl} alt={gif.title} />
           <button
             className={styles.removeImage}

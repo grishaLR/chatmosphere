@@ -102,6 +102,7 @@ function renderFeature(
       return (
         <a
           key={key}
+          // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
           href={feature.uri}
           target="_blank"
           rel="noopener noreferrer"
