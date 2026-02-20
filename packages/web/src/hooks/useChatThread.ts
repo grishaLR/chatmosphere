@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RichText as RichTextAPI } from '@atproto/api';
 import { NSID } from '@protoimsg/shared';
-import { fetchThreadMessages } from '../lib/api';
+import { fetchChannelThreadMessages } from '../lib/api';
 import { createMessageRecord, generateTid, type CreateMessageInput } from '../lib/atproto';
 import { parseMarkdownFacets } from '../lib/markdown-facets';
 import { useAuth } from './useAuth';
@@ -12,6 +12,8 @@ export interface ChatThreadState {
   rootUri: string;
   /** Room ID the thread belongs to */
   roomId: string;
+  /** Channel ID the thread belongs to */
+  channelId: string;
 }
 
 /**
@@ -34,13 +36,13 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
       return;
     }
 
-    const { roomId, rootUri } = thread;
+    const { roomId, channelId, rootUri } = thread;
     const ac = new AbortController();
     setLoading(true);
 
     async function load() {
       try {
-        const data = await fetchThreadMessages(roomId, rootUri, {
+        const data = await fetchChannelThreadMessages(roomId, channelId, rootUri, {
           signal: ac.signal,
         });
         if (!ac.signal.aborted) {
@@ -58,7 +60,7 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
     return () => {
       ac.abort();
     };
-  }, [thread?.rootUri, thread?.roomId]);
+  }, [thread?.rootUri, thread?.roomId, thread?.channelId]);
 
   // Merge fetched messages with live messages from useMessages.
   // Live messages (from WS) include both root and reply messages for
@@ -81,7 +83,12 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
 
   // Send a reply in the thread
   const sendReply = useCallback(
-    async (text: string, roomUri: string, parentUri?: string, embed?: Record<string, unknown>) => {
+    async (
+      text: string,
+      channelUri: string,
+      parentUri?: string,
+      embed?: Record<string, unknown>,
+    ) => {
       if (!agent || !did || !thread) return;
 
       // Parse markdown → cleaned text + formatting facets
@@ -111,6 +118,7 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
           uri,
           did,
           room_id: thread.roomId,
+          channel_id: thread.channelId,
           text: cleaned,
           facets: allFacets.length > 0 ? allFacets : undefined,
           reply_parent: reply.parent,
@@ -122,7 +130,7 @@ export function useChatThread(thread: ChatThreadState | null, liveMessages: Mess
       ]);
 
       const input: CreateMessageInput = {
-        roomUri,
+        channelUri,
         text: cleaned,
         facets: allFacets.length > 0 ? allFacets : undefined,
         reply,

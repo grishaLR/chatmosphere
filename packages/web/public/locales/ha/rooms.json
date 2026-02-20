@@ -50,6 +50,10 @@
     "invalidId": "ID na \u0257aki ba daidai ba",
     "loading": "Ana shirya \u0257aki...",
     "notFound": "Ba a sami \u0257akin ba",
-    "backToRooms": "\u0110akuna"
+    "backToRooms": "\u0110akuna",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

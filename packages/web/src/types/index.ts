@@ -15,11 +15,25 @@ export interface RoomView {
   indexed_at: string;
 }
 
+export interface ChannelView {
+  id: string;
+  uri: string;
+  did: string;
+  roomId: string;
+  name: string;
+  description: string | null;
+  position: number;
+  postPolicy: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
 export interface MessageView {
   id: string;
   uri: string;
   did: string;
   room_id: string;
+  channel_id: string;
   text: string;
   reply_parent: string | null;
   reply_root: string | null;
@@ -36,6 +50,7 @@ export interface PollView {
   uri: string;
   did: string;
   room_id: string;
+  channel_id: string;
   question: string;
   options: string[];
   allow_multiple: boolean;

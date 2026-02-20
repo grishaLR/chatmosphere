@@ -223,8 +223,7 @@
 
 .menuItemDisabled {
   opacity: 0.4;
-  cursor: default;
-  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .menuItemDanger {

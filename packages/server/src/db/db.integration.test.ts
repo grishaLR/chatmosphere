@@ -66,12 +66,19 @@ describe('Room and message flow', () => {
 
     const msgId = `test-msg-${randomUUID().slice(0, 8)}`;
     const msgUri = `at://${did}/app.protoimsg.chat.message/${msgId}`;
+    // Create a default channel for the room
+    const channelId = `${roomId}_general`;
+    await sql`INSERT INTO channels (id, uri, did, room_id, name, is_default, created_at)
+      VALUES (${channelId}, ${'synthetic://default-channel/' + roomId}, ${did}, ${roomId}, 'general', true, ${now})
+      ON CONFLICT (id) DO NOTHING`;
+
     await insertMessage(sql, {
       id: msgId,
       uri: msgUri,
       did,
       cid: null,
       roomId,
+      channelId,
       text: 'Hello from integration test',
       createdAt: now,
     });

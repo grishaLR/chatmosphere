@@ -43,6 +43,34 @@
   overflow: hidden;
 }
 
+.channelSidebar {
+  width: 180px;
+  background: var(--color-base-100);
+  border-inline-end: var(--cm-space-0.5) solid var(--cm-border-dark);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.expandSidebarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  background: var(--color-base-100);
+  border: none;
+  border-inline-end: var(--cm-space-0.5) solid var(--cm-border-dark);
+  color: var(--cm-chrome-text);
+  font-size: var(--cm-text-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.expandSidebarBtn:hover {
+  opacity: 1;
+  background: var(--cm-button-hover);
+}
+
 .chatArea {
   display: flex;
   flex-direction: column;
@@ -81,6 +109,10 @@
 }
 
 @media (max-width: 767px) {
+  .channelSidebar {
+    display: none;
+  }
+
   .sidebar {
     display: none;
   }

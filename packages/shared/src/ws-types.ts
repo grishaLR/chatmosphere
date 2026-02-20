@@ -84,9 +84,10 @@ export interface ImIceCandidateMessage extends WsMessageBase {
   candidate: IceCandidateInit;
 }
 
-export interface RoomTypingMessage extends WsMessageBase {
-  type: 'room_typing';
+export interface ChannelTypingMessage extends WsMessageBase {
+  type: 'channel_typing';
   roomId: string;
+  channelId: string;
 }
 
 export interface SyncBlocksMessage extends WsMessageBase {
@@ -138,7 +139,7 @@ export type ClientMessage =
   | StatusChangeMessage
   | PingMessage
   | RequestCommunityPresenceMessage
-  | RoomTypingMessage
+  | ChannelTypingMessage
   | SyncBlocksMessage
   | SyncCommunityMessage
   | DmOpenMessage
@@ -161,6 +162,7 @@ export interface NewMessageEvent extends WsMessageBase {
     uri: string;
     did: string;
     roomId: string;
+    channelId: string;
     text: string;
     reply?: { root: string; parent: string };
     facets?: unknown[];
@@ -187,10 +189,24 @@ export interface CommunityPresenceEvent extends WsMessageBase {
   }>;
 }
 
+export interface ChannelInfo {
+  id: string;
+  uri: string;
+  did: string;
+  roomId: string;
+  name: string;
+  description: string | null;
+  position: number;
+  postPolicy: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
 export interface RoomJoinedEvent extends WsMessageBase {
   type: 'room_joined';
   roomId: string;
   members: string[];
+  channels: ChannelInfo[];
 }
 
 export interface PongEvent extends WsMessageBase {
@@ -245,6 +261,8 @@ export interface MentionNotificationEvent extends WsMessageBase {
   data: {
     roomId: string;
     roomName: string;
+    channelId: string;
+    channelName: string;
     senderDid: string;
     messageText: string;
     messageUri: string;
@@ -259,6 +277,7 @@ export interface PollCreatedEvent extends WsMessageBase {
     uri: string;
     did: string;
     roomId: string;
+    channelId: string;
     question: string;
     options: string[];
     allowMultiple: boolean;
@@ -272,6 +291,7 @@ export interface PollVoteEvent extends WsMessageBase {
   data: {
     pollId: string;
     roomId: string;
+    channelId: string;
     /** Updated tallies: option index → count */
     tallies: Record<number, number>;
     /** Total unique voters */
@@ -327,11 +347,25 @@ export interface AuthSuccessEvent extends WsMessageBase {
   type: 'auth_success';
 }
 
-export interface RoomTypingEvent extends WsMessageBase {
-  type: 'room_typing';
+export interface ChannelTypingEvent extends WsMessageBase {
+  type: 'channel_typing';
   data: {
     roomId: string;
+    channelId: string;
     did: string;
+  };
+}
+
+export interface ChannelCreatedEvent extends WsMessageBase {
+  type: 'channel_created';
+  data: ChannelInfo;
+}
+
+export interface ChannelDeletedEvent extends WsMessageBase {
+  type: 'channel_deleted';
+  data: {
+    channelId: string;
+    roomId: string;
   };
 }
 
@@ -343,7 +377,9 @@ export type ServerMessage =
   | RoomJoinedEvent
   | PongEvent
   | ErrorEvent
-  | RoomTypingEvent
+  | ChannelTypingEvent
+  | ChannelCreatedEvent
+  | ChannelDeletedEvent
   | DmOpenedEvent
   | ImOfferEvent
   | ImAnswerEvent

@@ -1,6 +1,7 @@
 /** atproto Lexicon NSIDs for protoimsg collections */
 export const NSID = {
   Room: 'app.protoimsg.chat.room',
+  Channel: 'app.protoimsg.chat.channel',
   Message: 'app.protoimsg.chat.message',
   Community: 'app.protoimsg.chat.community',
   Presence: 'app.protoimsg.chat.presence',
@@ -34,6 +35,12 @@ export const LIMITS = {
   maxRoomDescriptionLength: 500,
   /** Maximum away message length */
   maxAwayMessageLength: 300,
+  /** Maximum channel name length */
+  maxChannelNameLength: 100,
+  /** Maximum channel description length */
+  maxChannelDescriptionLength: 500,
+  /** Maximum channels per room */
+  maxChannelsPerRoom: 50,
   /** Maximum poll options */
   maxPollOptions: 10,
   /** Maximum poll question length */

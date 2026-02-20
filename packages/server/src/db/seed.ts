@@ -8,6 +8,7 @@ import { initLogger, createLogger } from '../logger.js';
 import { createDb } from './client.js';
 import { createRoom } from '../rooms/queries.js';
 import { insertMessage } from '../messages/queries.js';
+import { ensureDefaultChannel } from '../channels/queries.js';
 import type { Sql } from './client.js';
 
 const SEED_DID = 'did:plc:seed1234567890abcdef';
@@ -81,10 +82,19 @@ async function seedRooms(sql: Sql, log: ReturnType<typeof createLogger>): Promis
   log.info({ count: SAMPLE_ROOMS.length }, 'Seeded rooms');
 }
 
+async function seedChannels(sql: Sql, log: ReturnType<typeof createLogger>): Promise<void> {
+  const now = new Date().toISOString();
+  for (const room of SAMPLE_ROOMS) {
+    await ensureDefaultChannel(sql, room.id, atUri(SEED_DID, NSID_ROOM, room.id), SEED_DID, now);
+  }
+  log.info({ count: SAMPLE_ROOMS.length }, 'Seeded default channels');
+}
+
 async function seedMessages(sql: Sql, log: ReturnType<typeof createLogger>): Promise<void> {
   let count = 0;
   const baseTime = Date.now() - 60 * 60 * 1000; // 1 hour ago
   for (const [roomId, texts] of Object.entries(SAMPLE_MESSAGES)) {
+    const channelId = `${roomId}_general`;
     for (let i = 0; i < texts.length; i++) {
       const msgId = `seed-msg-${roomId}-${i}`;
       const createdAt = new Date(baseTime + count * 60 * 1000).toISOString();
@@ -94,6 +104,7 @@ async function seedMessages(sql: Sql, log: ReturnType<typeof createLogger>): Pro
         did: SEED_DID,
         cid: null,
         roomId,
+        channelId,
         text: texts[i] ?? '',
         createdAt,
       });
@@ -112,6 +123,7 @@ async function seed(): Promise<void> {
   log.info('Seeding development database...');
 
   await seedRooms(sql, log);
+  await seedChannels(sql, log);
   await seedMessages(sql, log);
 
   log.info('Seed complete');

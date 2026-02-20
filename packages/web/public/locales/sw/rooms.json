@@ -50,6 +50,10 @@
     "invalidId": "Kitambulisho batili cha chumba",
     "loading": "Chumba kinaandaliwa...",
     "notFound": "Chumba hakijapatikana",
-    "backToRooms": "Vyumba"
+    "backToRooms": "Vyumba",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }
