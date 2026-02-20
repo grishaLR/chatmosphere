@@ -33,6 +33,7 @@ export function UserIdentity({ did, showAvatar = false, size = 'sm' }: UserIdent
       {showAvatar && profile?.avatarUrl && isSafeUrl(profile.avatarUrl) && (
         <img
           className={`${styles.avatar} ${avatarSize} ${avatarBlurred ? styles.blurred : ''}`}
+          // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
           src={profile.avatarUrl}
           alt=""
           onClick={

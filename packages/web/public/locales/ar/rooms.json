@@ -50,6 +50,10 @@
     "invalidId": "معرف غرفة غير صالح",
     "loading": "جارٍ إعداد الغرفة...",
     "notFound": "الغرفة غير موجودة",
-    "backToRooms": "الغرف"
+    "backToRooms": "الغرف",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

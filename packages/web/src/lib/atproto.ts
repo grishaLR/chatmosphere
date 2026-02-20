@@ -86,8 +86,50 @@ export async function createRoomRecord(
   };
 }
 
-export interface CreateMessageInput {
+export interface CreateChannelInput {
   roomUri: string;
+  name: string;
+  description?: string;
+  position?: number;
+  postPolicy?: string;
+}
+
+export interface CreateChannelResult {
+  uri: string;
+  cid: string;
+  rkey: string;
+}
+
+export async function createChannelRecord(
+  agent: Agent,
+  input: CreateChannelInput,
+): Promise<CreateChannelResult> {
+  const rkey = generateTid();
+
+  const response = await agent.com.atproto.repo.createRecord({
+    repo: agent.assertDid,
+    collection: NSID.Channel,
+    rkey,
+    record: {
+      $type: NSID.Channel,
+      room: input.roomUri,
+      name: input.name,
+      description: input.description,
+      position: input.position,
+      postPolicy: input.postPolicy ?? 'everyone',
+      createdAt: new Date().toISOString(),
+    },
+  });
+
+  return {
+    uri: response.data.uri,
+    cid: response.data.cid,
+    rkey,
+  };
+}
+
+export interface CreateMessageInput {
+  channelUri: string;
   text: string;
   facets?: Record<string, unknown>[];
   reply?: { root: string; parent: string };
@@ -113,7 +155,7 @@ export async function createMessageRecord(
     rkey,
     record: {
       $type: NSID.Message,
-      room: input.roomUri,
+      channel: input.channelUri,
       text: input.text,
       facets: input.facets?.length ? input.facets : undefined,
       reply: input.reply,
@@ -132,7 +174,7 @@ export async function createMessageRecord(
 // -- Poll PDS helpers --
 
 export interface CreatePollInput {
-  roomUri: string;
+  channelUri: string;
   question: string;
   options: string[];
   allowMultiple?: boolean;
@@ -158,7 +200,7 @@ export async function createPollRecord(
     rkey,
     record: {
       $type: NSID.Poll,
-      room: input.roomUri,
+      channel: input.channelUri,
       question: input.question,
       options: input.options,
       allowMultiple: input.allowMultiple ?? false,

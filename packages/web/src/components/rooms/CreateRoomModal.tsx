@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { LIMITS } from '@protoimsg/shared';
 import type { RoomPurpose, RoomVisibility } from '@protoimsg/shared';
-import { createRoomRecord } from '../../lib/atproto';
+import { createRoomRecord, createChannelRecord } from '../../lib/atproto';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './CreateRoomModal.module.css';
 
@@ -53,7 +53,13 @@ export function CreateRoomModal({ onClose, onCreated }: CreateRoomModalProps) {
       purpose,
       visibility,
     })
-      .then((result) => {
+      .then(async (result) => {
+        // Create default "general" channel (server also auto-creates as fallback)
+        try {
+          await createChannelRecord(agent, { roomUri: result.uri, name: 'general' });
+        } catch {
+          // Server's ensureDefaultChannel will handle it
+        }
         onCreated();
         void navigate(`/rooms/${result.rkey}`);
       })

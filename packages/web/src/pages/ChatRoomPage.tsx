@@ -8,11 +8,17 @@ import { usePolls } from '../hooks/usePolls';
 import { useBlocks } from '../contexts/BlockContext';
 import { useMentionNotifications } from '../contexts/MentionNotificationContext';
 import { useContentTranslation } from '../hooks/useContentTranslation';
+import { useAuth } from '../hooks/useAuth';
 import { MessageList } from '../components/chat/MessageList';
 import { MessageInput } from '../components/chat/MessageInput';
 import { MemberList } from '../components/chat/MemberList';
 import { ThreadPanel } from '../components/chat/ThreadPanel';
+import { ChannelList } from '../components/chat/ChannelList';
+import { ChannelSwitcher } from '../components/chat/ChannelSwitcher';
+import { CreateChannelModal } from '../components/chat/CreateChannelModal';
+import { ArrowLeft, PanelLeftOpen } from 'lucide-react';
 import { WindowControls } from '../components/layout/WindowControls';
+import { LoadingBars } from '../components/LoadingBars';
 import type { ChatThreadState } from '../hooks/useChatThread';
 import styles from './ChatRoomPage.module.css';
 
@@ -26,7 +32,36 @@ export function ChatRoomPage() {
 
 function ChatRoomContent({ roomId }: { roomId: string }) {
   const { t } = useTranslation('rooms');
-  const { room, members, doorEvents, loading: roomLoading, error: roomError } = useRoom(roomId);
+  const { did } = useAuth();
+  const {
+    room,
+    members,
+    channels,
+    doorEvents,
+    loading: roomLoading,
+    error: roomError,
+  } = useRoom(roomId);
+
+  // Active channel state — auto-select default channel when channels arrive
+  const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (channels.length > 0 && !activeChannelId) {
+      const defaultChannel = channels.find((ch) => ch.isDefault);
+      setActiveChannelId(defaultChannel?.id ?? channels[0]?.id ?? null);
+    }
+    // If active channel was deleted, switch to default
+    if (activeChannelId && !channels.find((ch) => ch.id === activeChannelId)) {
+      const defaultChannel = channels.find((ch) => ch.isDefault);
+      setActiveChannelId(defaultChannel?.id ?? channels[0]?.id ?? null);
+    }
+  }, [channels, activeChannelId]);
+
+  const activeChannel = useMemo(
+    () => channels.find((ch) => ch.id === activeChannelId) ?? null,
+    [channels, activeChannelId],
+  );
+
   const {
     messages,
     replyCounts,
@@ -34,8 +69,8 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     typingUsers,
     sendMessage,
     sendTyping,
-  } = useMessages(roomId);
-  const { polls, createPoll, castVote } = usePolls(roomId);
+  } = useMessages(roomId, activeChannelId);
+  const { polls, createPoll, castVote } = usePolls(roomId, activeChannelId);
   const { blockedDids } = useBlocks();
   const { clearMentions } = useMentionNotifications();
   const {
@@ -63,8 +98,27 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     if (texts.length > 0) requestBatchTranslation(texts);
   }, [messages.length, autoTranslate, translateAvailable, messages, requestBatchTranslation]);
 
+  // Reset translate counter when channel changes
+  useEffect(() => {
+    lastTranslatedCount.current = 0;
+  }, [activeChannelId]);
+
   // Thread panel state
   const [activeThread, setActiveThread] = useState<ChatThreadState | null>(null);
+  const [showMembers, setShowMembers] = useState(false);
+  const [showCreateChannel, setShowCreateChannel] = useState(false);
+  const [channelSidebarOpen, setChannelSidebarOpen] = useState(() => {
+    const stored = localStorage.getItem('protoimsg:channelSidebarOpen');
+    return stored !== 'false';
+  });
+
+  const toggleChannelSidebar = useCallback(() => {
+    setChannelSidebarOpen((prev) => {
+      const next = !prev;
+      localStorage.setItem('protoimsg:channelSidebarOpen', String(next));
+      return next;
+    });
+  }, []);
 
   const filteredMessages = useMemo(
     () => messages.filter((m) => !blockedDids.has(m.did)),
@@ -77,16 +131,38 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
 
   const handleOpenThread = useCallback(
     (rootUri: string) => {
-      setActiveThread({ rootUri, roomId });
+      if (!activeChannelId) return;
+      setActiveThread({ rootUri, roomId, channelId: activeChannelId });
     },
-    [roomId],
+    [roomId, activeChannelId],
   );
 
   const handleCloseThread = useCallback(() => {
     setActiveThread(null);
   }, []);
 
-  if (roomLoading) return <div className={styles.loading}>{t('chatRoom.loading')}</div>;
+  // Close thread when switching channels
+  useEffect(() => {
+    setActiveThread(null);
+  }, [activeChannelId]);
+
+  const isOwner = room?.did === did;
+
+  if (roomLoading)
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          {!IS_TAURI && (
+            <Link to="/" state={{ tab: 'rooms' }} className={styles.back}>
+              <ArrowLeft size={14} /> {t('chatRoom.backToRooms')}
+            </Link>
+          )}
+        </header>
+        <div className={styles.loadingBody}>
+          <LoadingBars />
+        </div>
+      </div>
+    );
   if (roomError) return <div className={styles.error}>{roomError}</div>;
   if (!room) return <div className={styles.error}>{t('chatRoom.notFound')}</div>;
 
@@ -94,21 +170,67 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
     <div className={styles.page}>
       <header className={styles.header} data-tauri-drag-region="">
         {!IS_TAURI && (
-          <Link to="/" className={styles.back}>
-            {'\u2190'} {t('chatRoom.backToRooms')}
+          <Link to="/" state={{ tab: 'rooms' }} className={styles.back}>
+            <ArrowLeft size={14} /> {t('chatRoom.backToRooms')}
           </Link>
         )}
         <h1 className={styles.roomName}>
           {(autoTranslate && getTranslation(room.name)) || room.name}
         </h1>
+        <ChannelSwitcher
+          channels={channels}
+          activeChannel={activeChannel}
+          onSelect={setActiveChannelId}
+          onCreateChannel={
+            isOwner
+              ? () => {
+                  setShowCreateChannel(true);
+                }
+              : undefined
+          }
+        />
         {room.description && (
           <span className={styles.description}>
             {(autoTranslate && getTranslation(room.description)) || room.description}
           </span>
         )}
+        <button
+          className={styles.membersBtn}
+          type="button"
+          onClick={() => {
+            setShowMembers((v) => !v);
+          }}
+        >
+          {t('chatRoom.members')}
+        </button>
         <WindowControls />
       </header>
       <div className={styles.content}>
+        {channels.length > 1 &&
+          (channelSidebarOpen ? (
+            <aside className={styles.channelSidebar}>
+              <ChannelList
+                channels={channels}
+                activeChannelId={activeChannelId}
+                onSelect={setActiveChannelId}
+                canCreate={isOwner}
+                onCreateChannel={() => {
+                  setShowCreateChannel(true);
+                }}
+                onCollapse={toggleChannelSidebar}
+              />
+            </aside>
+          ) : (
+            <button
+              className={styles.expandSidebarBtn}
+              type="button"
+              onClick={toggleChannelSidebar}
+              aria-label={t('chatRoom.expandChannels')}
+              title={t('chatRoom.expandChannels')}
+            >
+              <PanelLeftOpen size={14} />
+            </button>
+          ))}
         <div className={styles.chatArea}>
           <MessageList
             messages={filteredMessages}
@@ -123,29 +245,46 @@ function ChatRoomContent({ roomId }: { roomId: string }) {
           />
           <MessageInput
             onSend={(text) => {
-              void sendMessage(text, room.uri);
+              if (activeChannel) void sendMessage(text, activeChannel.uri);
             }}
             onTyping={sendTyping}
             onCreatePoll={(input) => {
-              void createPoll(input, room.uri);
+              if (activeChannel) void createPoll(input, activeChannel.uri);
             }}
             onSendWithEmbed={(text, embed) => {
-              void sendMessage(text, room.uri, undefined, embed);
+              if (activeChannel) void sendMessage(text, activeChannel.uri, undefined, embed);
             }}
           />
         </div>
-        {activeThread && (
+        {activeThread && activeChannel && (
           <ThreadPanel
             thread={activeThread}
-            roomUri={room.uri}
+            channelUri={activeChannel.uri}
             liveMessages={messages}
             onClose={handleCloseThread}
           />
         )}
-        <aside className={styles.sidebar}>
+        <aside className={`${styles.sidebar} ${showMembers ? styles.sidebarOpen : ''}`}>
+          <button
+            className={styles.membersPanelClose}
+            type="button"
+            onClick={() => {
+              setShowMembers(false);
+            }}
+          >
+            <ArrowLeft size={14} />
+          </button>
           <MemberList members={members} doorEvents={doorEvents} />
         </aside>
       </div>
+      {showCreateChannel && (
+        <CreateChannelModal
+          roomUri={room.uri}
+          onClose={() => {
+            setShowCreateChannel(false);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,12 @@
 import { NSID } from '@protoimsg/shared';
 import type { Sql } from '../db/client.js';
 import { createRoom, deleteRoom } from '../rooms/queries.js';
+import {
+  createChannel,
+  deleteChannel,
+  getChannelById,
+  ensureDefaultChannel,
+} from '../channels/queries.js';
 import { insertMessage, deleteMessage } from '../messages/queries.js';
 import {
   insertPoll,
@@ -25,6 +31,7 @@ import { checkMessageContent } from '../moderation/service.js';
 import type { WsServer } from '../ws/server.js';
 import {
   roomRecordSchema,
+  channelRecordSchema,
   messageRecordSchema,
   banRecordSchema,
   roleRecordSchema,
@@ -35,6 +42,7 @@ import {
   voteRecordSchema,
 } from './record-schemas.js';
 import type { PresenceService } from '../presence/service.js';
+import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
 
 const log = createLogger('firehose');
@@ -81,7 +89,12 @@ function isSlowModeViolation(roomId: string, did: string, slowModeSeconds: numbe
   return false;
 }
 
-export function createHandlers(db: Sql, wss: WsServer, presenceService: PresenceService) {
+export function createHandlers(
+  db: Sql,
+  wss: WsServer,
+  presenceService: PresenceService,
+  labelerService: LabelerService,
+) {
   const handlers: Record<string, (event: FirehoseEvent) => Promise<void>> = {
     [NSID.Room]: async (event) => {
       if (event.operation === 'delete') {
@@ -114,7 +127,82 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         allowlistEnabled: record.settings?.allowlistEnabled ?? false,
         createdAt: record.createdAt,
       });
+
+      // Auto-create "general" default channel for new rooms
+      await ensureDefaultChannel(db, event.rkey, event.uri, event.did, record.createdAt);
+
       log.info({ rkey: event.rkey, name: record.name }, 'Room indexed');
+    },
+
+    [NSID.Channel]: async (event) => {
+      if (event.operation === 'delete') {
+        // Look up the channel to get roomId for broadcast before deleting
+        const channel = await getChannelById(db, event.rkey);
+        if (channel) {
+          await deleteChannel(db, event.uri);
+          wss.broadcastToRoom(channel.room_id, {
+            type: 'channel_deleted',
+            data: { channelId: channel.id, roomId: channel.room_id },
+          });
+        }
+        log.info({ rkey: event.rkey }, 'Channel deleted');
+        return;
+      }
+
+      const parsed = channelRecordSchema.safeParse(event.record);
+      if (!parsed.success) {
+        log.warn(
+          { did: event.did, rkey: event.rkey, error: parsed.error.message },
+          'Invalid channel record',
+        );
+        return;
+      }
+      const record = parsed.data;
+      const roomId = extractRkey(record.room);
+
+      // Room must exist
+      const room = await getRoomById(db, roomId);
+      if (!room) {
+        log.warn({ roomId, did: event.did }, 'Channel for unknown room — skipping');
+        return;
+      }
+
+      // Auth: only room creator can create channels
+      if (room.did !== event.did) {
+        log.warn({ did: event.did, roomId }, 'Unauthorized channel creation — skipping');
+        return;
+      }
+
+      await createChannel(db, {
+        id: event.rkey,
+        uri: event.uri,
+        did: event.did,
+        cid: event.cid,
+        roomId,
+        name: record.name,
+        description: record.description,
+        position: record.position,
+        postPolicy: record.postPolicy,
+        createdAt: record.createdAt,
+      });
+
+      wss.broadcastToRoom(roomId, {
+        type: 'channel_created',
+        data: {
+          id: event.rkey,
+          uri: event.uri,
+          did: event.did,
+          roomId,
+          name: record.name,
+          description: record.description ?? null,
+          position: record.position ?? 0,
+          postPolicy: record.postPolicy ?? 'everyone',
+          isDefault: false,
+          createdAt: record.createdAt,
+        },
+      });
+
+      log.info({ rkey: event.rkey, roomId, name: record.name }, 'Channel indexed');
     },
 
     [NSID.Message]: async (event) => {
@@ -133,7 +221,7 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         return;
       }
       const record = parsed.data;
-      const roomId = extractRkey(record.room);
+      const channelId = extractRkey(record.channel);
 
       // Content filter — skip indexing if blocked
       const filterResult = checkMessageContent(record.text);
@@ -142,9 +230,19 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         return;
       }
 
-      // Room must exist before we can index a message (FK constraint).
-      // Jetstream doesn't guarantee ordering across collections, so a message
-      // can arrive before its room is indexed. Skip it — the PDS still has it.
+      // Channel must exist (FK constraint)
+      const channel = await getChannelById(db, channelId);
+      if (!channel) {
+        log.warn(
+          { channelId, did: event.did, rkey: event.rkey },
+          'Message for unknown channel — skipping',
+        );
+        return;
+      }
+
+      const roomId = channel.room_id;
+
+      // Room must exist
       const room = await getRoomById(db, roomId);
       if (!room) {
         log.warn(
@@ -152,6 +250,20 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
           'Message for unknown room — skipping',
         );
         return;
+      }
+
+      // Post policy enforcement
+      if (channel.post_policy !== 'everyone') {
+        const isOwner = room.did === event.did;
+        const isMod = !isOwner && (await isUserModerator(db, roomId, event.did));
+        if (channel.post_policy === 'owner' && !isOwner) {
+          log.info({ did: event.did, channelId }, 'Message blocked by post_policy=owner');
+          return;
+        }
+        if (channel.post_policy === 'moderators' && !isOwner && !isMod) {
+          log.info({ did: event.did, channelId }, 'Message blocked by post_policy=moderators');
+          return;
+        }
       }
 
       // Slow mode — skip broadcast if posting too fast (still index)
@@ -163,6 +275,7 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         did: event.did,
         cid: event.cid,
         roomId,
+        channelId,
         text: record.text,
         replyRoot: record.reply?.root,
         replyParent: record.reply?.parent,
@@ -175,8 +288,9 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
       // Jetstream batch, the ban handler may still be mid-index when the
       // pre-insert check runs. Re-checking here gives the ban time to land.
       const banned = await isUserBanned(db, roomId, event.did);
+      const restricted = await labelerService.shouldRestrict(event.did);
 
-      if (!banned && !slowModeViolation) {
+      if (!banned && !restricted && !slowModeViolation) {
         wss.broadcastToRoom(roomId, {
           type: 'message',
           data: {
@@ -184,6 +298,7 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
             uri: event.uri,
             did: event.did,
             roomId,
+            channelId,
             text: record.text,
             reply: record.reply,
             facets: record.facets,
@@ -204,6 +319,8 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
               data: {
                 roomId,
                 roomName: room.name,
+                channelId,
+                channelName: channel.name,
                 senderDid: event.did,
                 messageText: preview,
                 messageUri: event.uri,
@@ -419,7 +536,18 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         return;
       }
       const record = parsed.data;
-      const roomId = extractRkey(record.room);
+      const channelId = extractRkey(record.channel);
+
+      const channel = await getChannelById(db, channelId);
+      if (!channel) {
+        log.warn(
+          { channelId, did: event.did, rkey: event.rkey },
+          'Poll for unknown channel — skipping',
+        );
+        return;
+      }
+
+      const roomId = channel.room_id;
 
       const room = await getRoomById(db, roomId);
       if (!room) {
@@ -439,6 +567,7 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         did: event.did,
         cid: event.cid,
         roomId,
+        channelId,
         question: record.question,
         options: record.options,
         allowMultiple: record.allowMultiple ?? false,
@@ -453,6 +582,7 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
           uri: event.uri,
           did: event.did,
           roomId,
+          channelId,
           question: record.question,
           options: record.options,
           allowMultiple: record.allowMultiple ?? false,
@@ -522,6 +652,7 @@ export function createHandlers(db: Sql, wss: WsServer, presenceService: Presence
         data: {
           pollId,
           roomId: poll.room_id,
+          channelId: poll.channel_id,
           tallies,
           totalVoters,
           voterDid: event.did,

@@ -1,3 +1,4 @@
+import { Minus, X } from 'lucide-react';
 import { IS_TAURI } from '../../lib/config';
 import styles from './WindowControls.module.css';
 
@@ -31,11 +32,11 @@ export function WindowControls({ onClose, showMinimize = true }: WindowControlsP
     <div className={styles.controls}>
       {showMinimize && (
         <button className={styles.btn} onClick={handleMinimize} title="Minimize">
-          {'\u2013'}
+          <Minus size={14} />
         </button>
       )}
       <button className={`${styles.btn} ${styles.closeBtn}`} onClick={closeHandler} title="Close">
-        {'\u2715'}
+        <X size={14} />
       </button>
     </div>
   );

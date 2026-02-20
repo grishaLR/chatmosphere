@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { RichText as RichTextAPI, type AppBskyFeedDefs } from '@atproto/api';
 import { useAuth } from '../../hooks/useAuth';
+import { useGermDeclaration } from '../../hooks/useGermDeclaration';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { isSafeUrl } from '../../lib/sanitize';
 import { FeedPost } from './FeedPost';
 import { RichText, type GenericFacet } from '../chat/RichText';
 import styles from './ProfileView.module.css';
@@ -66,6 +69,7 @@ export function ProfileView({
     enabled: !!agent,
   });
   const profile = profileData ?? null;
+  const { canMessage: germAvailable, germUrl } = useGermDeclaration(profile?.did);
   const pinnedPostUri = (profile as Record<string, unknown> | null)?.pinnedPost
     ? ((profile as Record<string, unknown>).pinnedPost as { uri: string }).uri
     : null;
@@ -153,7 +157,7 @@ export function ProfileView({
   return (
     <div className={styles.profileView}>
       <button className={styles.backButton} onClick={onBack}>
-        {'\u2190'} {t('profileView.back')}
+        <ArrowLeft size={14} /> {t('profileView.back')}
       </button>
 
       {loading && <div className={styles.loading}>{t('profileView.loading')}</div>}
@@ -161,14 +165,16 @@ export function ProfileView({
 
       {profile && (
         <div className={styles.profileHeader}>
-          {profile.banner ? (
+          {profile.banner && isSafeUrl(profile.banner) ? (
+            // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
             <img className={styles.banner} src={profile.banner} alt="" />
           ) : (
             <div className={styles.banner} />
           )}
           <div className={styles.profileInfo}>
             <div className={styles.avatarRow}>
-              {profile.avatar ? (
+              {profile.avatar && isSafeUrl(profile.avatar) ? (
+                // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
                 <img className={styles.profileAvatar} src={profile.avatar} alt="" />
               ) : (
                 <div className={styles.profileAvatar} />
@@ -245,6 +251,28 @@ export function ProfileView({
                 {t('profileView.posts')}
               </span>
             </div>
+
+            {germAvailable && germUrl && (
+              <div className={styles.profileActions}>
+                <a
+                  className={styles.germButton}
+                  // eslint-disable-next-line no-restricted-syntax -- germUrl validated by isSafeUrl() in useGermDeclaration
+                  href={germUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    className={styles.germLogo}
+                    src="/images/germ_logo.webp"
+                    alt=""
+                    width={16}
+                    height={16}
+                  />
+                  {t('profileView.germDm')}
+                  <ExternalLink size={14} aria-hidden="true" />
+                </a>
+              </div>
+            )}
           </div>
         </div>
       )}

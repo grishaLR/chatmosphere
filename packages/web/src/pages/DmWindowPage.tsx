@@ -70,7 +70,7 @@ export function DmWindowPage() {
           <span className={styles.connectionFailed}>{t('popover.connectionFailed')}</span>
         )}
         {convo.peerState === 'closed' && (
-          <span className={styles.connectionFailed}>{t('popover.peerOffline')}</span>
+          <span className={styles.connectionFailed}>{t('popover.peerClosed')}</span>
         )}
         <div className={styles.headerActions}>
           <WindowControls onClose={handleClose} />
@@ -79,8 +79,11 @@ export function DmWindowPage() {
       <div className={styles.body}>
         <DmMessageList messages={convo.messages} currentDid={did} typing={convo.typing} />
         <DmInput
-          onSend={(text) => {
-            sendDm(convo.conversationId, text);
+          onSend={(text, facets) => {
+            sendDm(convo.conversationId, text, facets);
+          }}
+          onSendWithEmbed={(text, embed) => {
+            sendDm(convo.conversationId, text, undefined, embed);
           }}
           onTyping={() => {
             sendTyping(convo.conversationId);

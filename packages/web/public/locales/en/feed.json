@@ -47,7 +47,9 @@
     "translateBio": "Translate bio",
     "translating": "Translating...",
     "translatedTo": "Translated to {{lang}}",
-    "showOriginal": "Show original"
+    "showOriginal": "Show original",
+    "messageOnGerm": "Message on Germ",
+    "germDm": "Germ DM"
   },
 
   "threadView": {

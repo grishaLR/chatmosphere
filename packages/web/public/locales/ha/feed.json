@@ -47,7 +47,9 @@
     "translateBio": "Fassara bayani",
     "translating": "Ana fassarawa...",
     "translatedTo": "An fassara zuwa {{lang}}",
-    "showOriginal": "Nuna asali"
+    "showOriginal": "Nuna asali",
+    "messageOnGerm": "Aika saƙo a Germ",
+    "germDm": "Germ DM"
   },
 
   "threadView": {

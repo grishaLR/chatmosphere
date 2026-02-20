@@ -5,6 +5,7 @@ export interface MessageRow {
   uri: string;
   did: string;
   room_id: string;
+  channel_id: string;
   text: string;
   reply_parent: string | null;
   reply_root: string | null;
@@ -20,6 +21,7 @@ export interface InsertMessageInput {
   did: string;
   cid: string | null;
   roomId: string;
+  channelId: string;
   text: string;
   replyRoot?: string;
   replyParent?: string;
@@ -30,13 +32,14 @@ export interface InsertMessageInput {
 
 export async function insertMessage(sql: Sql, input: InsertMessageInput): Promise<void> {
   await sql`
-    INSERT INTO messages (id, uri, did, cid, room_id, text, reply_parent, reply_root, facets, embed, created_at)
+    INSERT INTO messages (id, uri, did, cid, room_id, channel_id, text, reply_parent, reply_root, facets, embed, created_at)
     VALUES (
       ${input.id},
       ${input.uri},
       ${input.did},
       ${input.cid},
       ${input.roomId},
+      ${input.channelId},
       ${input.text},
       ${input.replyParent ?? null},
       ${input.replyRoot ?? null},
@@ -46,6 +49,7 @@ export async function insertMessage(sql: Sql, input: InsertMessageInput): Promis
     )
     ON CONFLICT (id) DO UPDATE SET
       cid = EXCLUDED.cid,
+      channel_id = EXCLUDED.channel_id,
       text = EXCLUDED.text,
       reply_parent = EXCLUDED.reply_parent,
       reply_root = EXCLUDED.reply_root,
@@ -90,10 +94,37 @@ export async function getMessagesByRoom(
   `;
 }
 
+export async function getMessagesByChannel(
+  sql: Sql,
+  channelId: string,
+  options: { limit?: number; before?: string } = {},
+): Promise<MessageRow[]> {
+  const { limit = 50, before } = options;
+
+  if (before) {
+    if (!ISO_DATETIME_RE.test(before)) {
+      throw new Error('Invalid "before" cursor: expected ISO 8601 timestamp');
+    }
+    return sql<MessageRow[]>`
+      SELECT * FROM messages
+      WHERE channel_id = ${channelId} AND created_at < ${before}
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+    `;
+  }
+
+  return sql<MessageRow[]>`
+    SELECT * FROM messages
+    WHERE channel_id = ${channelId}
+    ORDER BY created_at DESC
+    LIMIT ${limit}
+  `;
+}
+
 /** Get all messages in a thread (root + replies), ordered chronologically. */
 export async function getThreadMessages(
   sql: Sql,
-  roomId: string,
+  channelId: string,
   rootUri: string,
   options: { limit?: number } = {},
 ): Promise<MessageRow[]> {
@@ -101,7 +132,7 @@ export async function getThreadMessages(
 
   return sql<MessageRow[]>`
     SELECT * FROM messages
-    WHERE room_id = ${roomId}
+    WHERE channel_id = ${channelId}
       AND (uri = ${rootUri} OR reply_root = ${rootUri})
     ORDER BY created_at ASC
     LIMIT ${limit}

@@ -13,6 +13,7 @@ import { presenceRouter } from './presence/router.js';
 import { communityRouter } from './community/router.js';
 import { moderationRouter } from './moderation/router.js';
 import { pollsRouter } from './polls/router.js';
+import { channelsRouter } from './channels/router.js';
 import { translateRouter } from './translate/router.js';
 import { gifRouter } from './giphy/router.js';
 import { iceRouter } from './ice/router.js';
@@ -70,6 +71,7 @@ export function createApp(
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), messagesRouter(sql));
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), moderationRouter(sql));
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), pollsRouter(sql));
+  app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), channelsRouter(sql));
   app.use('/api/presence', requireAuth, presenceRouter(presenceService, blockService, sql));
   app.use('/api/community', requireAuth, communityRouter(sql));
   app.use(

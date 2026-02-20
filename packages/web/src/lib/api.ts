@@ -1,4 +1,4 @@
-import type { RoomView, MessageView, PollView } from '../types';
+import type { RoomView, ChannelView, MessageView, PollView } from '../types';
 import { API_URL } from './config.js';
 
 // -- Token management --
@@ -147,6 +147,21 @@ export async function fetchRoom(id: string, opts?: { signal?: AbortSignal }): Pr
   return data.room;
 }
 
+// -- Channels --
+
+export async function fetchChannels(
+  roomId: string,
+  opts?: { signal?: AbortSignal },
+): Promise<ChannelView[]> {
+  const res = await authFetch(`/api/rooms/${encodeURIComponent(roomId)}/channels`, {
+    signal: opts?.signal,
+  });
+  if (!res.ok) throw new Error(`Failed to fetch channels: ${res.status}`);
+
+  const data = (await res.json()) as { channels: ChannelView[] };
+  return data.channels;
+}
+
 export interface FetchMessagesResult {
   messages: MessageView[];
   replyCounts: Record<string, number>;
@@ -191,6 +206,68 @@ export async function fetchThreadMessages(
 
   const data = (await res.json()) as { messages: MessageView[] };
   return data.messages;
+}
+
+// -- Channel-scoped messages --
+
+export async function fetchChannelMessages(
+  roomId: string,
+  channelId: string,
+  opts?: { limit?: number; before?: string; signal?: AbortSignal },
+): Promise<FetchMessagesResult> {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  if (opts?.before) params.set('before', opts.before);
+
+  const qs = params.toString();
+  const res = await authFetch(
+    `/api/rooms/${encodeURIComponent(roomId)}/channels/${encodeURIComponent(channelId)}/messages${qs ? `?${qs}` : ''}`,
+    { signal: opts?.signal },
+  );
+  if (!res.ok) throw new Error(`Failed to fetch channel messages: ${res.status}`);
+
+  const data = (await res.json()) as {
+    messages: MessageView[];
+    replyCounts?: Record<string, number>;
+  };
+  return { messages: data.messages, replyCounts: data.replyCounts ?? {} };
+}
+
+export async function fetchChannelThreadMessages(
+  roomId: string,
+  channelId: string,
+  rootUri: string,
+  opts?: { limit?: number; signal?: AbortSignal },
+): Promise<MessageView[]> {
+  const params = new URLSearchParams();
+  params.set('root', rootUri);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+
+  const res = await authFetch(
+    `/api/rooms/${encodeURIComponent(roomId)}/channels/${encodeURIComponent(channelId)}/threads?${params.toString()}`,
+    { signal: opts?.signal },
+  );
+  if (!res.ok) throw new Error(`Failed to fetch channel thread: ${res.status}`);
+
+  const data = (await res.json()) as { messages: MessageView[] };
+  return data.messages;
+}
+
+// -- Channel-scoped polls --
+
+export async function fetchChannelPolls(
+  roomId: string,
+  channelId: string,
+  opts?: { signal?: AbortSignal },
+): Promise<PollView[]> {
+  const res = await authFetch(
+    `/api/rooms/${encodeURIComponent(roomId)}/channels/${encodeURIComponent(channelId)}/polls`,
+    { signal: opts?.signal },
+  );
+  if (!res.ok) throw new Error(`Failed to fetch channel polls: ${res.status}`);
+
+  const data = (await res.json()) as { polls: PollView[] };
+  return data.polls;
 }
 
 export class NotFoundError extends Error {

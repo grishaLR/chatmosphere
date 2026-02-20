@@ -30,12 +30,15 @@ interface VideoCallContextValue {
   activeCall: VideoCall | null;
   callError: string | null;
   isMuted: boolean;
+  isScreenSharing: boolean;
   videoCall: (recipientDid: string) => void;
   acceptCall: () => Promise<void>;
   rejectCall: () => void;
   hangUp: () => void;
   toggleMute: () => void;
   flipCamera: () => Promise<void>;
+  startScreenShare: () => Promise<void>;
+  stopScreenShare: () => Promise<void>;
 }
 
 const VideoCallContext = createContext<VideoCallContextValue | null>(null);
@@ -48,9 +51,12 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   const [activeCall, setActiveCall] = useState<VideoCall | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMutedRef = useRef(false);
   const currentFacingMode = useRef<'user' | 'environment'>('user');
+  const screenTrack = useRef<MediaStreamTrack | null>(null);
+  const savedCameraTrack = useRef<MediaStreamTrack | null>(null);
 
   // Refs for internal state that WS handlers need without triggering re-renders
   const peerConnection = useRef<PeerManager | null>(null);
@@ -75,6 +81,13 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       });
       localStream.current = null;
     }
+    if (screenTrack.current) {
+      screenTrack.current.onended = null;
+      screenTrack.current.stop();
+      screenTrack.current = null;
+    }
+    savedCameraTrack.current = null;
+    setIsScreenSharing(false);
     isMutedRef.current = false;
     setIsMuted(false);
     currentFacingMode.current = 'user';
@@ -309,6 +322,84 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const stopScreenShare = useCallback(async () => {
+    const pm = peerConnection.current;
+    const stream = localStream.current;
+    if (!pm || !stream) return;
+
+    const scrTrack = screenTrack.current;
+    const camTrack = savedCameraTrack.current;
+
+    // If saved camera track ended (e.g. permission revoked), get a fresh one
+    let restoreTrack = camTrack;
+    if (!restoreTrack || restoreTrack.readyState === 'ended') {
+      try {
+        const camStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode.current },
+          audio: false,
+        });
+        restoreTrack = camStream.getVideoTracks()[0] ?? null;
+      } catch {
+        restoreTrack = null;
+      }
+    }
+
+    // Replace on sender
+    if (restoreTrack) {
+      const sender = pm.pc.getSenders().find((s) => s.track?.kind === 'video');
+      if (sender) await sender.replaceTrack(restoreTrack);
+    }
+
+    // Swap in local stream
+    if (scrTrack) {
+      stream.removeTrack(scrTrack);
+      scrTrack.onended = null;
+      scrTrack.stop();
+    }
+    if (restoreTrack) stream.addTrack(restoreTrack);
+
+    screenTrack.current = null;
+    savedCameraTrack.current = null;
+    setIsScreenSharing(false);
+    setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
+  }, []);
+
+  const startScreenShare = useCallback(async () => {
+    const pm = peerConnection.current;
+    const stream = localStream.current;
+    if (!pm || !stream) return;
+
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      const newTrack = screenStream.getVideoTracks()[0];
+      if (!newTrack) return;
+
+      // Save camera track for restoration
+      const cameraTrk = stream.getVideoTracks()[0];
+      if (cameraTrk) savedCameraTrack.current = cameraTrk;
+
+      // Replace on sender (no renegotiation)
+      const sender = pm.pc.getSenders().find((s) => s.track?.kind === 'video');
+      if (sender) await sender.replaceTrack(newTrack);
+
+      // Swap in local stream
+      if (cameraTrk) stream.removeTrack(cameraTrk);
+      stream.addTrack(newTrack);
+      screenTrack.current = newTrack;
+      setIsScreenSharing(true);
+      setActiveCall((prev) => (prev ? { ...prev, localStream: stream } : prev));
+
+      // Auto-stop when user clicks browser's "Stop sharing" button
+      newTrack.onended = () => {
+        void stopScreenShare();
+      };
+    } catch (err) {
+      // User cancelled the picker — not an error
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      console.error('Failed to start screen share', err);
+    }
+  }, [stopScreenShare]);
+
   // WS event handler
   useEffect(() => {
     const unsub = subscribe((msg: ServerMessage) => {
@@ -428,12 +519,15 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     activeCall,
     callError,
     isMuted,
+    isScreenSharing,
     videoCall,
     acceptCall,
     rejectCall,
     hangUp,
     toggleMute,
     flipCamera,
+    startScreenShare,
+    stopScreenShare,
   };
 
   return <VideoCallContext.Provider value={value}>{children}</VideoCallContext.Provider>;

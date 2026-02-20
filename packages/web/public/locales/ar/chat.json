@@ -11,6 +11,7 @@
       "chatRooms": "غرف المحادثة",
       "feed": "الخلاصة"
     },
+    "unreadIm": "{{count}} غير مقروءة",
     "groups": {
       "innerCircle": "الدائرة الداخلية",
       "community": "المجتمع",
@@ -30,7 +31,10 @@
     "moveTo": "نقل إلى...",
     "block": "حظر",
     "unblock": "إلغاء الحظر",
-    "remove": "إزالة"
+    "remove": "إزالة",
+    "messageOnGerm": "مراسلة عبر Germ",
+    "sendImDisabled": "المستخدم غير متصل",
+    "videoCallDisabled": "المستخدم غير متصل"
   },
 
   "memberMenu": {
@@ -153,8 +157,33 @@
     "unmute": "إلغاء كتم الصوت",
     "flipCamera": "تبديل الكاميرا",
     "endCall": "إنهاء المكالمة",
+    "shareScreen": "مشاركة الشاشة",
+    "stopSharing": "إيقاف المشاركة",
     "error": {
       "mediaPermission": "يلزم إذن الكاميرا/الميكروفون لمكالمات الفيديو"
+    }
+  },
+
+  "channel": {
+    "heading": "Channels",
+    "listAriaLabel": "Channel list",
+    "create": "Create Channel",
+    "createTitle": "Create Channel",
+    "nameLabel": "Name",
+    "namePlaceholder": "Channel name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What's this channel about?",
+    "postPolicyLabel": "Who can post",
+    "postPolicy": {
+      "everyone": "Everyone",
+      "moderators": "Moderators only",
+      "owner": "Owner only"
+    },
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "createSubmit": "Create",
+    "error": {
+      "default": "Failed to create channel"
     }
   },
 

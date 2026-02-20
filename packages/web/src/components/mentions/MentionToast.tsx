@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import type { MentionNotification } from '../../contexts/MentionNotificationContext';
 import { UserIdentity } from '../chat/UserIdentity';
 import styles from './MentionToast.module.css';
@@ -42,7 +43,7 @@ export function MentionToast({ notification, onNavigate, onDismiss }: MentionToa
         aria-label="Dismiss notification"
         type="button"
       >
-        {'\u2715'}
+        <X size={14} />
       </button>
     </div>
   );

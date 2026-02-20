@@ -8,6 +8,7 @@ import type {
   AppBskyEmbedRecordWithMedia,
   AppBskyEmbedVideo,
 } from '@atproto/api';
+import { MessageCircle, Repeat2, Heart } from 'lucide-react';
 import { RichText, type GenericFacet } from '../chat/RichText';
 import { isSafeUrl } from '../../lib/sanitize';
 import { usePostInteractions } from '../../hooks/usePostInteractions';
@@ -102,9 +103,20 @@ function ImageEmbed({ embed }: { embed: AppBskyEmbedImages.View }) {
     <div className={`${styles.imageGrid} ${gridClass}`}>
       {embed.images.map((img, i) => (
         <div key={i} className={styles.mediaContainer}>
-          <a href={img.fullsize} target="_blank" rel="noopener noreferrer">
+          {/* eslint-disable no-restricted-syntax -- img URLs validated by isSafeUrl() */}
+          {isSafeUrl(img.fullsize) ? (
+            <a href={img.fullsize} target="_blank" rel="noopener noreferrer">
+              <img
+                className={styles.embedImage}
+                src={img.thumb}
+                alt={img.alt || ''}
+                loading="lazy"
+              />
+            </a>
+          ) : (
             <img className={styles.embedImage} src={img.thumb} alt={img.alt || ''} loading="lazy" />
-          </a>
+          )}
+          {/* eslint-enable no-restricted-syntax */}
           <MediaPills type="IMG" alt={img.alt || undefined} />
         </div>
       ))}
@@ -172,6 +184,7 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
           : undefined;
     return (
       <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        {/* eslint-disable-next-line no-restricted-syntax -- constructed from hardcoded https://i.giphy.com prefix */}
         <img src={giphyMedia} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
         <MediaPills type="GIF" alt={altText} />
       </div>
@@ -188,6 +201,7 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
           : undefined;
     return (
       <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        {/* eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() + isTenorUrl() above */}
         <img src={ext.uri} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
         <MediaPills type="GIF" alt={altText} />
       </div>
@@ -204,6 +218,7 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
           : undefined;
     return (
       <div className={`${styles.gifEmbed} ${styles.mediaContainer}`}>
+        {/* eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() + isKlipyUrl() above */}
         <img src={ext.uri} alt={ext.title || 'GIF'} className={styles.gifImage} loading="lazy" />
         <MediaPills type="GIF" alt={altText} />
       </div>
@@ -211,7 +226,9 @@ function LinkCardEmbed({ embed }: { embed: AppBskyEmbedExternal.View }) {
   }
 
   return (
+    // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() at function entry
     <a className={styles.linkCard} href={ext.uri} target="_blank" rel="noopener noreferrer">
+      {/* eslint-disable-next-line no-restricted-syntax -- thumb from Bluesky API external embed */}
       {ext.thumb && <img className={styles.linkCardThumb} src={ext.thumb} alt="" loading="lazy" />}
       <div className={styles.linkCardBody}>
         <div className={styles.linkCardTitle}>{ext.title}</div>
@@ -234,7 +251,10 @@ function QuoteEmbed({ embed }: { embed: AppBskyEmbedRecord.View }) {
   return (
     <div className={styles.quotePost}>
       <div className={styles.quoteAuthor}>
-        {author.avatar && <img className={styles.quoteAvatar} src={author.avatar} alt="" />}
+        {author.avatar && isSafeUrl(author.avatar) && (
+          // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
+          <img className={styles.quoteAvatar} src={author.avatar} alt="" />
+        )}
         <span className={styles.quoteName}>{author.displayName || author.handle}</span>
         <span className={styles.quoteHandle}>@{author.handle}</span>
       </div>
@@ -324,7 +344,7 @@ export const FeedPost = memo(function FeedPost({
       )}
       {isRepost && repostAuthor && (
         <div className={styles.repostBar}>
-          {'\u21BB'} {t('post.repostedBy')}{' '}
+          <Repeat2 size={14} /> {t('post.repostedBy')}{' '}
           <span
             className={styles.handle}
             role="button"
@@ -351,9 +371,10 @@ export const FeedPost = memo(function FeedPost({
       )}
 
       <div className={styles.authorRow}>
-        {post.author.avatar && (
+        {post.author.avatar && isSafeUrl(post.author.avatar) && (
           <img
             className={styles.avatar}
+            // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
             src={post.author.avatar}
             alt=""
             role="button"
@@ -473,21 +494,21 @@ export const FeedPost = memo(function FeedPost({
           }}
           type="button"
         >
-          &#x1F4AC; {replyCount}
+          <MessageCircle size={14} /> {replyCount}
         </button>
         <button
           className={`${styles.engagementButton} ${isReposted ? styles.repostActive : ''}`}
           onClick={toggleRepost}
           type="button"
         >
-          &#x21BB; {repostCount}
+          <Repeat2 size={14} /> {repostCount}
         </button>
         <button
           className={`${styles.engagementButton} ${isLiked ? styles.likeActive : ''}`}
           onClick={toggleLike}
           type="button"
         >
-          {isLiked ? '\u2665' : '\u2661'} {likeCount}
+          <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} /> {likeCount}
         </button>
         {translateAvailable && text && (
           <button

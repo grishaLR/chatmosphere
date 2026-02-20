@@ -1,33 +1,42 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Phone, PhoneOff, MicOff, Mic, MonitorUp, SwitchCamera, X } from 'lucide-react';
 import { useVideoCall } from '../../contexts/VideoCallContext';
+import { useDragResize } from '../../hooks/useDragResize';
 import { UserIdentity } from '../chat/UserIdentity';
 import styles from './VideoCallOverlay.module.css';
 
 export function VideoCallOverlay() {
   const { t } = useTranslation('chat');
-  const { activeCall, callError, isMuted, acceptCall, rejectCall, hangUp, toggleMute, flipCamera } =
-    useVideoCall();
+  const {
+    activeCall,
+    callError,
+    isMuted,
+    isScreenSharing,
+    acceptCall,
+    rejectCall,
+    hangUp,
+    toggleMute,
+    flipCamera,
+    startScreenShare,
+    stopScreenShare,
+  } = useVideoCall();
 
-  // Position: top-left corner of the container (null = use CSS default)
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-
-  // Drag state (refs to avoid re-renders during drag)
-  const dragging = useRef(false);
-  const dragOffset = useRef({ x: 0, y: 0 });
-
-  // Resize state
-  const resizing = useRef<string | null>(null);
-  const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0, left: 0, top: 0 });
-
-  const containerRef = useRef<HTMLDivElement>(null);
+  const {
+    containerRef,
+    posStyle,
+    sizeStyle,
+    onDragStart,
+    onPointerMove,
+    onPointerUp,
+    onResizeStart,
+    reset,
+  } = useDragResize({ minWidth: 240, minHeight: 180 });
 
   // Reset position/size when a new call starts
   useEffect(() => {
     if (activeCall) {
-      setPos(null);
-      setSize(null);
+      reset();
     }
   }, [activeCall?.conversationId]);
 
@@ -50,101 +59,6 @@ export function VideoCallOverlay() {
     },
     [activeCall?.remoteStream],
   );
-
-  // --- Drag handlers ---
-  const onDragStart = useCallback((e: React.PointerEvent) => {
-    // Only left mouse / primary touch
-    if (e.button !== 0) return;
-    const el = containerRef.current;
-    if (!el) return;
-
-    const rect = el.getBoundingClientRect();
-    dragging.current = true;
-    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    el.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  }, []);
-
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (dragging.current) {
-      const x = Math.max(0, Math.min(e.clientX - dragOffset.current.x, window.innerWidth - 100));
-      const y = Math.max(0, Math.min(e.clientY - dragOffset.current.y, window.innerHeight - 40));
-      setPos({ x, y });
-      return;
-    }
-    if (resizing.current) {
-      const dx = e.clientX - resizeStart.current.x;
-      const dy = e.clientY - resizeStart.current.y;
-      const edge = resizing.current;
-
-      let newW = resizeStart.current.w;
-      let newH = resizeStart.current.h;
-      let newLeft = resizeStart.current.left;
-      let newTop = resizeStart.current.top;
-
-      if (edge.includes('e')) newW = Math.max(240, resizeStart.current.w + dx);
-      if (edge.includes('w')) {
-        newW = Math.max(240, resizeStart.current.w - dx);
-        newLeft = resizeStart.current.left + (resizeStart.current.w - newW);
-      }
-      if (edge.includes('s')) newH = Math.max(180, resizeStart.current.h + dy);
-      if (edge.includes('n')) {
-        newH = Math.max(180, resizeStart.current.h - dy);
-        newTop = resizeStart.current.top + (resizeStart.current.h - newH);
-      }
-
-      setSize({ w: newW, h: newH });
-      setPos({ x: newLeft, y: newTop });
-    }
-  }, []);
-
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    if (dragging.current) {
-      dragging.current = false;
-      containerRef.current?.releasePointerCapture(e.pointerId);
-    }
-    if (resizing.current) {
-      resizing.current = null;
-      containerRef.current?.releasePointerCapture(e.pointerId);
-    }
-  }, []);
-
-  const onResizeStart = useCallback((edge: string, e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    const el = containerRef.current;
-    if (!el) return;
-
-    const rect = el.getBoundingClientRect();
-    resizing.current = edge;
-    resizeStart.current = {
-      x: e.clientX,
-      y: e.clientY,
-      w: rect.width,
-      h: rect.height,
-      left: rect.left,
-      top: rect.top,
-    };
-    el.setPointerCapture(e.pointerId);
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  // Clamp position if window resizes
-  useEffect(() => {
-    const onResize = () => {
-      setPos((prev) => {
-        if (!prev) return prev;
-        return {
-          x: Math.min(prev.x, window.innerWidth - 100),
-          y: Math.min(prev.y, window.innerHeight - 40),
-        };
-      });
-    };
-    window.addEventListener('resize', onResize);
-    return () => {
-      window.removeEventListener('resize', onResize);
-    };
-  }, []);
 
   // Show error banner even without an active call (e.g. getUserMedia denied)
   if (!activeCall) {
@@ -179,7 +93,7 @@ export function VideoCallOverlay() {
             title={t('videoCall.incoming.accept')}
             aria-label={t('videoCall.incoming.acceptAriaLabel')}
           >
-            {'\uD83D\uDFE2'}
+            <Phone size={16} />
           </button>
           <button
             className={styles.rejectBtn}
@@ -187,18 +101,12 @@ export function VideoCallOverlay() {
             title={t('videoCall.incoming.reject')}
             aria-label={t('videoCall.incoming.rejectAriaLabel')}
           >
-            {'\uD83D\uDEAB'}
+            <PhoneOff size={16} />
           </button>
         </div>
       </div>
     );
   }
-
-  const posStyle: React.CSSProperties = pos
-    ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' }
-    : {};
-
-  const sizeStyle: React.CSSProperties = size ? { width: size.w, height: size.h } : {};
 
   // Outgoing (ringing) or active call — draggable, resizable floating panel
   return (
@@ -282,7 +190,7 @@ export function VideoCallOverlay() {
           title={t('videoCall.endCall')}
           aria-label={t('videoCall.endCall')}
         >
-          {'\u2715'}
+          <X size={16} />
         </button>
       </div>
 
@@ -298,8 +206,24 @@ export function VideoCallOverlay() {
             title={isMuted ? t('videoCall.unmute') : t('videoCall.mute')}
             aria-label={isMuted ? t('videoCall.unmute') : t('videoCall.mute')}
           >
-            {isMuted ? '\uD83D\uDD07' : '\uD83D\uDD0A'}
+            {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
           </button>
+          {'getDisplayMedia' in navigator.mediaDevices && (
+            <button
+              className={`${styles.controlBtn} ${isScreenSharing ? styles.controlBtnActive : ''}`}
+              onClick={() => {
+                void (isScreenSharing ? stopScreenShare() : startScreenShare());
+              }}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+              }}
+              aria-pressed={isScreenSharing}
+              title={isScreenSharing ? t('videoCall.stopSharing') : t('videoCall.shareScreen')}
+              aria-label={isScreenSharing ? t('videoCall.stopSharing') : t('videoCall.shareScreen')}
+            >
+              <MonitorUp size={16} />
+            </button>
+          )}
           <button
             className={`${styles.controlBtn} ${styles.flipBtn}`}
             onClick={() => {
@@ -311,7 +235,7 @@ export function VideoCallOverlay() {
             title={t('videoCall.flipCamera')}
             aria-label={t('videoCall.flipCamera')}
           >
-            {'\uD83D\uDD04'}
+            <SwitchCamera size={16} />
           </button>
         </div>
       )}
