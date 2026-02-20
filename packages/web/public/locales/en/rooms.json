@@ -50,6 +50,11 @@
     "invalidId": "Invalid room ID",
     "loading": "Room is being set up...",
     "notFound": "Room not found",
-    "backToRooms": "Rooms"
+    "backToRooms": "Rooms",
+    "members": "Members",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

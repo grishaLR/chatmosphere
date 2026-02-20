@@ -9,6 +9,7 @@ import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
 import { ConnectingScreen } from './components/auth/ConnectingScreen';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { AppLoader } from './components/AppLoader';
 import styles from './App.module.css';
 
 // Set by login() before redirect, cleared by init() after processing.
@@ -79,8 +80,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (authPhase !== 'ready' && authPhase !== 'idle') {
     // OAuth callback → full AIM "Sign On" experience
     if (isOAuthCallback) return <ConnectingScreen />;
-    // Session restore (hard refresh) → just hold on teal background while init() runs
-    return <div className={styles.screenFill} />;
+    // Session restore (hard refresh) → show static nav shell while init() runs
+    return <AppLoader />;
   }
 
   // Error state
@@ -96,11 +97,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   // Ready — render app with lazy providers
-  const suspenseFallback = isOAuthCallback ? (
-    <ConnectingScreen />
-  ) : (
-    <div className={styles.screenFill} />
-  );
+  const suspenseFallback = isOAuthCallback ? <ConnectingScreen /> : <AppLoader />;
   return (
     <Suspense fallback={suspenseFallback}>
       <AuthenticatedApp>{children}</AuthenticatedApp>

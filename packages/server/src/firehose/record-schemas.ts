@@ -92,6 +92,17 @@ export const roomRecordSchema = z.object({
   settings: roomSettings,
 });
 
+// -- Channel --
+
+export const channelRecordSchema = z.object({
+  room: atUri,
+  name: z.string().max(100),
+  description: z.string().max(500).optional(),
+  position: z.number().int().min(0).optional(),
+  postPolicy: z.string().optional(), // knownValues: everyone, owner, moderators
+  createdAt: datetime,
+});
+
 // -- Message --
 
 const replyRefSchema = z
@@ -102,7 +113,7 @@ const replyRefSchema = z
   .optional();
 
 export const messageRecordSchema = z.object({
-  room: atUri,
+  channel: atUri,
   text: z.string().max(3000),
   facets: z.array(richTextFacetSchema).optional(),
   reply: replyRefSchema,
@@ -165,7 +176,7 @@ export const presenceRecordSchema = z.object({
 // -- Poll --
 
 export const pollRecordSchema = z.object({
-  room: atUri,
+  channel: atUri,
   question: z.string().max(200),
   options: z.array(z.string().max(100)).min(2).max(10),
   allowMultiple: z.boolean().optional(),
@@ -184,6 +195,7 @@ export const voteRecordSchema = z.object({
 // -- Inferred types --
 
 export type RoomRecordParsed = z.infer<typeof roomRecordSchema>;
+export type ChannelRecordParsed = z.infer<typeof channelRecordSchema>;
 export type MessageRecordParsed = z.infer<typeof messageRecordSchema>;
 export type BanRecordParsed = z.infer<typeof banRecordSchema>;
 export type RoleRecordParsed = z.infer<typeof roleRecordSchema>;

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { AppBskyFeedDefs } from '@atproto/api';
 import { useThread } from '../../hooks/useThread';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
+import { ArrowLeft } from 'lucide-react';
 import { FeedPost } from './FeedPost';
 import styles from './ThreadView.module.css';
 
@@ -58,7 +59,7 @@ export function ThreadView({
     return (
       <div className={styles.threadView}>
         <button className={styles.backButton} onClick={onBack}>
-          {'\u2190'} {t('threadView.back')}
+          <ArrowLeft size={14} /> {t('threadView.back')}
         </button>
         <div className={styles.loading}>{t('threadView.loading')}</div>
       </div>
@@ -69,7 +70,7 @@ export function ThreadView({
     return (
       <div className={styles.threadView}>
         <button className={styles.backButton} onClick={onBack}>
-          {'\u2190'} {t('threadView.back')}
+          <ArrowLeft size={14} /> {t('threadView.back')}
         </button>
         <div className={styles.error}>{error ?? t('threadView.notFound')}</div>
       </div>
@@ -90,7 +91,7 @@ export function ThreadView({
   return (
     <div className={styles.threadView}>
       <button className={styles.backButton} onClick={onBack}>
-        {'\u2190'} {t('threadView.back')}
+        <ArrowLeft size={14} /> {t('threadView.back')}
       </button>
 
       <div className={styles.scrollArea}>

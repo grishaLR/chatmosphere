@@ -1,3 +1,17 @@
+const SOUND_ENABLED_KEY = 'protoimsg:soundEnabled';
+
+export function isSoundEnabled(): boolean {
+  return localStorage.getItem(SOUND_ENABLED_KEY) !== 'false';
+}
+
+export function setSoundEnabled(enabled: boolean): void {
+  if (enabled) {
+    localStorage.removeItem(SOUND_ENABLED_KEY);
+  } else {
+    localStorage.setItem(SOUND_ENABLED_KEY, 'false');
+  }
+}
+
 let ctx: AudioContext | null = null;
 let doorOpenBuffer: AudioBuffer | null = null;
 let doorCloseBuffer: AudioBuffer | null = null;
@@ -42,7 +56,7 @@ void loadBuffer('/sounds/im_notify.wav')
   .catch(() => {});
 
 function playBuffer(buffer: AudioBuffer | null) {
-  if (!buffer) return;
+  if (!buffer || !isSoundEnabled()) return;
   const audio = getContext();
   if (audio.state === 'suspended') return;
   const source = audio.createBufferSource();

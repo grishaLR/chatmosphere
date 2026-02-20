@@ -189,6 +189,7 @@ export function ActorSearch({
                           className={
                             variant === 'compact' ? styles.avatarCompact : styles.avatarDefault
                           }
+                          // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
                           src={actor.avatar}
                           alt=""
                         />

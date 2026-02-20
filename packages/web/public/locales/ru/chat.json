@@ -11,6 +11,7 @@
       "chatRooms": "Чат-комнаты",
       "feed": "Лента"
     },
+    "unreadIm": "{{count}} непрочитанных",
     "groups": {
       "innerCircle": "Ближний круг",
       "community": "Сообщество",
@@ -30,7 +31,10 @@
     "moveTo": "Переместить в...",
     "block": "Заблокировать",
     "unblock": "Разблокировать",
-    "remove": "Удалить"
+    "remove": "Удалить",
+    "messageOnGerm": "Написать в Germ",
+    "sendImDisabled": "Пользователь не в сети",
+    "videoCallDisabled": "Пользователь не в сети"
   },
 
   "memberMenu": {
@@ -148,8 +152,33 @@
     "unmute": "Включить микрофон",
     "flipCamera": "Переключить камеру",
     "endCall": "Завершить звонок",
+    "shareScreen": "Демонстрация экрана",
+    "stopSharing": "Остановить показ",
     "error": {
       "mediaPermission": "Для видеозвонков требуется доступ к камере и микрофону"
+    }
+  },
+
+  "channel": {
+    "heading": "Channels",
+    "listAriaLabel": "Channel list",
+    "create": "Create Channel",
+    "createTitle": "Create Channel",
+    "nameLabel": "Name",
+    "namePlaceholder": "Channel name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What's this channel about?",
+    "postPolicyLabel": "Who can post",
+    "postPolicy": {
+      "everyone": "Everyone",
+      "moderators": "Moderators only",
+      "owner": "Owner only"
+    },
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "createSubmit": "Create",
+    "error": {
+      "default": "Failed to create channel"
     }
   },
 

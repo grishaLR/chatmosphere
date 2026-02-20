@@ -50,6 +50,10 @@
     "invalidId": "ID seomra neamhbhailí",
     "loading": "Tá an seomra á shocrú...",
     "notFound": "Seomra gan aimsiú",
-    "backToRooms": "Seomraí"
+    "backToRooms": "Seomraí",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

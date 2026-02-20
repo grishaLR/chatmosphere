@@ -50,6 +50,10 @@
     "invalidId": "ID de sala inválido",
     "loading": "La sala se está configurando...",
     "notFound": "Sala no encontrada",
-    "backToRooms": "Salas"
+    "backToRooms": "Salas",
+    "channelSwitcher": "Select channel",
+    "createChannel": "Create channel",
+    "collapseChannels": "Collapse channels",
+    "expandChannels": "Expand channels"
   }
 }

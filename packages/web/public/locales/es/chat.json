@@ -11,6 +11,7 @@
       "chatRooms": "Salas de chat",
       "feed": "Feed"
     },
+    "unreadIm": "{{count}} sin leer",
     "groups": {
       "innerCircle": "Círculo íntimo",
       "community": "Comunidad",
@@ -30,7 +31,10 @@
     "moveTo": "Mover a...",
     "block": "Bloquear",
     "unblock": "Desbloquear",
-    "remove": "Eliminar"
+    "remove": "Eliminar",
+    "messageOnGerm": "Mensaje en Germ",
+    "sendImDisabled": "El usuario está desconectado",
+    "videoCallDisabled": "El usuario está desconectado"
   },
 
   "memberMenu": {
@@ -147,8 +151,33 @@
     "unmute": "Activar sonido",
     "flipCamera": "Cambiar cámara",
     "endCall": "Finalizar llamada",
+    "shareScreen": "Compartir pantalla",
+    "stopSharing": "Dejar de compartir",
     "error": {
       "mediaPermission": "Se requiere permiso de cámara/micrófono para videollamadas"
+    }
+  },
+
+  "channel": {
+    "heading": "Channels",
+    "listAriaLabel": "Channel list",
+    "create": "Create Channel",
+    "createTitle": "Create Channel",
+    "nameLabel": "Name",
+    "namePlaceholder": "Channel name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What's this channel about?",
+    "postPolicyLabel": "Who can post",
+    "postPolicy": {
+      "everyone": "Everyone",
+      "moderators": "Moderators only",
+      "owner": "Owner only"
+    },
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "createSubmit": "Create",
+    "error": {
+      "default": "Failed to create channel"
     }
   },
 

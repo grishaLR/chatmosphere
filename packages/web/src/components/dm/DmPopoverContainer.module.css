@@ -1,23 +1,11 @@
 .container {
   position: fixed;
   bottom: 0;
-  right: var(--cm-space-8);
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: flex-start;
-  gap: var(--cm-space-2);
+  right: 0;
   z-index: var(--cm-z-dm);
   pointer-events: none;
-  max-width: calc(100vw - var(--cm-space-16));
-  flex-wrap: wrap-reverse;
 }
 
 .container > * {
   pointer-events: auto;
-}
-
-@media (max-width: 767px) {
-  .container {
-    bottom: var(--cm-tab-bar-h);
-  }
 }

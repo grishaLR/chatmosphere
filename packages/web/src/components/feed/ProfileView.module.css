@@ -147,6 +147,40 @@
   color: var(--color-base-content);
 }
 
+.profileActions {
+  margin-top: var(--cm-space-4);
+}
+
+.germButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cm-space-2);
+  padding: var(--cm-space-1) var(--cm-space-4);
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+  border: none;
+  border-radius: var(--cm-radius-sm);
+  cursor: pointer;
+  font-size: var(--cm-text-sm);
+  box-shadow: var(--cm-raised);
+  text-decoration: none;
+}
+
+.germButton:hover {
+  background: var(--cm-button-hover);
+}
+
+.germButton:active {
+  box-shadow: var(--cm-pressed);
+}
+
+.germLogo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .postsSection {
   padding: 0 var(--cm-space-2) var(--cm-space-4);
 }

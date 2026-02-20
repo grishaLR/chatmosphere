@@ -12,6 +12,14 @@
   background: var(--color-base-100);
 }
 
+.searchLabel {
+  display: block;
+  font-size: var(--cm-text-sm);
+  font-weight: 700;
+  color: var(--color-base-content);
+  margin-bottom: var(--cm-space-1);
+}
+
 .addSection {
   display: flex;
   gap: var(--cm-space-1);
@@ -163,6 +171,7 @@
   border: none;
   border-radius: var(--cm-radius-sm);
   cursor: pointer;
+  color: var(--color-base-content);
   opacity: 0;
   transition: opacity var(--cm-duration-normal);
 }
@@ -176,37 +185,8 @@
   background: var(--cm-chrome-hover);
 }
 
-.menuIcon {
-  display: block;
-  width: var(--cm-icon-sm);
-  height: var(--cm-space-1);
-  background: var(--color-base-content);
-  position: relative;
-}
-
-.buddy:hover .menuIcon,
-.buddy:hover .menuIcon::before,
-.buddy:hover .menuIcon::after {
-  background: var(--cm-chrome-text);
-}
-
-.menuIcon::before,
-.menuIcon::after {
-  content: '';
-  display: block;
-  width: var(--cm-icon-sm);
-  height: var(--cm-space-1);
-  background: var(--color-base-content);
-  position: absolute;
-  inset-inline-start: 0;
-}
-
-.menuIcon::before {
-  top: calc(-1 * var(--cm-space-2));
-}
-
-.menuIcon::after {
-  top: var(--cm-space-2);
+.buddy:hover .menuBtn {
+  color: var(--cm-chrome-text);
 }
 
 .menuDropdown {
@@ -239,6 +219,11 @@
 .menuItem:hover {
   background: var(--cm-selection);
   color: var(--cm-chrome-text);
+}
+
+.menuItemDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .menuItemDanger {
@@ -333,6 +318,28 @@
 
 .groupActionBtn:hover {
   background: var(--cm-chrome-hover);
+}
+
+.imUnreadBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--cm-unread-badge-size);
+  height: var(--cm-unread-badge-size);
+  padding: 0 var(--cm-space-2);
+  background: var(--color-error);
+  color: var(--color-error-content);
+  border: none;
+  border-radius: var(--cm-radius-sm);
+  font-size: var(--cm-text-xs);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.imUnreadBadge:hover {
+  filter: brightness(1.1);
 }
 
 .buddyIndented {
@@ -453,5 +460,9 @@
   .panel {
     width: 100%;
     box-shadow: none;
+  }
+
+  .footer {
+    display: none;
   }
 }

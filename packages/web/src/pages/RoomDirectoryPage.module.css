@@ -76,6 +76,13 @@
   margin-bottom: var(--cm-space-8);
 }
 
+.loadingBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .tauriBody {
   flex: 1;
   overflow: hidden;

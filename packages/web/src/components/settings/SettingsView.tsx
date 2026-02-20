@@ -5,7 +5,9 @@ import { useProfileEditor } from '../../hooks/useProfileEditor';
 import { useTheme } from '../../hooks/useTheme';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
 import { THEME_OPTIONS, type Theme } from '../../contexts/ThemeContext';
+import { ArrowLeft } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
+import { isSoundEnabled, setSoundEnabled } from '../../lib/sounds';
 import type { IpProtectionLevel } from '../../contexts/VideoCallContext';
 import styles from './SettingsView.module.css';
 
@@ -24,6 +26,7 @@ export function SettingsView({ onBack }: SettingsViewProps) {
     available: translateAvailable,
   } = useContentTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [soundEnabled, setSoundEnabledState] = useState(isSoundEnabled);
   const [ipProtection, setIpProtection] = useState<IpProtectionLevel>(() => {
     const stored = localStorage.getItem('protoimsg:ipProtection');
     if (stored === 'all' || stored === 'non-inner-circle' || stored === 'off') return stored;
@@ -56,7 +59,7 @@ export function SettingsView({ onBack }: SettingsViewProps) {
   return (
     <div className={styles.settingsView}>
       <button className={styles.backButton} onClick={onBack}>
-        {'\u2190'} {t('back')}
+        <ArrowLeft size={14} /> {t('back')}
       </button>
 
       <div className={styles.scrollArea}>
@@ -81,6 +84,7 @@ export function SettingsView({ onBack }: SettingsViewProps) {
               <>
                 <div className={styles.avatarRow}>
                   {avatarPreview && (
+                    // eslint-disable-next-line no-restricted-syntax -- blob URL from local file upload
                     <img className={styles.avatarPreview} src={avatarPreview} alt="" />
                   )}
                   <button
@@ -184,6 +188,25 @@ export function SettingsView({ onBack }: SettingsViewProps) {
             </div>
           </div>
         )}
+
+        {/* Notifications */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>{t('notifications.title')}</div>
+          <div className={styles.sectionBody}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={soundEnabled}
+                onChange={(e) => {
+                  setSoundEnabledState(e.target.checked);
+                  setSoundEnabled(e.target.checked);
+                }}
+              />
+              {t('notifications.enableSounds')}
+            </label>
+            <div className={styles.hint}>{t('notifications.enableSoundsHint')}</div>
+          </div>
+        </div>
 
         {/* Privacy */}
         <div className={styles.section}>

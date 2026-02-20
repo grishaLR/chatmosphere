@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NSID } from '@protoimsg/shared';
-import { fetchPolls } from '../lib/api';
+import { fetchChannelPolls } from '../lib/api';
 import {
   createPollRecord,
   createVoteRecord,
@@ -11,19 +11,27 @@ import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from './useAuth';
 import type { PollView } from '../types';
 
-export function usePolls(roomId: string) {
+export function usePolls(roomId: string, channelId: string | null) {
   const [polls, setPolls] = useState<PollView[]>([]);
   const [loading, setLoading] = useState(true);
   const { subscribe } = useWebSocket();
   const { agent, did } = useAuth();
 
-  // Load polls on mount
+  // Load polls on mount or channel change
   useEffect(() => {
+    if (!channelId) {
+      setPolls([]);
+      setLoading(false);
+      return;
+    }
+
     const ac = new AbortController();
+    setLoading(true);
+    setPolls([]);
 
     async function load() {
       try {
-        const data = await fetchPolls(roomId, { signal: ac.signal });
+        const data = await fetchChannelPolls(roomId, channelId as string, { signal: ac.signal });
         if (!ac.signal.aborted) {
           setPolls(data);
         }
@@ -39,14 +47,16 @@ export function usePolls(roomId: string) {
     return () => {
       ac.abort();
     };
-  }, [roomId]);
+  }, [roomId, channelId]);
 
   // Subscribe to WS poll events
   useEffect(() => {
+    if (!channelId) return;
+
     const unsub = subscribe((msg) => {
       if (msg.type === 'poll_created') {
         const event = msg;
-        if (event.data.roomId !== roomId) return;
+        if (event.data.roomId !== roomId || event.data.channelId !== channelId) return;
 
         setPolls((prev) => {
           // Dedup: if we have a pending poll with same id, replace it
@@ -68,6 +78,7 @@ export function usePolls(roomId: string) {
               uri: event.data.uri,
               did: event.data.did,
               room_id: event.data.roomId,
+              channel_id: event.data.channelId,
               question: event.data.question,
               options: event.data.options,
               allow_multiple: event.data.allowMultiple,
@@ -82,7 +93,7 @@ export function usePolls(roomId: string) {
         });
       } else if (msg.type === 'poll_vote') {
         const event = msg;
-        if (event.data.roomId !== roomId) return;
+        if (event.data.roomId !== roomId || event.data.channelId !== channelId) return;
 
         setPolls((prev) =>
           prev.map((p) => {
@@ -102,12 +113,12 @@ export function usePolls(roomId: string) {
     });
 
     return unsub;
-  }, [roomId, subscribe, did]);
+  }, [roomId, channelId, subscribe, did]);
 
   // Create a poll with optimistic update
   const createPoll = useCallback(
-    async (input: Omit<CreatePollInput, 'roomUri'>, roomUri: string) => {
-      if (!agent || !did) return;
+    async (input: Omit<CreatePollInput, 'channelUri'>, channelUri: string) => {
+      if (!agent || !did || !channelId) return;
 
       const rkey = generateTid();
       const uri = `at://${did}/${NSID.Poll}/${rkey}`;
@@ -120,6 +131,7 @@ export function usePolls(roomId: string) {
           uri,
           did,
           room_id: roomId,
+          channel_id: channelId,
           question: input.question,
           options: input.options,
           allow_multiple: input.allowMultiple ?? false,
@@ -134,7 +146,7 @@ export function usePolls(roomId: string) {
       ]);
 
       try {
-        await createPollRecord(agent, { ...input, roomUri }, rkey);
+        await createPollRecord(agent, { ...input, channelUri }, rkey);
       } catch (err) {
         // Rollback on failure
         setPolls((prev) => prev.filter((p) => p.id !== rkey));
@@ -142,7 +154,7 @@ export function usePolls(roomId: string) {
         throw err;
       }
     },
-    [agent, did, roomId],
+    [agent, did, roomId, channelId],
   );
 
   // Cast a vote with optimistic update
@@ -182,16 +194,18 @@ export function usePolls(roomId: string) {
       } catch (err) {
         // Rollback — refetch polls
         console.error('Failed to cast vote:', err);
-        try {
-          const data = await fetchPolls(roomId);
-          setPolls(data);
-        } catch {
-          // ignore refetch failure
+        if (channelId) {
+          try {
+            const data = await fetchChannelPolls(roomId, channelId);
+            setPolls(data);
+          } catch {
+            // ignore refetch failure
+          }
         }
         throw err;
       }
     },
-    [agent, did, roomId],
+    [agent, did, roomId, channelId],
   );
 
   return { polls, loading, createPoll, castVote };

@@ -14,37 +14,11 @@
   border: none;
   border-radius: var(--cm-radius-sm);
   cursor: pointer;
+  color: var(--color-base-content);
 }
 
 .menuBtn:hover {
   background: var(--cm-chrome-hover);
-}
-
-.menuIcon {
-  display: block;
-  width: var(--cm-icon-sm);
-  height: var(--cm-space-1);
-  background: var(--color-base-content);
-  position: relative;
-}
-
-.menuIcon::before,
-.menuIcon::after {
-  content: '';
-  display: block;
-  width: var(--cm-icon-sm);
-  height: var(--cm-space-1);
-  background: var(--color-base-content);
-  position: absolute;
-  inset-inline-start: 0;
-}
-
-.menuIcon::before {
-  top: calc(-1 * var(--cm-space-2));
-}
-
-.menuIcon::after {
-  top: var(--cm-space-2);
 }
 
 .menuDropdown {

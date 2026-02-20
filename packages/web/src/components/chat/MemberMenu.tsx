@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MoreVertical } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 import { useBlocks } from '../../contexts/BlockContext';
@@ -73,7 +74,7 @@ export function MemberMenu({ did, className }: MemberMenuProps) {
         title={t('memberMenu.button.title')}
         aria-label={t('memberMenu.button.ariaLabel')}
       >
-        <span className={styles.menuIcon} />
+        <MoreVertical size={12} />
       </button>
       {open && (
         <div className={styles.menuDropdown}>

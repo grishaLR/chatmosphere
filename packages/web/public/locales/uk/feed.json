@@ -47,7 +47,9 @@
     "translateBio": "Перекласти біографію",
     "translating": "Переклад...",
     "translatedTo": "Перекладено на {{lang}}",
-    "showOriginal": "Показати оригінал"
+    "showOriginal": "Показати оригінал",
+    "messageOnGerm": "Написати в Germ",
+    "germDm": "Germ DM"
   },
 
   "threadView": {

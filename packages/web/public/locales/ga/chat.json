@@ -11,6 +11,7 @@
       "chatRooms": "Seomraí Comhrá",
       "feed": "Fotha"
     },
+    "unreadIm": "{{count}} gan léamh",
     "groups": {
       "innerCircle": "Ciorcal Inmheánach",
       "community": "Pobal",
@@ -30,7 +31,10 @@
     "moveTo": "Bog go...",
     "block": "Coisc",
     "unblock": "Díchoisc",
-    "remove": "Bain"
+    "remove": "Bain",
+    "messageOnGerm": "Teachtaireacht ar Germ",
+    "sendImDisabled": "Tá an t-úsáideoir as líne",
+    "videoCallDisabled": "Tá an t-úsáideoir as líne"
   },
 
   "memberMenu": {
@@ -147,8 +151,33 @@
     "unmute": "Díbhalbhaigh",
     "flipCamera": "Cas an ceamara",
     "endCall": "Cuir deireadh leis an nglao",
+    "shareScreen": "Roinn scáileán",
+    "stopSharing": "Stop ag roinnt",
     "error": {
       "mediaPermission": "Teastaíonn cead ceamara/micreafóin le haghaidh físghlaonna"
+    }
+  },
+
+  "channel": {
+    "heading": "Channels",
+    "listAriaLabel": "Channel list",
+    "create": "Create Channel",
+    "createTitle": "Create Channel",
+    "nameLabel": "Name",
+    "namePlaceholder": "Channel name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What's this channel about?",
+    "postPolicyLabel": "Who can post",
+    "postPolicy": {
+      "everyone": "Everyone",
+      "moderators": "Moderators only",
+      "owner": "Owner only"
+    },
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "createSubmit": "Create",
+    "error": {
+      "default": "Failed to create channel"
     }
   },
 

@@ -62,6 +62,7 @@ export function VideoPlayer({ playlist, thumbnail }: VideoPlayerProps) {
           }
         }}
       >
+        {/* eslint-disable-next-line no-restricted-syntax -- thumbnail from ATProto video embed */}
         {thumbnail && <img className={styles.posterImg} src={thumbnail} alt="" loading="lazy" />}
         <span className={styles.playIcon} aria-hidden="true">
           &#9654;

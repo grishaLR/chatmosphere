@@ -22,7 +22,7 @@
     "unreadOverflow": "99+",
     "connecting": "Conectando\u2026",
     "connectionFailed": "Conexi\u00f3n fallida",
-    "peerOffline": "El usuario est\u00e1 desconectado. Usa Germ para mensajes sin conexi\u00f3n.",
+    "peerClosed": "Chat cerrado. Usa Germ para mensajes sin conexi\u00f3n.",
     "minimize": {
       "titleExpand": "Expandir",
       "titleMinimize": "Minimizar",
