@@ -1,3 +1,4 @@
+import { isSafeUrl } from '../../lib/sanitize';
 import styles from './EmbedRenderer.module.css';
 
 interface EmbedRendererProps {
@@ -53,6 +54,8 @@ export function EmbedRenderer({ embed }: EmbedRendererProps) {
   }
 
   // Generic external link card
+  if (!isSafeUrl(embed.uri)) return null;
+
   return (
     <a href={embed.uri} target="_blank" rel="noopener noreferrer" className={styles.linkCard}>
       <span className={styles.linkTitle}>{embed.title ?? getDomain(embed.uri)}</span>

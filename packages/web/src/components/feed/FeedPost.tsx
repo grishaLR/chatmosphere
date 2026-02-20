@@ -102,9 +102,18 @@ function ImageEmbed({ embed }: { embed: AppBskyEmbedImages.View }) {
     <div className={`${styles.imageGrid} ${gridClass}`}>
       {embed.images.map((img, i) => (
         <div key={i} className={styles.mediaContainer}>
-          <a href={img.fullsize} target="_blank" rel="noopener noreferrer">
+          {isSafeUrl(img.fullsize) ? (
+            <a href={img.fullsize} target="_blank" rel="noopener noreferrer">
+              <img
+                className={styles.embedImage}
+                src={img.thumb}
+                alt={img.alt || ''}
+                loading="lazy"
+              />
+            </a>
+          ) : (
             <img className={styles.embedImage} src={img.thumb} alt={img.alt || ''} loading="lazy" />
-          </a>
+          )}
           <MediaPills type="IMG" alt={img.alt || undefined} />
         </div>
       ))}
@@ -234,7 +243,9 @@ function QuoteEmbed({ embed }: { embed: AppBskyEmbedRecord.View }) {
   return (
     <div className={styles.quotePost}>
       <div className={styles.quoteAuthor}>
-        {author.avatar && <img className={styles.quoteAvatar} src={author.avatar} alt="" />}
+        {author.avatar && isSafeUrl(author.avatar) && (
+          <img className={styles.quoteAvatar} src={author.avatar} alt="" />
+        )}
         <span className={styles.quoteName}>{author.displayName || author.handle}</span>
         <span className={styles.quoteHandle}>@{author.handle}</span>
       </div>
@@ -351,7 +362,7 @@ export const FeedPost = memo(function FeedPost({
       )}
 
       <div className={styles.authorRow}>
-        {post.author.avatar && (
+        {post.author.avatar && isSafeUrl(post.author.avatar) && (
           <img
             className={styles.avatar}
             src={post.author.avatar}

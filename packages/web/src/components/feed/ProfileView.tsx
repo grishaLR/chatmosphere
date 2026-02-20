@@ -4,6 +4,7 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { RichText as RichTextAPI, type AppBskyFeedDefs } from '@atproto/api';
 import { useAuth } from '../../hooks/useAuth';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
+import { isSafeUrl } from '../../lib/sanitize';
 import { FeedPost } from './FeedPost';
 import { RichText, type GenericFacet } from '../chat/RichText';
 import styles from './ProfileView.module.css';
@@ -161,14 +162,14 @@ export function ProfileView({
 
       {profile && (
         <div className={styles.profileHeader}>
-          {profile.banner ? (
+          {profile.banner && isSafeUrl(profile.banner) ? (
             <img className={styles.banner} src={profile.banner} alt="" />
           ) : (
             <div className={styles.banner} />
           )}
           <div className={styles.profileInfo}>
             <div className={styles.avatarRow}>
-              {profile.avatar ? (
+              {profile.avatar && isSafeUrl(profile.avatar) ? (
                 <img className={styles.profileAvatar} src={profile.avatar} alt="" />
               ) : (
                 <div className={styles.profileAvatar} />
