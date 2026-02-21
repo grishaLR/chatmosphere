@@ -93,6 +93,7 @@ class AsyncTranslatorService(translator_pb2_grpc.TranslationService):
         return result
 
     def _translate(self, request):
+        logger.info("Received translation request", extra={"request": request})
         sources = get_or_default(request.sources, [])
         src_lang = get_or_default(request.src_lang, "eng_Latn")
         tgt_lang = get_or_default(request.tgt_lang, "eng_Latn")
