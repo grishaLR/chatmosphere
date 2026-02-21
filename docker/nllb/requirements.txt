@@ -1,0 +1,10 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+numpy<2.0.0      
+transformers>=4.48
+sentencepiece
+ctranslate2
+torch>2.4.1
+grpcio
+grpcio-tools
+grpcio-health-checking

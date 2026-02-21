@@ -5,6 +5,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/lexicon/package.json packages/lexicon/
 COPY packages/server/package.json packages/server/
+COPY proto/translator.proto packages/server/src/translate/
 
 RUN corepack enable && pnpm install --frozen-lockfile
 
@@ -12,10 +13,12 @@ COPY tsconfig.base.json ./
 COPY packages/shared/ packages/shared/
 COPY packages/lexicon/ packages/lexicon/
 COPY packages/server/ packages/server/
+COPY proto/ packages/proto/
 
 RUN pnpm --filter @protoimsg/shared build && \
     pnpm --filter @protoimsg/lexicon build && \
     pnpm --filter @protoimsg/server build && \
+    cp packages/proto/translator.proto packages/server/dist/translate/ && \
     cp -r packages/server/src/db/migrations packages/server/dist/db/ && \
     pnpm --filter @protoimsg/server deploy --prod /app/deploy
 
