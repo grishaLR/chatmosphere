@@ -57,7 +57,7 @@ interface TranslateServiceConfig {
   nllbApiKey?: string;
 }
 
-const PROTO_PATH = path.resolve(__dirname, './translator.proto');
+const PROTO_PATH = path.resolve(import.meta.dirname, './translator.proto');
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
