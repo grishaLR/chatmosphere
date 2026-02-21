@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Fix 1: Copy from the local context to the current WORKDIR (.)
-COPY requirements.txt .
+COPY requirements.txt requirements.txt
 
 # Fix 2: Refer to the file in the current directory
 RUN pip install --no-cache-dir -r requirements.txt

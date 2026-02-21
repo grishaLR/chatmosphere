@@ -8,6 +8,10 @@ Binds to [::] (IPv6 dual-stack) so both IPv4 health checks and Fly's IPv6
 internal networking (.internal DNS) work.
 """
 
+import logging
+
+logger = logging.getLogger("server")
+
 import asyncio
 import os
 import shutil
@@ -39,11 +43,11 @@ if not sentinel.exists():
     if ct2_path.exists():
         shutil.rmtree(ct2_path)
 
-    print(f"Converting {MODEL_ID} to CTranslate2 INT8 format (one-time)...", flush=True)
+    logger.info(f"Converting {MODEL_ID} to CTranslate2 INT8 format (one-time)...")
     ct2_converter = ctranslate2.converters.TransformersConverter(MODEL_ID)
     ct2_converter.convert(CT2_MODEL_DIR, quantization="int8")
     sentinel.touch()
-    print("Conversion complete.", flush=True)
+    logger.info("Conversion complete.")
 
     # Clean up HuggingFace model weights to save disk space.
     # The tokenizer files are small (<1MB) and cached separately.
@@ -51,12 +55,12 @@ if not sentinel.exists():
     for blob in hf_cache.rglob("*.bin"):
         if "ct2" not in str(blob):
             blob.unlink(missing_ok=True)
-            print(f"Cleaned up {blob}", flush=True)
+            logger.info(f"Cleaned up {blob}")
     for blob in hf_cache.rglob("*.safetensors"):
         blob.unlink(missing_ok=True)
-        print(f"Cleaned up {blob}", flush=True)
+        logger.info(f"Cleaned up {blob}")
 
-print(f"Loading CTranslate2 model from {CT2_MODEL_DIR}...", flush=True)
+logger.info(f"Loading CTranslate2 model from {CT2_MODEL_DIR}...")
 translator = ctranslate2.Translator(
     CT2_MODEL_DIR,
     compute_type="int8",
@@ -64,7 +68,7 @@ translator = ctranslate2.Translator(
     intra_threads=INTRA_THREADS,
 )
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-print(f"Model loaded. CTranslate2 {ctranslate2.__version__}", flush=True)
+logger.info(f"Model loaded. CTranslate2 {ctranslate2.__version__}")
 
 
 def get_or_default(v, default):
@@ -86,6 +90,7 @@ class AsyncTranslatorService(translator_pb2_grpc.TranslationService):
         tgt_lang = get_or_default(request.tgt_lang, "eng_Latn")
 
         if not sources:
+            logger.debug("No given")
             return translator_pb2.TranslateResponse(translations=[])
 
         # Tokenize all texts to token strings for CTranslate2
@@ -127,7 +132,7 @@ async def serve():
 
     listen_addr = f"[{HOST}]:{PORT}"
     server.add_insecure_port(listen_addr)
-    print(f"Async gRPC server starting on {listen_addr}")
+    logger.info(f"Async gRPC server starting on {listen_addr}")
 
     await server.start()
 
@@ -135,7 +140,7 @@ async def serve():
 
     # Define a helper to trigger the event
     def signal_handler():
-        print("\nShutdown signal received...")
+        logger.info("\nShutdown signal received...")
         shutdown_event.set()
 
     # Register handlers for Ctrl+C (SIGINT) and container stops (SIGTERM)
@@ -148,10 +153,11 @@ async def serve():
 
     # Start the graceful shutdown period
     # 5 seconds allows in-flight translations to finish
-    print("Stopping server gracefully...")
+    logger.info("Stopping server gracefully...")
     await server.stop(5)
-    print("Server stopped.")
+    logger.info("Server stopped.")
 
 
 if __name__ == "__main__":
+    logger.info("Starting...")
     asyncio.run(serve())
