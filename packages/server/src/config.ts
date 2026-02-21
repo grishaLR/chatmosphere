@@ -21,7 +21,7 @@ const envSchema = z.object({
     .default(8 * 60 * 60 * 1000)
     .refine((v) => v > 0, 'SESSION_TTL_MS must be greater than 0'), // 8 hours
   LIBRETRANSLATE_URL: z.string().url().optional(),
-  NLLB_URL: z.string().url().optional(),
+  NLLB_URL: z.string().optional(),
   NLLB_API_KEY: z.string().optional(),
   TRANSLATE_ENABLED: z
     .enum(['true', 'false'])
