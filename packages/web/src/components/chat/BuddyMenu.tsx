@@ -82,7 +82,6 @@ export function BuddyMenu({
   );
 
   const isOffline = buddy.status === 'offline';
-  const canIm = !isOffline || !!buddy.isInnerCircle;
 
   return (
     <div className={styles.menuWrap} ref={menuRef}>
@@ -100,13 +99,13 @@ export function BuddyMenu({
         <div className={styles.menuDropdown}>
           {onSendIm && (
             <button
-              className={`${styles.menuItem} ${!canIm ? styles.menuItemDisabled : ''}`}
-              disabled={!canIm}
+              className={`${styles.menuItem} ${isOffline ? styles.menuItemDisabled : ''}`}
+              disabled={isOffline}
               onClick={() => {
                 onSendIm();
                 setOpen(false);
               }}
-              title={!canIm ? t('buddyMenu.sendImDisabled') : undefined}
+              title={isOffline ? t('buddyMenu.sendImDisabled') : undefined}
             >
               {t('buddyMenu.sendIm')}
             </button>

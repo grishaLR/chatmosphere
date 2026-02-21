@@ -179,8 +179,7 @@ export function RoomDirectoryPage() {
     onBuddyClick: (did: string) => {
       navigateToProfile(did);
       const buddy = buddies.find((b) => b.did === did);
-      const canIm = buddy ? buddy.status !== 'offline' || !!buddy.isInnerCircle : false;
-      if (canIm) openDmMinimized(did);
+      if (buddy && buddy.status !== 'offline') openDmMinimized(did);
     },
     onCreateGroup: createGroup,
     onRenameGroup: renameGroup,
