@@ -10,6 +10,14 @@ import {
 } from './lang-codes.js';
 import type { Sql } from '../db/client.js';
 
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
+import { ProtoGrpcType } from './generated/translator.js';
+import { TranslationServiceClient } from './generated/nllb/TranslationService.js';
+import * as path from 'node:path';
+import { TranslateRequest } from './generated/nllb/TranslateRequest.js';
+import { TranslateResponse } from './generated/nllb/TranslateResponse.js';
+
 const log = createLogger('translate');
 
 export function hashText(text: string): string {
@@ -42,10 +50,6 @@ export interface TranslateService {
   isAvailable(): Promise<boolean>;
 }
 
-interface NllbTranslateResponse {
-  translation: string[];
-}
-
 interface TranslateServiceConfig {
   sql: Sql;
   libreTranslateUrl?: string;
@@ -53,12 +57,47 @@ interface TranslateServiceConfig {
   nllbApiKey?: string;
 }
 
-/**
- * Returns the list of supported ISO language codes based on which backends are configured.
- * - LibreTranslate configured → LIBRE_CODES
- * - NLLB configured → NLLB_ONLY_CODES (and LIBRE_CODES too if no LibreTranslate)
- * - Both → union of both sets
- */
+const PROTO_PATH = path.resolve(__dirname, './translator.proto');
+
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+
+// CASTING: Use 'unknown' as a safe bridge to the generated ProtoGrpcType
+const proto = grpc.loadPackageDefinition(packageDefinition) as unknown as ProtoGrpcType;
+
+function getNLLBTranslateAsync(nllbUrl: string) {
+  // Initialize the client (Note: Target is your Fly.io internal address)
+  // 'protoimsg-nllb.internal:6060'
+  const nllbClient: TranslationServiceClient = new proto.nllb.TranslationService(
+    // TODO: Make the address configurable and secure (e.g., via environment variable or config file)
+    nllbUrl,
+    grpc.credentials.createInsecure(),
+  );
+
+  // Promisify the Translate method
+  return (request: TranslateRequest): Promise<TranslateResponse> => {
+    return new Promise((resolve, reject) => {
+      // Calling it as client.method() keeps 'this' bound correctly
+      nllbClient.Translate(request, (err, response) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (!response) {
+          reject(new Error('No response'));
+          return;
+        }
+        resolve(response);
+      });
+    });
+  };
+}
+
 export function getSupportedLanguages(libreUrl?: string, nllbUrl?: string): string[] {
   const codes = new Set<string>();
 
@@ -79,6 +118,8 @@ export function getSupportedLanguages(libreUrl?: string, nllbUrl?: string): stri
 
 export function createTranslateService(config: TranslateServiceConfig): TranslateService {
   const { sql, libreTranslateUrl: libreUrl, nllbUrl, nllbApiKey } = config;
+
+  const translateAsync = nllbUrl ? getNLLBTranslateAsync(nllbUrl) : null;
 
   /**
    * Batch LibreTranslate — sends all texts in one request using array `q`.
@@ -210,10 +251,6 @@ export function createTranslateService(config: TranslateServiceConfig): Translat
       groups.set(sourceLang, group);
     }
 
-    // One request per source language group
-    const nllbHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (nllbApiKey) nllbHeaders['Authorization'] = `Bearer ${nllbApiKey}`;
-
     // Process groups sequentially — NLLB is single-threaded, so concurrent
     // requests just queue up and risk timeouts. Sequential ensures order and
     // prevents overloading the server.
@@ -222,34 +259,29 @@ export function createTranslateService(config: TranslateServiceConfig): Translat
       const srcIso = floresToIso(srcFlores) ?? 'unknown';
 
       try {
-        const res = await fetch(`${nllbUrl}/translate`, {
-          method: 'POST',
-          headers: nllbHeaders,
-          body: JSON.stringify({
-            source: items.map((i) => i.text),
-            src_lang: srcFlores,
-            tgt_lang: targetFlores,
-          }),
-          signal: AbortSignal.timeout(30_000),
-        });
+        const request: TranslateRequest = {
+          sources: items.map((i) => i.text),
+          srcLang: srcFlores,
+          tgtLang: targetFlores,
+        };
 
-        if (!res.ok) {
-          log.warn({ status: res.status, sourceLang, count: items.length }, 'NLLB batch error');
-          for (const item of items) {
-            results.set(item.hash, {
-              text: item.text,
-              translated: item.text,
-              sourceLang: 'unknown',
-            });
-          }
-          continue;
+        if (!translateAsync) {
+          log.warn('NLLB URL not configured, cannot translate');
+          throw new Error('NLLB handler not configured');
         }
+        const res = await translateAsync(request);
 
-        const data = (await res.json()) as NllbTranslateResponse;
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
           if (!item) continue;
-          const translated = data.translation[i] ?? item.text;
+          if (!res.translations || !res.translations[i]) {
+            log.warn(
+              { itemIndex: i, sourceLang, targetLang },
+              'Missing translation in NLLB response, returning original text',
+            );
+            continue;
+          }
+          const translated = res.translations[i] ?? item.text;
           results.set(item.hash, { text: item.text, translated, sourceLang: srcIso });
           toInsert.push({ textHash: item.hash, targetLang, sourceLang: srcIso, translated });
         }
