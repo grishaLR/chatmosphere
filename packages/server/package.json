@@ -20,6 +20,7 @@
     "@atproto/api": "^0.13.0",
     "@atproto/oauth-client-node": "^0.2.0",
     "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.0",
     "@protoimsg/lexicon": "workspace:*",
     "@protoimsg/shared": "workspace:*",
     "@sentry/node": "^10.38.0",
@@ -35,7 +36,6 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@grpc/proto-loader": "^0.8.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/ioredis": "^5.0.0",
