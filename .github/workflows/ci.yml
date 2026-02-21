@@ -68,6 +68,9 @@ jobs:
     outputs:
       server: ${{ steps.filter.outputs.server }}
       web: ${{ steps.filter.outputs.web }}
+      nllb: ${{ steps.filter.outputs.nllb }}
+      libretranslate: ${{ steps.filter.outputs.libretranslate }}
+      coturn: ${{ steps.filter.outputs.coturn }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -85,6 +88,13 @@ jobs:
               - 'packages/ui/**'
               - 'packages/shared/**'
               - 'packages/lexicon/**'
+            nllb:
+              - 'docker/nllb/**'
+            libretranslate:
+              - 'fly.libretranslate.toml'
+            coturn:
+              - 'docker/coturn/**'
+              - 'fly.coturn.toml'
 
   deploy-server:
     needs: changes
@@ -148,3 +158,45 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  deploy-nllb:
+    needs: changes
+    if: needs.changes.outputs.nllb == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy NLLB to Fly.io
+        run: flyctl deploy --remote-only --config docker/nllb/fly.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  deploy-libretranslate:
+    needs: changes
+    if: needs.changes.outputs.libretranslate == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy LibreTranslate to Fly.io
+        run: flyctl deploy --remote-only --config fly.libretranslate.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  deploy-coturn:
+    needs: changes
+    if: needs.changes.outputs.coturn == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy coturn to Fly.io
+        run: flyctl deploy --remote-only --config fly.coturn.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
