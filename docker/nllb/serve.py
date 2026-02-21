@@ -14,8 +14,8 @@ import sys
 # Configure the logger to send to the console (stdout)
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 logger = logging.getLogger("server")
@@ -98,7 +98,7 @@ class AsyncTranslatorService(translator_pb2_grpc.TranslationService):
         tgt_lang = get_or_default(request.tgt_lang, "eng_Latn")
 
         if not sources:
-            logger.debug("No given")
+            logger.debug("No source given")
             return translator_pb2.TranslateResponse(translations=[])
 
         # Tokenize all texts to token strings for CTranslate2
@@ -123,6 +123,8 @@ class AsyncTranslatorService(translator_pb2_grpc.TranslationService):
             target_tokens = result.hypotheses[0]
             target_ids = tokenizer.convert_tokens_to_ids(target_tokens)
             translations.append(tokenizer.decode(target_ids, skip_special_tokens=True))
+
+        logger.info(f"Translated {len(sources)} texts from {src_lang} to {tgt_lang}")
 
         return translator_pb2.TranslateResponse(translations=translations)
 
