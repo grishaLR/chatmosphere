@@ -242,6 +242,15 @@ export async function handleClientMessage(
       const allMembers = data.groups.flatMap((g) => g.members);
       await syncCommunityMembers(sql, did, allMembers);
       await upsertCommunityList(sql, { did, groups: data.groups });
+      // Re-notify watchers: inner circle changes affect who can see us
+      const syncPresence = await service.getPresence(did);
+      const syncVisibleTo = await service.getVisibleTo(did);
+      await communityWatchers.notify(
+        did,
+        syncPresence.status,
+        syncPresence.awayMessage,
+        syncVisibleTo,
+      );
       break;
     }
 
@@ -276,18 +285,14 @@ export async function handleClientMessage(
       {
         const recipientPresence = await service.getPresence(data.recipientDid);
         if (recipientPresence.status === 'offline') {
-          // Inner circle members can message each other offline
-          const inCircle = await isInnerCircle(sql, did, data.recipientDid);
-          if (!inCircle) {
-            ws.send(
-              JSON.stringify({
-                type: 'error',
-                message: 'User is offline',
-                errorCode: ERROR_CODES.RECIPIENT_OFFLINE,
-              }),
-            );
-            break;
-          }
+          ws.send(
+            JSON.stringify({
+              type: 'error',
+              message: 'User is offline',
+              errorCode: ERROR_CODES.RECIPIENT_OFFLINE,
+            }),
+          );
+          break;
         }
       }
 

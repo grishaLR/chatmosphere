@@ -2,7 +2,7 @@
 
 **Find your people. Build your feed.**
 
-protoimsg is a real-time communications platform built on the AT Protocol. Public chat rooms are where you discover people. Your buddy list is where you keep them. Peer-to-peer video and messaging is how you stay connected. Your inner circle gets pure peer-to-peer by default (unless you opt out), everyone else is routed through our relay to hide your IP address. You can switch to pure P2P anytime. The relay exists only to protect you: nothing is stored, no media is logged, and all traffic is encrypted end-to-end (DTLS-SRTP) so even the relay can't see your data.
+protoimsg is a real-time communications platform built on the AT Protocol. Public chat rooms are where you discover people. Your buddy list is where you keep them. Peer-to-peer video and messaging is how you stay connected. Your inner circle gets pure peer-to-peer by default (unless you opt out), everyone else is routed through our relay to hide your IP address. You can switch to pure P2P anytime. The relay exists only to protect you: nothing is stored, no media is logged, and all traffic is encrypted end-to-end (DTLS-SRTP) so even the relay can't see your data. If someone's offline, reach them through [Germ](https://germnetwork.com) for persistent E2E-encrypted messaging.
 
 Your identity, contacts, and public chat history are yours, portable across any app that implements the [Lexicon](./PROTOCOL.md).
 
@@ -14,9 +14,9 @@ Your identity, contacts, and public chat history are yours, portable across any 
 
 - **Public chat rooms** — Join rooms by interest, meet people, and follow the ones you vibe with. The chat rooms have treaded replies, rich text, polls, GIF search (/giphy, /klipy), and room history that persists so you can discover people even after the conversation has moved on.
 
-- **Instant messaging** — Real-time chat over WebRTC data channels (shipping next). Same trust-aware routing as video: pure P2P for your inner circle, relay for everyone else. The relay can't read your messages either way.
+- **Instant messaging** — Real-time DMs when both people are online. Same trust-aware routing as video: pure P2P for your inner circle, relay for everyone else. For offline messaging, use [Germ](https://germnetwork.com) integration for persistent E2E-encrypted DMs.
 
-- **Community list, not follow graph** — Your buddy list is separate from who you follow. You might want to chat with people you don't follow, and you might not want to chat with people you do follow. Your community list is organized into groups: **Everyone**, **Community**, and **Inner Circle**. Each tier controls who can see you online and who can start a conversation. Inner Circle is special: even when you're invisible to the world, your inner circle can still reach you.
+- **Community list, not follow graph** — Your buddy list is separate from who you follow. You might want to chat with people you don't follow, and you might not want to chat with people you do follow. Your community list is organized into groups: **Everyone**, **Community**, and **Inner Circle**. Each tier controls who can see you online. Inner Circle controls trust-aware routing: your inner circle gets pure P2P connections, everyone else is relayed.
 
 - **Translation** — The entire UI, chat rooms, messages, and feed available in 8 languages (English, Spanish, Russian, Arabic, Ukrainian, Irish, Swahili, Hausa). Turn on auto-translate in settings or translate individual messages on demand. Powered by NLLB and LibreTranslate, both self-hosted. No data sent to third parties. Migrating fully to NLLB.
 
@@ -44,8 +44,8 @@ The product is built on a three-layer architecture:
 
 Different conversations need different infrastructure:
 
-- **Live/ephemeral** — WebRTC data channels. P2P, no server, no persistence. For real-time chat when both people are online.
-- **Persistent E2E DMs** — Germ integration. For async private messages that survive both parties being offline. End-to-end encrypted via MLS.
+- **Live/ephemeral** — Server-relayed DMs when both people are online. Migrating to WebRTC data channels for P2P.
+- **Persistent E2E DMs** — [Germ](https://germnetwork.com) integration. For async private messages that survive both parties being offline. End-to-end encrypted via MLS.
 - **Room chat** — ATProto records via the protoimsg server. For group rooms, public/community chat. Durable, searchable, portable.
 
 ## Not feed-first
