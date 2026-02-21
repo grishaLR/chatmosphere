@@ -14,20 +14,24 @@ primary_region = 'iad'
   internal_port = 6060
   protocol = "tcp"
 
+  [[services.ports]]
+    port = 443
+    protocol = "tcp"
+    [services.ports.tls_options]
+      alpn = ['h2']
+    [services.ports.http_options]
+      h2_backend = true
+
 # This allows the internal load balancer to speak HTTP/2 (gRPC) to your container
   [services.concurrency]
     type = "requests"
     hard_limit = 25
     soft_limit = 20
 
-[checks]
-  [checks.health]
-    port = 6060
-    type = "http"
-    interval = "15s"
-    timeout = "10s"
-    grace_period = "15m"
-    path = "/health"
+  [[services.tcp_checks]]
+      interval = "15s"
+      timeout = "2s"
+      grace_period = "15m" # Keep this high for the initial model conversion
 
 [mounts]
   source = 'nllb_models'
