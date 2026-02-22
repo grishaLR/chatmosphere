@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -13,6 +14,7 @@ import { playImNotify } from '../lib/sounds';
 import { fetchIceServers } from '../lib/api';
 import { PeerManager, PeerConnectionType } from '../lib/peerconnection';
 import { shouldForceRelayForDid } from '../lib/ip-protection';
+import { Sentry } from '../sentry';
 import type { ServerMessage, IceCandidateInit } from '@protoimsg/shared';
 
 export { setInnerCircleDidsForCalls } from '../lib/ip-protection';
@@ -170,6 +172,14 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
 
       try {
         const iceServers = await fetchIceServers();
+        if (iceServers.length === 0) {
+          Sentry.captureMessage('ICE servers unavailable — video call blocked', {
+            level: 'error',
+            tags: { component: 'VideoCall', role: 'caller' },
+          });
+          showCallError('Video calls are temporarily unavailable. Please try again later.');
+          return;
+        }
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         localStream.current = stream;
 
@@ -256,6 +266,15 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
 
     try {
       const iceServers = await fetchIceServers();
+      if (iceServers.length === 0) {
+        Sentry.captureMessage('ICE servers unavailable — video call blocked', {
+          level: 'error',
+          tags: { component: 'VideoCall', role: 'callee' },
+        });
+        showCallError('Video calls are temporarily unavailable. Please try again later.');
+        cleanUp();
+        return;
+      }
       const useRelay = shouldForceRelayForDid(call.recipientDid);
       const pm = new PeerManager({
         config: { iceServers, ...(useRelay && { iceTransportPolicy: 'relay' as const }) },
@@ -607,6 +626,20 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     };
   }, [subscribe, send, initiateCall, cleanUp]);
 
+  // Notify remote peer on tab close so they don't see frozen video for 30s
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const call = activeCallRef.current;
+      if (call) {
+        send({ type: 'reject_call', conversationId: call.conversationId });
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [send]);
+
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -627,23 +660,42 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value: VideoCallContextValue = {
-    activeCall,
-    callError,
-    isMuted,
-    isCameraOff,
-    isScreenSharing,
-    videoCall,
-    acceptCall,
-    rejectCall,
-    hangUp,
-    retryCall,
-    toggleMute,
-    toggleCamera,
-    flipCamera,
-    startScreenShare,
-    stopScreenShare,
-  };
+  const value: VideoCallContextValue = useMemo(
+    () => ({
+      activeCall,
+      callError,
+      isMuted,
+      isCameraOff,
+      isScreenSharing,
+      videoCall,
+      acceptCall,
+      rejectCall,
+      hangUp,
+      retryCall,
+      toggleMute,
+      toggleCamera,
+      flipCamera,
+      startScreenShare,
+      stopScreenShare,
+    }),
+    [
+      activeCall,
+      callError,
+      isMuted,
+      isCameraOff,
+      isScreenSharing,
+      videoCall,
+      acceptCall,
+      rejectCall,
+      hangUp,
+      retryCall,
+      toggleMute,
+      toggleCamera,
+      flipCamera,
+      startScreenShare,
+      stopScreenShare,
+    ],
+  );
 
   return <VideoCallContext.Provider value={value}>{children}</VideoCallContext.Provider>;
 }

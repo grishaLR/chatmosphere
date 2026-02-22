@@ -9,8 +9,10 @@ import { playImNotify } from '../lib/sounds';
 import { useWebSocket } from '../contexts/WebSocketContext';
 import { useAuth } from './useAuth';
 import type { MessageView } from '../types';
+import { Sentry } from '../sentry';
 
 const MAX_MESSAGES = 500;
+const PENDING_MESSAGE_TIMEOUT_MS = 15_000;
 
 export function useMessages(roomId: string, channelId: string | null) {
   const [messages, setMessages] = useState<MessageView[]>([]);
@@ -213,6 +215,16 @@ export function useMessages(roomId: string, channelId: string | null) {
         embed,
       };
 
+      // Timeout: remove pending message if it's still stuck after 15s
+      const pendingTimer = setTimeout(() => {
+        Sentry.captureMessage('Pending message timeout — message stuck for 15s', {
+          level: 'warning',
+          tags: { component: 'useMessages' },
+          extra: { roomId, channelId, rkey },
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== rkey || !m.pending));
+      }, PENDING_MESSAGE_TIMEOUT_MS);
+
       try {
         await createMessageRecord(agent, input, rkey);
       } catch (err) {
@@ -220,6 +232,8 @@ export function useMessages(roomId: string, channelId: string | null) {
         setMessages((prev) => prev.filter((m) => m.id !== rkey));
         console.error('Failed to send message:', err);
         throw err;
+      } finally {
+        clearTimeout(pendingTimer);
       }
     },
     [agent, did, roomId, channelId],

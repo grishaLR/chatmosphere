@@ -35,12 +35,27 @@ export class AccountBannedError extends Error {
   }
 }
 
-/** Pre-OAuth ban check — throws AccountBannedError if the handle is banned. */
+export class NotOnAllowlistError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotOnAllowlistError';
+  }
+}
+
+/** Throw the appropriate 403 error based on the server's errorCode. */
+function throwForbiddenError(data: { error: string; errorCode?: string }): never {
+  if (data.errorCode === 'NOT_ON_ALLOWLIST') {
+    throw new NotOnAllowlistError(data.error);
+  }
+  throw new AccountBannedError(data.error);
+}
+
+/** Pre-OAuth ban check — throws AccountBannedError or NotOnAllowlistError. */
 export async function preflightCheck(handle: string): Promise<void> {
   const res = await fetch(`${API_URL}/api/auth/preflight?handle=${encodeURIComponent(handle)}`);
   if (res.status === 403) {
-    const data = (await res.json()) as { error: string };
-    throw new AccountBannedError(data.error);
+    const data = (await res.json()) as { error: string; errorCode?: string };
+    throwForbiddenError(data);
   }
 }
 
@@ -51,8 +66,8 @@ export async function fetchChallenge(did: string): Promise<ChallengeResponse> {
     body: JSON.stringify({ did }),
   });
   if (res.status === 403) {
-    const data = (await res.json()) as { error: string };
-    throw new AccountBannedError(data.error);
+    const data = (await res.json()) as { error: string; errorCode?: string };
+    throwForbiddenError(data);
   }
   if (!res.ok) throw new Error(`Failed to get auth challenge: ${res.status}`);
   return (await res.json()) as ChallengeResponse;
@@ -75,6 +90,10 @@ export async function createServerSession(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ did, handle, nonce, rkey }),
   });
+  if (res.status === 403) {
+    const data = (await res.json()) as { error: string; errorCode?: string };
+    throwForbiddenError(data);
+  }
   if (!res.ok) throw new Error(`Failed to create server session: ${res.status}`);
   return (await res.json()) as ServerSessionResponse;
 }
@@ -375,8 +394,8 @@ export async function fetchIceServers(): Promise<RTCIceServer[]> {
     };
     return data.iceServers;
   } catch {
-    // Fallback — video calling degrades but never breaks
-    return [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
+    // No fallback to third-party STUN — prevents IP address leaks to Google
+    return [];
   }
 }
 

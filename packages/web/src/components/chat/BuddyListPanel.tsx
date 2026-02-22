@@ -7,6 +7,7 @@ import { UserIdentity } from './UserIdentity';
 import { BuddyMenu } from './BuddyMenu';
 import { GroupHeaderRow } from './GroupHeaderRow';
 import { ActorSearch, type ActorSearchResult } from '../shared/ActorSearch';
+import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import { useBlocks } from '../../contexts/BlockContext';
 import { useCollapsedGroups } from '../../hooks/useCollapsedGroups';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
@@ -253,13 +254,7 @@ export function BuddyListPanel({
         <label className={styles.searchLabel} htmlFor="add-buddy-search">
           {t('buddyList.addBuddyLabel')}
         </label>
-        <ActorSearch
-          id="add-buddy-search"
-          onSelect={handleBuddySelect}
-          isOptionDisabled={(actor) => buddyDids.has(actor.did)}
-          placeholder={t('buddyList.searchPlaceholder')}
-          variant="compact"
-        />
+        <AddBuddySearch onSelect={handleBuddySelect} buddyDids={buddyDids} />
       </div>
 
       {loading ? (
@@ -507,5 +502,25 @@ export function BuddyListPanel({
         </div>
       )}
     </div>
+  );
+}
+
+/** Isolated component so the 3s placeholder interval only re-renders this subtree. */
+function AddBuddySearch({
+  onSelect,
+  buddyDids,
+}: {
+  onSelect: (actor: ActorSearchResult) => void;
+  buddyDids: Set<string>;
+}) {
+  const placeholder = useRotatingPlaceholder('buddy');
+  return (
+    <ActorSearch
+      id="add-buddy-search"
+      onSelect={onSelect}
+      isOptionDisabled={(actor) => buddyDids.has(actor.did)}
+      placeholder={placeholder}
+      variant="compact"
+    />
   );
 }

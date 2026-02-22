@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
+import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import { THEME_OPTIONS, type Theme } from '../../contexts/ThemeContext';
-import { AccountBannedError, joinWaitlist } from '../../lib/api';
+import { AccountBannedError, NotOnAllowlistError, joinWaitlist } from '../../lib/api';
 import { ActorSearch, type ActorSearchResult } from '../shared/ActorSearch';
 import { AtprotoInfoModal } from './AtprotoInfoModal';
 import { LanguageSelector } from '../settings/LanguageSelector';
@@ -17,8 +18,10 @@ export function LoginForm() {
   const [handle, setHandle] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [banned, setBanned] = useState(false);
+  const [notOnAllowlist, setNotOnAllowlist] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const placeholder = useRotatingPlaceholder('login');
 
   function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -27,9 +30,12 @@ export function LoginForm() {
 
     setError(null);
     setBanned(false);
+    setNotOnAllowlist(false);
     setLoading(true);
     login(trimmed).catch((err: unknown) => {
-      if (err instanceof AccountBannedError) {
+      if (err instanceof NotOnAllowlistError) {
+        setNotOnAllowlist(true);
+      } else if (err instanceof AccountBannedError) {
         setBanned(true);
       } else {
         setError(err instanceof Error ? err.message : t('login.error.default'));
@@ -44,10 +50,33 @@ export function LoginForm() {
 
   if (banned) {
     return (
+      <div className={styles.form}>
+        <h1 className={styles.title}>{t('login.title')}</h1>
+        <div className={styles.betaSignupBox}>
+          <h2 className={styles.betaSignupTitle}>{t('login.banned.title', 'Account Suspended')}</h2>
+          <p className={styles.betaSignupBody}>
+            {t('login.banned.body', 'This account is not permitted to use this service.')}
+          </p>
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => {
+              setBanned(false);
+            }}
+          >
+            {t('login.betaSignup.back')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (notOnAllowlist) {
+    return (
       <BetaSignupForm
         handle={handle}
         onBack={() => {
-          setBanned(false);
+          setNotOnAllowlist(false);
         }}
       />
     );
@@ -67,7 +96,7 @@ export function LoginForm() {
           onInputChange={setHandle}
           onSelect={handleActorSelect}
           clearOnSelect={false}
-          placeholder={t('login.handlePlaceholder')}
+          placeholder={placeholder}
           variant="default"
           disabled={loading}
           autoFocus
@@ -119,13 +148,14 @@ export function LoginForm() {
   );
 }
 
-function BetaSignupForm({ handle, onBack }: { handle: string; onBack: () => void }) {
+export function BetaSignupForm({ handle, onBack }: { handle: string; onBack: () => void }) {
   const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [handleValue, setHandleValue] = useState(handle);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const placeholder = useRotatingPlaceholder('login');
 
   function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -194,7 +224,7 @@ function BetaSignupForm({ handle, onBack }: { handle: string; onBack: () => void
                 onChange={(e) => {
                   setHandleValue(e.target.value);
                 }}
-                placeholder={handle || 'you.bsky.social'}
+                placeholder={handle || placeholder}
                 required
               />
               {error && <p className={styles.error}>{error}</p>}
