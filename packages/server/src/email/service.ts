@@ -60,7 +60,7 @@ export class EmailService {
               <a href="https://protoimsg.app" style="display: inline-block; background: #6366f1; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Open protoimsg</a>
             </p>
             <p style="line-height: 1.6; color: #333;">
-              Questions? Hit us up on <a href="https://bsky.app/profile/protoimsg.myatproto.social" style="color: #6366f1;">Bluesky</a> or email <a href="mailto:protoimsg@gmail.com" style="color: #6366f1;">protoimsg@gmail.com</a>.
+              Questions? Contact us on <a href="https://bsky.app/profile/protoimsg.myatproto.social" style="color: #6366f1;">Bluesky</a> or send an email to <a href="mailto:protoimsg@gmail.com" style="color: #6366f1;">protoimsg@gmail.com</a>.
             </p>
             <p style="line-height: 1.6; color: #999; font-size: 14px; margin-top: 32px;">
               — the protoimsg team
