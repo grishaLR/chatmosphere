@@ -34,7 +34,8 @@ import { updatePeakWsConns } from '../stats/queries.js';
 
 const log = createLogger('ws');
 const AUTH_TIMEOUT_MS = 5000;
-const MAX_WS_CONNECTIONS_PER_IP = 20;
+const MAX_WS_CONNECTIONS_PER_IP = 50;
+const MAX_WS_CONNECTIONS_PER_DID = 5;
 
 /** Tracks WebSocket connections per IP for rate limiting. */
 class WsConnectionTracker {
@@ -82,6 +83,16 @@ export class UserSockets {
 
   get(did: string): Set<WebSocket> {
     return this.sockets.get(did) ?? new Set();
+  }
+
+  count(did: string): number {
+    return this.sockets.get(did)?.size ?? 0;
+  }
+
+  oldest(did: string): WebSocket | undefined {
+    const set = this.sockets.get(did);
+    if (!set || set.size === 0) return undefined;
+    return set.values().next().value;
   }
 }
 
@@ -222,6 +233,25 @@ export function createWsServer(
             did = session.did;
             await service.handleUserConnect(did);
             userSockets.add(did, ws);
+
+            // Phase 2: per-DID connection limit — evict oldest socket.
+            // Remove from userSockets before closing so the count decreases
+            // synchronously (close handler fires async on next tick).
+            while (userSockets.count(did) > MAX_WS_CONNECTIONS_PER_DID) {
+              const oldest = userSockets.oldest(did);
+              if (!oldest || oldest === ws) break;
+              log.info({ did, reason: 'per-DID limit' }, 'Evicting oldest socket');
+              userSockets.remove(did, oldest);
+              oldest.send(
+                JSON.stringify({
+                  type: 'error',
+                  message: 'Connection replaced by newer session',
+                  errorCode: ERROR_CODES.CONNECTION_LIMIT_DID,
+                }),
+              );
+              oldest.close(4008, 'Connection limit per user');
+            }
+
             blockService.touch(did);
             // Don't notify community watchers here — visibility hasn't been
             // restored yet (client sends status_change with saved visibility
