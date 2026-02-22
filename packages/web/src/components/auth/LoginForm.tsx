@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../hooks/useTheme';
 import { THEME_OPTIONS, type Theme } from '../../contexts/ThemeContext';
-import { AccountBannedError } from '../../lib/api';
+import { AccountBannedError, joinWaitlist } from '../../lib/api';
 import { ActorSearch, type ActorSearchResult } from '../shared/ActorSearch';
 import { AtprotoInfoModal } from './AtprotoInfoModal';
 import { LanguageSelector } from '../settings/LanguageSelector';
@@ -44,39 +44,12 @@ export function LoginForm() {
 
   if (banned) {
     return (
-      <div className={styles.form}>
-        <h1 className={styles.title}>{t('login.title')}</h1>
-        <div className={styles.alphaGateBox}>
-          <h2 className={styles.alphaGateTitle}>{t('login.alphaGate.title')}</h2>
-          <p className={styles.alphaGateBody}>{t('login.alphaGate.body')}</p>
-          <p className={styles.alphaGateCta}>
-            <Trans
-              i18nKey="login.alphaGate.cta"
-              ns="auth"
-              components={{
-                blueskyLink: (
-                  <a
-                    href="https://bsky.app/profile/grishalr.bsky.social"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.alphaGateLink}
-                  />
-                ),
-                emailLink: <a href="mailto:protoimsg@gmail.com" className={styles.alphaGateLink} />,
-              }}
-            />
-          </p>
-          <button
-            className={styles.button}
-            type="button"
-            onClick={() => {
-              setBanned(false);
-            }}
-          >
-            {t('login.alphaGate.back')}
-          </button>
-        </div>
-      </div>
+      <BetaSignupForm
+        handle={handle}
+        onBack={() => {
+          setBanned(false);
+        }}
+      />
     );
   }
 
@@ -143,5 +116,102 @@ export function LoginForm() {
         />
       )}
     </>
+  );
+}
+
+function BetaSignupForm({ handle, onBack }: { handle: string; onBack: () => void }) {
+  const { t } = useTranslation('auth');
+  const [email, setEmail] = useState('');
+  const [handleValue, setHandleValue] = useState(handle);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSubmit(e: React.SyntheticEvent) {
+    e.preventDefault();
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) return;
+
+    // Basic client-side email check
+    if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+      setError(t('login.betaSignup.error.invalid'));
+      return;
+    }
+
+    setError(null);
+    setSubmitting(true);
+    joinWaitlist(trimmedEmail, handleValue.trim())
+      .then(() => {
+        setSuccess(true);
+      })
+      .catch(() => {
+        setError(t('login.betaSignup.error.default'));
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  }
+
+  return (
+    <div className={styles.form}>
+      <h1 className={styles.title}>{t('login.title')}</h1>
+      <div className={styles.betaSignupBox}>
+        <h2 className={styles.betaSignupTitle}>{t('login.betaSignup.title')}</h2>
+        <p className={styles.betaSignupBody}>{t('login.betaSignup.body')}</p>
+        {success ? (
+          <>
+            <p className={styles.betaSignupSuccess}>{t('login.betaSignup.success')}</p>
+            <button className={styles.button} type="button" onClick={onBack}>
+              {t('login.betaSignup.back')}
+            </button>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className={styles.betaSignupBox}>
+              <label className={styles.betaSignupLabel} htmlFor="waitlist-email">
+                {t('login.betaSignup.emailLabel')}
+              </label>
+              <input
+                id="waitlist-email"
+                className={styles.betaSignupInput}
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+                placeholder={t('login.betaSignup.emailPlaceholder')}
+                required
+                autoFocus
+              />
+              <label className={styles.betaSignupLabel} htmlFor="waitlist-handle">
+                {t('login.betaSignup.handleLabel')}
+              </label>
+              <input
+                id="waitlist-handle"
+                className={styles.betaSignupInput}
+                type="text"
+                value={handleValue}
+                onChange={(e) => {
+                  setHandleValue(e.target.value);
+                }}
+                placeholder={handle || 'you.bsky.social'}
+                required
+              />
+              {error && <p className={styles.error}>{error}</p>}
+              <button
+                className={styles.button}
+                type="submit"
+                disabled={submitting || !email.trim() || !handleValue.trim()}
+              >
+                {submitting ? t('login.betaSignup.submitting') : t('login.betaSignup.submit')}
+              </button>
+              <button className={styles.button} type="button" onClick={onBack}>
+                {t('login.betaSignup.back')}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
