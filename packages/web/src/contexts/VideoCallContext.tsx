@@ -21,7 +21,7 @@ export type { IpProtectionLevel } from '../lib/ip-protection';
 export interface VideoCall {
   conversationId: string;
   recipientDid: string;
-  status: 'outgoing' | 'incoming' | 'active' | 'reconnecting';
+  status: 'outgoing' | 'incoming' | 'active' | 'reconnecting' | 'failed';
   localStream: MediaStream | null;
   remoteStream: MediaStream | undefined;
 }
@@ -30,12 +30,15 @@ interface VideoCallContextValue {
   activeCall: VideoCall | null;
   callError: string | null;
   isMuted: boolean;
+  isCameraOff: boolean;
   isScreenSharing: boolean;
   videoCall: (recipientDid: string) => void;
   acceptCall: () => Promise<void>;
   rejectCall: () => void;
   hangUp: () => void;
+  retryCall: () => void;
   toggleMute: () => void;
+  toggleCamera: () => void;
   flipCamera: () => Promise<void>;
   startScreenShare: () => Promise<void>;
   stopScreenShare: () => Promise<void>;
@@ -51,12 +54,16 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   const [activeCall, setActiveCall] = useState<VideoCall | null>(null);
   const [callError, setCallError] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMutedRef = useRef(false);
+  const isCameraOffRef = useRef(false);
   const currentFacingMode = useRef<'user' | 'environment'>('user');
   const screenTrack = useRef<MediaStreamTrack | null>(null);
   const savedCameraTrack = useRef<MediaStreamTrack | null>(null);
+  /** Camera track saved when user toggles camera off (distinct from screen share save) */
+  const cameraOffTrack = useRef<MediaStreamTrack | null>(null);
 
   // Refs for internal state that WS handlers need without triggering re-renders
   const peerConnection = useRef<PeerManager | null>(null);
@@ -87,9 +94,12 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       screenTrack.current = null;
     }
     savedCameraTrack.current = null;
+    cameraOffTrack.current = null;
     setIsScreenSharing(false);
     isMutedRef.current = false;
     setIsMuted(false);
+    isCameraOffRef.current = false;
+    setIsCameraOff(false);
     currentFacingMode.current = 'user';
     incomingOffer.current = null;
     pendingIceCandidates.current = [];
@@ -118,7 +128,27 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
           prev && prev.status === 'reconnecting' ? { ...prev, status: 'active' } : prev,
         );
       } else if (state === 'failed') {
-        cleanUp();
+        // Release media + peer connection but keep call metadata for retry UI
+        if (peerConnection.current) {
+          peerConnection.current.pc.close();
+          peerConnection.current = null;
+        }
+        if (localStream.current) {
+          localStream.current.getTracks().forEach((track) => {
+            track.stop();
+          });
+          localStream.current = null;
+        }
+        if (screenTrack.current) {
+          screenTrack.current.onended = null;
+          screenTrack.current.stop();
+          screenTrack.current = null;
+        }
+        savedCameraTrack.current = null;
+        setIsScreenSharing(false);
+        setActiveCall((prev) =>
+          prev ? { ...prev, status: 'failed', localStream: null, remoteStream: undefined } : prev,
+        );
       }
     },
     [cleanUp],
@@ -161,6 +191,22 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
         stream.getTracks().forEach((track) => {
           pm.pc.addTrack(track, stream);
         });
+
+        // Start with camera + mic off
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.enabled = false;
+          cameraOffTrack.current = videoTrack;
+          const videoSender = pm.pc.getSenders().find((s) => s.track?.kind === 'video');
+          void videoSender?.replaceTrack(null);
+        }
+        isCameraOffRef.current = true;
+        setIsCameraOff(true);
+        for (const at of stream.getAudioTracks()) {
+          at.enabled = false;
+        }
+        isMutedRef.current = true;
+        setIsMuted(true);
 
         setActiveCall({
           conversationId,
@@ -241,6 +287,22 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
         pm.pc.addTrack(track, stream);
       });
 
+      // Start with camera + mic off
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = false;
+        cameraOffTrack.current = videoTrack;
+        const videoSender = pm.pc.getSenders().find((s) => s.track?.kind === 'video');
+        void videoSender?.replaceTrack(null);
+      }
+      isCameraOffRef.current = true;
+      setIsCameraOff(true);
+      for (const at of stream.getAudioTracks()) {
+        at.enabled = false;
+      }
+      isMutedRef.current = true;
+      setIsMuted(true);
+
       const answer = await pm.pc.createAnswer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
@@ -275,6 +337,13 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
   // Semantically identical to rejectCall for now — both send reject_call + cleanUp
   const hangUp = rejectCall;
 
+  const retryCall = useCallback(() => {
+    const recipientDid = activeCallRef.current?.recipientDid;
+    if (!recipientDid) return;
+    cleanUp();
+    videoCall(recipientDid);
+  }, [cleanUp, videoCall]);
+
   const toggleMute = useCallback(() => {
     const stream = localStream.current;
     if (!stream) return;
@@ -285,6 +354,49 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
       track.enabled = !next;
     }
   }, []);
+
+  /** Find the video sender (may have null track when camera is off) */
+  const getVideoSender = useCallback(() => {
+    const pm = peerConnection.current;
+    if (!pm) return null;
+    // Video sender is the one with a video track, or the one without an audio track
+    return (
+      pm.pc.getSenders().find((s) => s.track?.kind === 'video') ??
+      pm.pc
+        .getSenders()
+        .find((s) => !s.track && s !== pm.pc.getSenders().find((a) => a.track?.kind === 'audio')) ??
+      null
+    );
+  }, []);
+
+  const toggleCamera = useCallback(() => {
+    const stream = localStream.current;
+    if (!stream) return;
+
+    const next = !isCameraOffRef.current;
+    isCameraOffRef.current = next;
+    setIsCameraOff(next);
+
+    const sender = getVideoSender();
+
+    if (next) {
+      // Turning camera off — save track and replace with null so receiver gets mute event
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        cameraOffTrack.current = videoTrack;
+        videoTrack.enabled = false;
+        void sender?.replaceTrack(null);
+      }
+    } else {
+      // Turning camera on — restore saved track
+      const saved = cameraOffTrack.current;
+      if (saved && saved.readyState !== 'ended') {
+        saved.enabled = true;
+        void sender?.replaceTrack(saved);
+        cameraOffTrack.current = null;
+      }
+    }
+  }, [getVideoSender]);
 
   const flipCamera = useCallback(async () => {
     const pm = peerConnection.current;
@@ -519,12 +631,15 @@ export function VideoCallProvider({ children }: { children: ReactNode }) {
     activeCall,
     callError,
     isMuted,
+    isCameraOff,
     isScreenSharing,
     videoCall,
     acceptCall,
     rejectCall,
     hangUp,
+    retryCall,
     toggleMute,
+    toggleCamera,
     flipCamera,
     startScreenShare,
     stopScreenShare,

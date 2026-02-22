@@ -5,6 +5,7 @@ import {
   createChannel,
   deleteChannel,
   getChannelById,
+  getChannelByUri,
   ensureDefaultChannel,
 } from '../channels/queries.js';
 import { insertMessage, deleteMessage } from '../messages/queries.js';
@@ -221,7 +222,7 @@ export function createHandlers(
         return;
       }
       const record = parsed.data;
-      const channelId = extractRkey(record.channel);
+      const channelUri = record.channel;
 
       // Content filter — skip indexing if blocked
       const filterResult = checkMessageContent(record.text);
@@ -230,17 +231,21 @@ export function createHandlers(
         return;
       }
 
-      // Channel must exist (FK constraint)
-      const channel = await getChannelById(db, channelId);
+      // Channel must exist (FK constraint) — look up by URI since synthetic
+      // channels use non-AT-URI formats (e.g. "synthetic://default-channel/{roomId}")
+      const channel =
+        (await getChannelByUri(db, channelUri)) ??
+        (await getChannelById(db, extractRkey(channelUri)));
       if (!channel) {
         log.warn(
-          { channelId, did: event.did, rkey: event.rkey },
+          { channelUri, did: event.did, rkey: event.rkey },
           'Message for unknown channel — skipping',
         );
         return;
       }
 
       const roomId = channel.room_id;
+      const channelId = channel.id;
 
       // Room must exist
       const room = await getRoomById(db, roomId);
@@ -536,18 +541,21 @@ export function createHandlers(
         return;
       }
       const record = parsed.data;
-      const channelId = extractRkey(record.channel);
+      const channelUri = record.channel;
 
-      const channel = await getChannelById(db, channelId);
+      const channel =
+        (await getChannelByUri(db, channelUri)) ??
+        (await getChannelById(db, extractRkey(channelUri)));
       if (!channel) {
         log.warn(
-          { channelId, did: event.did, rkey: event.rkey },
+          { channelUri, did: event.did, rkey: event.rkey },
           'Poll for unknown channel — skipping',
         );
         return;
       }
 
       const roomId = channel.room_id;
+      const channelId = channel.id;
 
       const room = await getRoomById(db, roomId);
       if (!room) {

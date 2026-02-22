@@ -67,7 +67,9 @@
 }
 
 .dropdownItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-2);
   width: 100%;
   padding: var(--cm-space-2) var(--cm-space-3);
   background: none;

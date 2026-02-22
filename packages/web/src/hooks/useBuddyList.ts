@@ -108,6 +108,10 @@ export function useBuddyList() {
         if (allDids.length === 0) {
           setBuddies([]);
           setLoading(false);
+          // Still sync community + presence even with an empty buddy list
+          send({ type: 'sync_community', groups: seeded });
+          const cachedVis = getCachedVisibility();
+          send({ type: 'status_change', status: 'online', visibleTo: cachedVis });
           return;
         }
 
@@ -117,7 +121,29 @@ export function useBuddyList() {
             .flatMap((g) => g.members.map((m) => m.did)),
         );
 
-        // Fetch atproto block records to restore blockRkey for unblock operations
+        // Send connect sequence BEFORE block fetching — sync_community +
+        // status_change + request_community_presence must fire promptly so
+        // presence shows up for other users. Block fetching is slow (PDS
+        // pagination) and non-critical for presence, so it runs after.
+        setBuddies(
+          allDids.map((did) => ({
+            did,
+            status: 'offline',
+            addedAt: addedAtMap.get(did) ?? new Date().toISOString(),
+            isInnerCircle: cfDids.has(did),
+          })),
+        );
+        setLoading(false);
+
+        send({ type: 'sync_community', groups: seeded });
+        const cachedVis = getCachedVisibility();
+        send({ type: 'status_change', status: 'online', visibleTo: cachedVis });
+        send({ type: 'request_community_presence', dids: allDids });
+
+        // Fetch atproto block records to restore blockRkey for unblock operations.
+        // Runs after the connect sequence so HMR / slow PDS can't delay presence.
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- checked after await in loop
+        if (cancelledRef.current) return;
         const blockMap = new Map<string, string>(); // subject DID → rkey
         try {
           let blockCursor: string | undefined;
@@ -141,28 +167,16 @@ export function useBuddyList() {
           // Non-critical — block state just won't be restored
         }
 
-        // Default all buddies to offline — WS request_community_presence
-        // will deliver block-filtered presence shortly after
-        setBuddies(
-          allDids.map((did) => ({
-            did,
-            status: 'offline',
-            addedAt: addedAtMap.get(did) ?? new Date().toISOString(),
-            isInnerCircle: cfDids.has(did),
-            blockRkey: blockMap.get(did),
-          })),
-        );
-        setLoading(false);
-
-        // Sync community data to server so visibility checks work
-        send({ type: 'sync_community', groups: seeded });
-        // Re-broadcast visibility now that community data is synced.
-        // The server queues messages, so sync_community's DB writes complete
-        // before this status_change triggers communityWatchers.notify.
-        const cachedVis = getCachedVisibility();
-        send({ type: 'status_change', status: 'online', visibleTo: cachedVis });
-        // Request block-filtered presence via WS
-        send({ type: 'request_community_presence', dids: allDids });
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- checked after await in loop
+        if (cancelledRef.current) return;
+        if (blockMap.size > 0) {
+          setBuddies((prev) =>
+            prev.map((b) => {
+              const rkey = blockMap.get(b.did);
+              return rkey ? { ...b, blockRkey: rkey } : b;
+            }),
+          );
+        }
       } catch (err) {
         if (cancelledRef.current) return;
         setError(err instanceof Error ? err : new Error(String(err)));
@@ -204,7 +218,10 @@ export function useBuddyList() {
     [triggerDoor],
   );
 
-  // Subscribe to presence + community_presence WS events
+  // Subscribe to community_presence WS events (visibility-filtered).
+  // Room-level 'presence' messages are intentionally ignored here — they are
+  // public room broadcasts and must not overwrite the buddy list, which respects
+  // the user's visibility setting via communityWatchers on the server.
   useEffect(() => {
     const unsub = subscribe((msg: ServerMessage) => {
       if (msg.type === 'community_presence') {
@@ -221,15 +238,6 @@ export function useBuddyList() {
             return b;
           });
         });
-      } else if (msg.type === 'presence') {
-        checkTransition(msg.data.did, msg.data.status);
-        setBuddies((prev) =>
-          prev.map((b) =>
-            b.did === msg.data.did
-              ? { ...b, status: msg.data.status, awayMessage: msg.data.awayMessage }
-              : b,
-          ),
-        );
       }
     });
 

@@ -25,6 +25,8 @@ interface BuddyListPanelProps {
   onToggleInnerCircle: (did: string) => Promise<void>;
   onBlockBuddy: (did: string) => void;
   imUnreadMap?: Map<string, number>;
+  /** DIDs with pending IM notifications (incoming request, no messages yet) */
+  imNotifySet?: Set<string>;
   onSendIm?: (did: string) => void;
   onVideoCall?: (did: string) => void;
   onBuddyClick?: (did: string) => void;
@@ -56,6 +58,7 @@ export function BuddyListPanel({
   onToggleInnerCircle,
   onBlockBuddy,
   imUnreadMap,
+  imNotifySet,
   onSendIm,
   onVideoCall,
   onBuddyClick,
@@ -401,7 +404,7 @@ export function BuddyListPanel({
                       <UserIdentity did={buddy.did} showAvatar />
                     </span>
                   </div>
-                  {imUnreadCount > 0 && (
+                  {imUnreadCount > 0 ? (
                     <button
                       className={styles.imUnreadBadge}
                       onClick={(e) => {
@@ -412,7 +415,16 @@ export function BuddyListPanel({
                     >
                       {imUnreadCount > 99 ? '99+' : imUnreadCount}
                     </button>
-                  )}
+                  ) : imNotifySet?.has(buddy.did) ? (
+                    <button
+                      className={`${styles.imUnreadBadge} ${styles.imNotifyDot}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSendIm?.(buddy.did);
+                      }}
+                      aria-label={t('buddyList.incomingIm')}
+                    />
+                  ) : null}
                   <BuddyMenu
                     buddy={buddy}
                     groupName={row.groupName}

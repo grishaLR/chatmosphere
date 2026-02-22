@@ -13,6 +13,7 @@
       "feed": "Feed"
     },
     "unreadIm": "{{count}} unread",
+    "incomingIm": "Incoming IM",
     "groups": {
       "innerCircle": "Inner Circle",
       "community": "Community",
@@ -150,7 +151,11 @@
     "reconnecting": "Reconnecting...",
     "mute": "Mute",
     "unmute": "Unmute",
+    "cameraOff": "Turn camera off",
+    "cameraOn": "Turn camera on",
     "flipCamera": "Flip camera",
+    "connectionFailed": "Connection failed",
+    "retry": "Retry",
     "endCall": "End call",
     "shareScreen": "Share screen",
     "stopSharing": "Stop sharing",

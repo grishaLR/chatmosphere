@@ -204,7 +204,9 @@
 }
 
 .menuItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-2);
   width: 100%;
   padding: var(--cm-space-2) var(--cm-space-3);
   background: none;
@@ -340,6 +342,15 @@
 
 .imUnreadBadge:hover {
   filter: brightness(1.1);
+}
+
+.imNotifyDot {
+  min-width: 8px;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 50%;
+  align-self: center;
 }
 
 .buddyIndented {

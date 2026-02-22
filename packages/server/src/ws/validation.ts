@@ -71,6 +71,11 @@ const dmClose = z.object({
   conversationId: z.string().min(1),
 });
 
+const dmReject = z.object({
+  type: z.literal('dm_reject'),
+  conversationId: z.string().min(1),
+});
+
 const callInit = z.object({
   type: z.literal('call_init'),
   recipientDid: did,
@@ -135,6 +140,7 @@ const clientMessage = z.discriminatedUnion('type', [
   syncCommunity,
   dmOpen,
   dmClose,
+  dmReject,
   imOffer,
   imAnswer,
   imIceCandidate,

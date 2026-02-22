@@ -5,16 +5,18 @@ interface DropdownMenuProps {
   trigger: ReactNode;
   children: ReactNode;
   align?: 'left' | 'right';
+  direction?: 'down' | 'up';
   className?: string;
 }
 
 export interface MenuItemProps {
   label: string;
+  icon?: ReactNode;
   danger?: boolean;
   onClick: () => void;
 }
 
-export function MenuItem({ label, danger = false, onClick }: MenuItemProps) {
+export function MenuItem({ label, icon, danger = false, onClick }: MenuItemProps) {
   return (
     <button
       type="button"
@@ -22,6 +24,7 @@ export function MenuItem({ label, danger = false, onClick }: MenuItemProps) {
       className={`${styles.menuItem} ${danger ? styles.menuItemDanger : ''}`.trim()}
       onClick={onClick}
     >
+      {icon && <span className={styles.menuItemIcon}>{icon}</span>}
       {label}
     </button>
   );
@@ -31,6 +34,7 @@ export function DropdownMenu({
   trigger,
   children,
   align = 'right',
+  direction = 'down',
   className = '',
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
@@ -67,7 +71,7 @@ export function DropdownMenu({
       {open && (
         <div
           role="menu"
-          className={`${styles.panel} ${align === 'right' ? styles.panelRight : styles.panelLeft}`}
+          className={`${styles.panel} ${align === 'right' ? styles.panelRight : styles.panelLeft} ${direction === 'up' ? styles.panelUp : ''}`.trim()}
           onClick={() => {
             setOpen(false);
           }}

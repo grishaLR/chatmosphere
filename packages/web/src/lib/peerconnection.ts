@@ -45,9 +45,12 @@ export class PeerManager {
 
   /** Buffer ICE candidates until remote description is set, then flush */
   addBufferedCandidate(candidate: IceCandidateInit): void {
+    if (this.pc.signalingState === 'closed') return;
     if (this.pc.remoteDescription) {
       this.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
-        log.error('Failed to add ICE candidate', err);
+        if (this.pc.signalingState !== 'closed') {
+          log.error('Failed to add ICE candidate', err);
+        }
       });
     } else {
       this.pendingCandidates.push(candidate);
@@ -56,9 +59,15 @@ export class PeerManager {
 
   /** Flush buffered ICE candidates — call after setRemoteDescription */
   flushCandidates(): void {
+    if (this.pc.signalingState === 'closed') {
+      this.pendingCandidates = [];
+      return;
+    }
     for (const c of this.pendingCandidates) {
       this.pc.addIceCandidate(new RTCIceCandidate(c)).catch((err: unknown) => {
-        log.error('Failed to add buffered ICE candidate', err);
+        if (this.pc.signalingState !== 'closed') {
+          log.error('Failed to add buffered ICE candidate', err);
+        }
       });
     }
     this.pendingCandidates = [];

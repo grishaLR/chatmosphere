@@ -23,8 +23,17 @@
   left: 0;
 }
 
+.panelUp {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: var(--cm-space-1);
+}
+
 .menuItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-3);
   width: 100%;
   padding: var(--cm-space-3) var(--cm-space-6);
   text-align: left;
@@ -34,6 +43,14 @@
   border: none;
   cursor: pointer;
   color: var(--color-base-content);
+}
+
+.menuItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cm-space-5);
+  flex-shrink: 0;
 }
 
 .menuItem:hover {

@@ -64,6 +64,11 @@ export interface DmCloseMessage extends WsMessageBase {
   conversationId: string;
 }
 
+export interface DmRejectMessage extends WsMessageBase {
+  type: 'dm_reject';
+  conversationId: string;
+}
+
 // IM signaling (P2P data channels — separate from video call signaling)
 
 export interface ImOfferMessage extends WsMessageBase {
@@ -144,6 +149,7 @@ export type ClientMessage =
   | SyncCommunityMessage
   | DmOpenMessage
   | DmCloseMessage
+  | DmRejectMessage
   | ImOfferMessage
   | ImAnswerMessage
   | ImIceCandidateMessage
@@ -226,6 +232,20 @@ export interface DmOpenedEvent extends WsMessageBase {
   data: {
     conversationId: string;
     recipientDid: string;
+  };
+}
+
+export interface DmPartnerLeftEvent extends WsMessageBase {
+  type: 'dm_partner_left';
+  data: {
+    conversationId: string;
+  };
+}
+
+export interface DmRejectedEvent extends WsMessageBase {
+  type: 'dm_rejected';
+  data: {
+    conversationId: string;
   };
 }
 
@@ -381,6 +401,8 @@ export type ServerMessage =
   | ChannelCreatedEvent
   | ChannelDeletedEvent
   | DmOpenedEvent
+  | DmPartnerLeftEvent
+  | DmRejectedEvent
   | ImOfferEvent
   | ImAnswerEvent
   | ImIceCandidateEvent

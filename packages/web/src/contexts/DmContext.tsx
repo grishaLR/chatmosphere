@@ -31,6 +31,8 @@ export interface DmConversation {
   typing: boolean;
   unreadCount: number;
   peerState: DataChannelState;
+  /** Countdown seconds until auto-close (null = not closing) */
+  closingIn: number | null;
 }
 
 export interface DmNotification {
@@ -48,7 +50,8 @@ interface DmContextValue {
   toggleMinimize: (conversationId: string) => void;
   sendDm: (conversationId: string, text: string, facets?: unknown[], embed?: unknown) => void;
   sendTyping: (conversationId: string) => void;
-  dismissNotification: (conversationId: string) => void;
+  retryConnection: (conversationId: string) => void;
+  dismissNotification: (conversationId: string, reject?: boolean) => void;
   openFromNotification: (notification: DmNotification) => void;
 }
 
@@ -67,6 +70,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
   const typingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const lastTypingSent = useRef<Map<string, number>>(new Map());
   const connectionTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const closingTimers = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
 
   // P2P data channel state
   const peersRef = useRef<Map<string, DataChannelPeer>>(new Map());
@@ -296,6 +300,12 @@ export function DmProvider({ children }: { children: ReactNode }) {
         connectionTimers.current.delete(conversationId);
       }
 
+      const closing = closingTimers.current.get(conversationId);
+      if (closing) {
+        clearInterval(closing);
+        closingTimers.current.delete(conversationId);
+      }
+
       // Close data channel peer
       const peer = peersRef.current.get(conversationId);
       if (peer) {
@@ -379,9 +389,61 @@ export function DmProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const dismissNotification = useCallback((conversationId: string) => {
-    setNotifications((prev) => prev.filter((n) => n.conversationId !== conversationId));
-  }, []);
+  const retryConnection = useCallback(
+    (conversationId: string) => {
+      const convo = conversationsRef.current.find((c) => c.conversationId === conversationId);
+      if (!convo) return;
+
+      // Close existing peer
+      const peer = peersRef.current.get(conversationId);
+      if (peer) {
+        peer.close();
+        peersRef.current.delete(conversationId);
+      }
+
+      // Clear connection timeout
+      const ct = connectionTimers.current.get(conversationId);
+      if (ct) {
+        clearTimeout(ct);
+        connectionTimers.current.delete(conversationId);
+      }
+
+      // Clear closing countdown
+      const closing = closingTimers.current.get(conversationId);
+      if (closing) {
+        clearInterval(closing);
+        closingTimers.current.delete(conversationId);
+      }
+
+      // Clear pending queues for stale connection
+      pendingIceCandidates.current.delete(conversationId);
+
+      // Reset state to connecting
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.conversationId === conversationId
+            ? { ...c, peerState: 'connecting', closingIn: null }
+            : c,
+        ),
+      );
+
+      // Re-initiate
+      void initiatePeerConnection(conversationId, convo.recipientDid);
+    },
+    [initiatePeerConnection],
+  );
+
+  const dismissNotification = useCallback(
+    (conversationId: string, reject?: boolean) => {
+      if (reject) {
+        pendingOffers.current.delete(conversationId);
+        pendingIceCandidates.current.delete(conversationId);
+        send({ type: 'dm_reject', conversationId });
+      }
+      setNotifications((prev) => prev.filter((n) => n.conversationId !== conversationId));
+    },
+    [send],
+  );
 
   const openFromNotification = useCallback(
     (notification: DmNotification) => {
@@ -414,6 +476,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
               typing: false,
               unreadCount: 0,
               peerState: 'connecting',
+              closingIn: null,
             };
 
             const updated = [...prev, newConvo];
@@ -525,6 +588,102 @@ export function DmProvider({ children }: { children: ReactNode }) {
           }
           break;
         }
+
+        case 'dm_partner_left': {
+          const { conversationId } = msg.data;
+          const convo = conversationsRef.current.find((c) => c.conversationId === conversationId);
+          if (!convo) break;
+
+          // Cancel any closing countdown
+          const closingTimer = closingTimers.current.get(conversationId);
+          if (closingTimer) {
+            clearInterval(closingTimer);
+            closingTimers.current.delete(conversationId);
+          }
+
+          // Close existing peer
+          const existingPeer = peersRef.current.get(conversationId);
+          if (existingPeer) {
+            existingPeer.close();
+            peersRef.current.delete(conversationId);
+          }
+
+          // Clear stale state
+          const ct = connectionTimers.current.get(conversationId);
+          if (ct) {
+            clearTimeout(ct);
+            connectionTimers.current.delete(conversationId);
+          }
+          pendingIceCandidates.current.delete(conversationId);
+
+          // Reset state and re-initiate
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.conversationId === conversationId
+                ? { ...c, peerState: 'connecting', closingIn: null }
+                : c,
+            ),
+          );
+          void initiatePeerConnection(conversationId, convo.recipientDid);
+          break;
+        }
+
+        case 'dm_rejected': {
+          const { conversationId } = msg.data;
+          const convo = conversationsRef.current.find((c) => c.conversationId === conversationId);
+          if (!convo) break;
+
+          // Close peer — no one to talk to
+          const rejectedPeer = peersRef.current.get(conversationId);
+          if (rejectedPeer) {
+            rejectedPeer.close();
+            peersRef.current.delete(conversationId);
+          }
+          const ct2 = connectionTimers.current.get(conversationId);
+          if (ct2) {
+            clearTimeout(ct2);
+            connectionTimers.current.delete(conversationId);
+          }
+
+          // Start 10-second countdown
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.conversationId === conversationId
+                ? { ...c, peerState: 'closed', closingIn: 10 }
+                : c,
+            ),
+          );
+
+          // Clear any existing closing timer
+          const prevClosing = closingTimers.current.get(conversationId);
+          if (prevClosing) clearInterval(prevClosing);
+
+          const interval = setInterval(() => {
+            const current = conversationsRef.current.find(
+              (c) => c.conversationId === conversationId,
+            );
+            if (!current || current.closingIn === null) {
+              clearInterval(interval);
+              closingTimers.current.delete(conversationId);
+              return;
+            }
+            const next = current.closingIn - 1;
+            if (next <= 0) {
+              clearInterval(interval);
+              closingTimers.current.delete(conversationId);
+              // Auto-close the conversation
+              closeDm(conversationId);
+            } else {
+              setConversations((prev) =>
+                prev.map((c) =>
+                  c.conversationId === conversationId ? { ...c, closingIn: next } : c,
+                ),
+              );
+            }
+          }, 1000);
+          closingTimers.current.set(conversationId, interval);
+          break;
+        }
       }
     });
 
@@ -535,15 +694,19 @@ export function DmProvider({ children }: { children: ReactNode }) {
       }
       typingTimers.current.clear();
     };
-  }, [subscribe, send, did, initiatePeerConnection, acceptPeerConnection]);
+  }, [subscribe, send, did, initiatePeerConnection, acceptPeerConnection, closeDm]);
 
-  // Clean up connection timers + peers on unmount
+  // Clean up connection timers + closing timers + peers on unmount
   useEffect(() => {
     return () => {
       for (const timer of connectionTimers.current.values()) {
         clearTimeout(timer);
       }
       connectionTimers.current.clear();
+      for (const timer of closingTimers.current.values()) {
+        clearInterval(timer);
+      }
+      closingTimers.current.clear();
       for (const peer of peersRef.current.values()) {
         peer.close();
       }
@@ -609,6 +772,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
       toggleMinimize,
       sendDm,
       sendTyping,
+      retryConnection,
       dismissNotification,
       openFromNotification,
     }),
@@ -621,6 +785,7 @@ export function DmProvider({ children }: { children: ReactNode }) {
       toggleMinimize,
       sendDm,
       sendTyping,
+      retryConnection,
       dismissNotification,
       openFromNotification,
     ],

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Video, ChevronUp, Minus, X } from 'lucide-react';
+import { Video, ChevronUp, Minus, X, PictureInPicture2 } from 'lucide-react';
 import type { DmConversation } from '../../contexts/DmContext';
 import { useDragResize } from '../../hooks/useDragResize';
 import { UserIdentity } from '../chat/UserIdentity';
@@ -20,6 +20,12 @@ interface DmPopoverProps {
   onSendWithEmbed: (text: string, embed: Record<string, unknown>) => void;
   onTyping: () => void;
   onVideoCall: () => void;
+  /** Retry a failed peer connection. */
+  onRetry?: () => void;
+  /** Show a "pop out" button (Document PiP). */
+  onPopOut?: () => void;
+  /** Render in PiP mode (no drag/resize, fills window). */
+  isPiP?: boolean;
 }
 
 export function DmPopover({
@@ -32,9 +38,13 @@ export function DmPopover({
   onSendWithEmbed,
   onTyping,
   onVideoCall,
+  onRetry,
+  onPopOut,
+  isPiP,
 }: DmPopoverProps) {
   const { t } = useTranslation('dm');
-  const { recipientDid, messages, minimized, typing, unreadCount, peerState } = conversation;
+  const { recipientDid, messages, minimized, typing, unreadCount, peerState, closingIn } =
+    conversation;
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const expanded = !minimized;
@@ -51,7 +61,7 @@ export function DmPopover({
     initialPos,
     minWidth: 240,
     minHeight: 180,
-    enabled: expanded,
+    enabled: expanded && !isPiP,
   });
 
   // Reset position/size when minimized
@@ -120,15 +130,15 @@ export function DmPopover({
   return (
     <div
       ref={containerRef}
-      className={`${styles.popover} ${minimized ? styles.minimized : ''}`}
-      style={{ ...posStyle, ...sizeStyle }}
+      className={`${styles.popover} ${minimized ? styles.minimized : ''} ${isPiP ? styles.pipMode : ''}`}
+      style={isPiP ? undefined : { ...posStyle, ...sizeStyle }}
       role="log"
       aria-label={t('popover.ariaLabel', { recipientDid })}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      {/* Resize handles — only when expanded */}
-      {expanded && (
+      {/* Resize handles — only when expanded and not in PiP */}
+      {expanded && !isPiP && (
         <>
           <div
             className={`${styles.resizeHandle} ${styles.resizeN}`}
@@ -210,12 +220,52 @@ export function DmPopover({
           <span className={styles.connectionState}>{t('popover.connecting')}</span>
         )}
         {peerState === 'failed' && (
-          <span className={styles.connectionFailed}>{t('popover.connectionFailed')}</span>
+          <span className={styles.connectionFailed}>
+            {t('popover.connectionFailed')}
+            {onRetry && (
+              <>
+                {' · '}
+                <button
+                  className={styles.retryBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRetry();
+                  }}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {t('popover.retry')}
+                </button>
+              </>
+            )}
+          </span>
         )}
-        {peerState === 'closed' && (
+        {peerState === 'closed' && closingIn !== null && (
+          <span className={styles.connectionFailed}>
+            {t('popover.closingCountdown', { seconds: closingIn })}
+          </span>
+        )}
+        {peerState === 'closed' && closingIn === null && (
           <span className={styles.connectionFailed}>{t('popover.peerClosed')}</span>
         )}
         <div className={styles.headerActions}>
+          {onPopOut && (
+            <button
+              className={styles.headerBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPopOut();
+              }}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+              }}
+              title="Pop out"
+              aria-label="Pop out conversation to picture-in-picture"
+            >
+              <PictureInPicture2 size={14} />
+            </button>
+          )}
           <button
             className={styles.headerBtn}
             onClick={(e) => {
