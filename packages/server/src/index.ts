@@ -25,6 +25,7 @@ import { ChallengeStore } from './auth/challenge.js';
 import { RedisChallengeStore } from './auth/challenge-redis.js';
 import { LIMITS } from '@protoimsg/shared';
 import { pruneOldMessages } from './messages/queries.js';
+import { EmailService } from './email/service.js';
 
 async function main() {
   const config = loadConfig();
@@ -130,6 +131,16 @@ async function main() {
     log.info(`GIF proxy enabled (${sources})`);
   }
 
+  // Email service (optional — requires RESEND_API_KEY)
+  const emailService = config.RESEND_API_KEY
+    ? new EmailService(config.RESEND_API_KEY, config.RESEND_FROM)
+    : null;
+  if (emailService) {
+    log.info('Email service enabled (Resend)');
+  } else {
+    log.warn('RESEND_API_KEY not set — waitlist confirmation emails will be skipped');
+  }
+
   const app = createApp(
     config,
     db,
@@ -149,6 +160,7 @@ async function main() {
     gifRateLimiter,
     redis,
     () => firehose.isConnected(),
+    emailService,
   );
   const httpServer = createServer(app);
 

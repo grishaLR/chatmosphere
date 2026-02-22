@@ -17,6 +17,7 @@ import { channelsRouter } from './channels/router.js';
 import { translateRouter } from './translate/router.js';
 import { gifRouter } from './giphy/router.js';
 import { iceRouter } from './ice/router.js';
+import { waitlistRouter } from './waitlist/router.js';
 import type { Config } from './config.js';
 import type { Sql } from './db/client.js';
 import type { PresenceService } from './presence/service.js';
@@ -26,6 +27,7 @@ import type { BlockService } from './moderation/block-service.js';
 import type { GlobalBanService } from './moderation/global-ban-service.js';
 import type { GlobalAllowlistService } from './moderation/global-allowlist-service.js';
 import type { TranslateService } from './translate/service.js';
+import type { EmailService } from './email/service.js';
 import type { Redis } from './redis/client.js';
 import { getMetricsText, getMetricsContentType, observeHttpRequestDuration } from './metrics.js';
 import { checkHealth } from './health.js';
@@ -49,6 +51,7 @@ export function createApp(
   gifRateLimiter?: RateLimiterStore | null,
   redis?: Redis | null,
   isJetstreamConnected?: () => boolean,
+  emailService?: EmailService | null,
 ): Express {
   const app = express();
   const requireAuth = createRequireAuth(sessions);
@@ -95,6 +98,13 @@ export function createApp(
     '/api/auth',
     createRateLimitMiddleware(authRateLimiter),
     authRouter(sessions, config, challenges, globalBans, globalAllowlist, sql),
+  );
+
+  // Waitlist (public, rate-limited)
+  app.use(
+    '/api/waitlist',
+    createRateLimitMiddleware(authRateLimiter),
+    waitlistRouter(sql, emailService ?? null),
   );
 
   // Protected API routes

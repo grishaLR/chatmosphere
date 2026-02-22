@@ -1,0 +1,45 @@
+import { Resend } from 'resend';
+import { createLogger } from '../logger.js';
+
+const log = createLogger('email');
+
+export class EmailService {
+  private client: Resend;
+  private from: string;
+
+  constructor(apiKey: string, from: string) {
+    this.client = new Resend(apiKey);
+    this.from = from;
+  }
+
+  async sendWaitlistConfirmation(to: string, handle?: string): Promise<void> {
+    const greeting = handle ? `Hey @${handle}` : 'Hey';
+    try {
+      await this.client.emails.send({
+        from: this.from,
+        to,
+        subject: "You're on the list — proto instant messenger",
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+            <h2 style="margin: 0 0 16px;">${greeting},</h2>
+            <p style="line-height: 1.6; color: #333;">
+              Thanks for signing up for <strong>proto instant messenger</strong>. We're adding people in waves to make sure everything runs smooth.
+            </p>
+            <p style="line-height: 1.6; color: #333;">
+              We'll email you when it's your turn. Sit tight.
+            </p>
+            <p style="line-height: 1.6; color: #333;">
+              If you have any questions, reach out to us on <a href="https://bsky.app/profile/protoimsg.myatproto.social" style="color: #6366f1;">Bluesky</a> or email <a href="mailto:protoimsg@gmail.com" style="color: #6366f1;">protoimsg@gmail.com</a>.
+            </p>
+            <p style="line-height: 1.6; color: #999; font-size: 14px; margin-top: 32px;">
+              — the protoimsg team
+            </p>
+          </div>
+        `,
+      });
+      log.info({ to }, 'Waitlist confirmation email sent');
+    } catch (err) {
+      log.error({ err, to }, 'Failed to send waitlist confirmation email');
+    }
+  }
+}
