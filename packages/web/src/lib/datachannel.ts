@@ -162,6 +162,12 @@ export class DataChannelPeer {
       this.updateState('closed');
     };
     dc.onerror = (event) => {
+      // "User-Initiated Abort" fires when close() is called — not a real error
+      const rtcErr = event.error;
+      if (rtcErr.message.includes('User-Initiated Abort')) {
+        log.debug('Data channel closed by user');
+        return;
+      }
       log.error('Data channel error', event);
       this.stopKeepalive();
       this.pc.close();

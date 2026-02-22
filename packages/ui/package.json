@@ -43,6 +43,10 @@
     "./Badge": {
       "types": "./dist/components/Badge.d.ts",
       "default": "./dist/components/Badge.js"
+    },
+    "./InfoTip": {
+      "types": "./dist/components/InfoTip.d.ts",
+      "default": "./dist/components/InfoTip.js"
     }
   },
   "scripts": {

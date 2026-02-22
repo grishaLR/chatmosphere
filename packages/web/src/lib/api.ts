@@ -87,6 +87,21 @@ export async function deleteServerSession(): Promise<void> {
   });
 }
 
+// -- Waitlist --
+
+export async function joinWaitlist(email: string, handle: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_URL}/api/waitlist`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, handle }),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error ?? 'Failed to join waitlist');
+  }
+  return (await res.json()) as { success: boolean };
+}
+
 // -- Translate types --
 
 export interface TranslateResponseItem {

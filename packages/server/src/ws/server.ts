@@ -22,6 +22,15 @@ import { ERROR_CODES } from '@protoimsg/shared';
 
 import { createLogger } from '../logger.js';
 import { Sentry } from '../sentry.js';
+import {
+  incWsConnections,
+  decWsConnections,
+  incWsAuthFailure,
+  incWsMessage,
+  observeWsHandlerDuration,
+  getWsConnectionCount,
+} from '../metrics.js';
+import { updatePeakWsConns } from '../stats/queries.js';
 
 const log = createLogger('ws');
 const AUTH_TIMEOUT_MS = 5000;
@@ -114,6 +123,7 @@ export function createWsServer(
   });
   const roomSubs = new RoomSubscriptions();
   const dmSubs = new DmSubscriptions();
+  const callSubs = new DmSubscriptions();
   const userSockets = new UserSockets();
   blockService.startSweep();
   const communityWatchers = new CommunityWatchers(sql, blockService);
@@ -177,6 +187,7 @@ export function createWsServer(
           .get(msg.token)
           .then(async (session) => {
             if (!session) {
+              incWsAuthFailure();
               ws.send(
                 JSON.stringify({
                   type: 'error',
@@ -213,6 +224,9 @@ export function createWsServer(
             // immediately after auth). Notifying here with default 'everyone'
             // would leak presence to users outside the visibility scope.
             cleanupHeartbeat = attachHeartbeat(ws);
+            incWsConnections();
+            const connCount = getWsConnectionCount();
+            void updatePeakWsConns(sql, connCount);
             ws.send(JSON.stringify({ type: 'auth_success' }));
             log.info({ did }, 'WS authenticated');
           })
@@ -242,12 +256,15 @@ export function createWsServer(
         return;
       }
 
+      incWsMessage(data.type);
+
       // Queue messages so each handler's async DB work completes before
       // the next starts (e.g. sync_community writes must finish before
       // status_change reads community_members for visibility checks).
       msgQueue = msgQueue
-        .then(() =>
-          handleClientMessage(
+        .then(async () => {
+          const start = performance.now();
+          await handleClientMessage(
             ws,
             authedDid,
             data,
@@ -262,8 +279,10 @@ export function createWsServer(
             blockService,
             imRegistry,
             labelerService,
-          ),
-        )
+            callSubs,
+          );
+          observeWsHandlerDuration(data.type, (performance.now() - start) / 1000);
+        })
         .catch((err: unknown) => {
           Sentry.withScope((scope) => {
             scope.setUser({ id: authedDid });
@@ -279,6 +298,7 @@ export function createWsServer(
       clearTimeout(authTimer);
       cleanupHeartbeat?.();
       if (did) {
+        decWsConnections();
         // Remove this socket first so we can check remaining connections
         userSockets.remove(did, ws);
         roomSubs.unsubscribeAll(ws);
@@ -292,6 +312,7 @@ export function createWsServer(
             void dmService.cleanupIfEmpty(conversationId);
           }
         }
+        callSubs.unsubscribeAll(ws);
 
         // Only tear down presence if this was the user's last connection
         const remaining = userSockets.get(did);

@@ -7,6 +7,7 @@ import { useContentTranslation } from '../../hooks/useContentTranslation';
 import { THEME_OPTIONS, type Theme } from '../../contexts/ThemeContext';
 import { ArrowLeft } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
+import { InfoTip } from '@protoimsg/ui/InfoTip';
 import { isSoundEnabled, setSoundEnabled } from '../../lib/sounds';
 import type { IpProtectionLevel } from '../../contexts/VideoCallContext';
 import styles from './SettingsView.module.css';
@@ -29,7 +30,7 @@ export function SettingsView({ onBack }: SettingsViewProps) {
   const [soundEnabled, setSoundEnabledState] = useState(isSoundEnabled);
   const [ipProtection, setIpProtection] = useState<IpProtectionLevel>(() => {
     const stored = localStorage.getItem('protoimsg:ipProtection');
-    if (stored === 'all' || stored === 'non-inner-circle' || stored === 'off') return stored;
+    if (stored === 'non-inner-circle' || stored === 'all') return stored;
     return 'non-inner-circle';
   });
 
@@ -141,6 +142,63 @@ export function SettingsView({ onBack }: SettingsViewProps) {
           </div>
         </div>
 
+        {/* Language & Translation */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>{t('language.title')}</div>
+          <div className={styles.sectionBody}>
+            <LanguageSelector />
+            {translateAvailable && (
+              <>
+                <label className={styles.checkboxLabel} style={{ marginTop: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={autoTranslate}
+                    onChange={(e) => {
+                      setAutoTranslate(e.target.checked);
+                    }}
+                  />
+                  {t('translation.autoTranslate')}
+                </label>
+                <div className={styles.hint}>{t('translation.autoTranslateHint')}</div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Privacy */}
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>{t('privacy.title')}</div>
+          <div className={styles.sectionBody}>
+            <label className={styles.radioLabel}>
+              <input
+                type="radio"
+                name="ipProtection"
+                checked={ipProtection === 'non-inner-circle'}
+                onChange={() => {
+                  setIpProtection('non-inner-circle');
+                  localStorage.setItem('protoimsg:ipProtection', 'non-inner-circle');
+                }}
+              />
+              {t('privacy.options.nonInnerCircle')}
+              <InfoTip text={t('privacy.directConnectionInfo')} />
+            </label>
+            <label className={styles.radioLabel}>
+              <input
+                type="radio"
+                name="ipProtection"
+                checked={ipProtection === 'all'}
+                onChange={() => {
+                  setIpProtection('all');
+                  localStorage.setItem('protoimsg:ipProtection', 'all');
+                }}
+              />
+              {t('privacy.options.all')}
+              <InfoTip text={t('privacy.relayInfo')} />
+            </label>
+            <div className={styles.hintBlock}>{t('privacy.ipProtectionHint')}</div>
+          </div>
+        </div>
+
         {/* Appearance */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>{t('appearance.title')}</div>
@@ -161,34 +219,6 @@ export function SettingsView({ onBack }: SettingsViewProps) {
           </div>
         </div>
 
-        {/* Language */}
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>{t('language.title')}</div>
-          <div className={styles.sectionBody}>
-            <LanguageSelector />
-          </div>
-        </div>
-
-        {/* Translation (only shown when available) */}
-        {translateAvailable && (
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>{t('translation.title')}</div>
-            <div className={styles.sectionBody}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={autoTranslate}
-                  onChange={(e) => {
-                    setAutoTranslate(e.target.checked);
-                  }}
-                />
-                {t('translation.autoTranslate')}
-              </label>
-              <div className={styles.hint}>{t('translation.autoTranslateHint')}</div>
-            </div>
-          </div>
-        )}
-
         {/* Notifications */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>{t('notifications.title')}</div>
@@ -205,28 +235,6 @@ export function SettingsView({ onBack }: SettingsViewProps) {
               {t('notifications.enableSounds')}
             </label>
             <div className={styles.hint}>{t('notifications.enableSoundsHint')}</div>
-          </div>
-        </div>
-
-        {/* Privacy */}
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>{t('privacy.title')}</div>
-          <div className={styles.sectionBody}>
-            <label className={styles.label}>{t('privacy.ipProtectionLabel')}</label>
-            <select
-              className={styles.themeSelect}
-              value={ipProtection}
-              onChange={(e) => {
-                const value = e.target.value as IpProtectionLevel;
-                setIpProtection(value);
-                localStorage.setItem('protoimsg:ipProtection', value);
-              }}
-            >
-              <option value="all">{t('privacy.options.all')}</option>
-              <option value="non-inner-circle">{t('privacy.options.nonInnerCircle')}</option>
-              <option value="off">{t('privacy.options.off')}</option>
-            </select>
-            <div className={styles.hint}>{t('privacy.ipProtectionHint')}</div>
           </div>
         </div>
 

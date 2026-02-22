@@ -15,6 +15,7 @@ import { checkUserAccess } from '../moderation/service.js';
 import type { BlockService } from '../moderation/block-service.js';
 import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
+import { incDmsSent } from '../stats/queries.js';
 import { getChannelsByRoom, ensureDefaultChannel } from '../channels/queries.js';
 import { getRoomById } from '../rooms/queries.js';
 import {
@@ -49,6 +50,7 @@ export async function handleClientMessage(
   blockService: BlockService,
   imRegistry: ImRegistry,
   labelerService: LabelerService,
+  callSubs: DmSubscriptions,
 ): Promise<void> {
   // Rate limit per-socket so multi-tab users get separate quotas
   const socketId = (ws as WebSocket & { socketId?: string }).socketId ?? did;
@@ -311,6 +313,7 @@ export async function handleClientMessage(
             },
           }),
         );
+        void incDmsSent(sql);
       }
       break;
     }
@@ -513,7 +516,7 @@ export async function handleClientMessage(
 
       try {
         const { conversation } = await dmService.openConversation(did, data.recipientDid);
-        dmSubs.subscribe(conversation.id, ws);
+        callSubs.subscribe(conversation.id, ws);
 
         ws.send(
           JSON.stringify({
@@ -543,7 +546,7 @@ export async function handleClientMessage(
 
       try {
         // Broadcast to sockets subscribed to this conversation
-        dmSubs.broadcast(
+        callSubs.broadcast(
           data.conversationId,
           {
             type: 'incoming_call',
@@ -556,13 +559,13 @@ export async function handleClientMessage(
         const recipientDid = await dmService.getRecipientDid(conversationId, did);
         if (recipientDid) {
           const recipientSockets = userSockets.get(recipientDid);
-          const convoSubscribers = dmSubs.getSubscribers(data.conversationId);
+          const convoSubscribers = callSubs.getSubscribers(data.conversationId);
 
           for (const recipientWs of recipientSockets) {
             if (!convoSubscribers.has(recipientWs) && recipientWs.readyState === recipientWs.OPEN) {
               // Subscribe so subsequent signaling (ICE candidates, accept/reject)
               // reaches this socket without waiting for the client's call_init round-trip
-              dmSubs.subscribe(data.conversationId, recipientWs);
+              callSubs.subscribe(data.conversationId, recipientWs);
               recipientWs.send(
                 JSON.stringify({
                   type: 'incoming_call',
@@ -587,7 +590,7 @@ export async function handleClientMessage(
         break;
       }
       try {
-        dmSubs.broadcast(
+        callSubs.broadcast(
           conversationId,
           {
             type: 'reject_call',
@@ -595,6 +598,7 @@ export async function handleClientMessage(
           },
           ws, // exclude sender
         );
+        callSubs.unsubscribe(conversationId, ws);
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Failed to notify user of rejected call';
         ws.send(JSON.stringify({ type: 'error', message: msg }));
@@ -610,7 +614,7 @@ export async function handleClientMessage(
         break;
       }
       try {
-        dmSubs.broadcast(
+        callSubs.broadcast(
           conversationId,
           {
             type: 'accept_call',
@@ -635,7 +639,7 @@ export async function handleClientMessage(
 
       log.debug({ conversationId }, 'Relaying ICE candidate');
       try {
-        dmSubs.broadcast(
+        callSubs.broadcast(
           conversationId,
           {
             type: 'new_ice_candidate',

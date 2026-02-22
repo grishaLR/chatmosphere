@@ -40,11 +40,12 @@
   "privacy": {
     "title": "Privacy",
     "ipProtectionLabel": "IP protection for calls",
-    "ipProtectionHint": "Relay hides your IP address but may reduce call quality. Direct connections are faster but expose your IP to the other caller.",
+    "ipProtectionHint": "Direct connections to inner circle have low latency and a clear, snappy picture but expose your IP to the other caller. Relay hides your IP address but may add some latency.",
+    "directConnectionInfo": "A direct connection is pure peer-to-peer. Your call goes straight to the other person with no server in between, which means low latency and a clear, snappy picture. The trade-off is that your IP address is visible to them. Think of your IP address like the front door of your house on the internet. Your inner circle should be people you'd trust with your physical address. If you'd be comfortable with that, direct connections are fine.",
+    "relayInfo": "With relay, your call is routed through our server instead of going directly to the other person, so neither of you sees the other's IP address. This is technically not peer-to-peer, but we use it purely to hide your IP. Your call is still encrypted with DTLS-SRTP, meaning the encryption keys are negotiated directly between you and the other caller. Our relay server just forwards the packets and cannot see or hear anything.",
     "options": {
-      "all": "Relay all calls (max privacy)",
-      "nonInnerCircle": "Relay non-inner-circle only (recommended)",
-      "off": "Allow direct for all (best quality)"
+      "nonInnerCircle": "Direct for inner circle, relay for everyone else (recommended)",
+      "all": "Hide my IP from everybody"
     }
   },
 

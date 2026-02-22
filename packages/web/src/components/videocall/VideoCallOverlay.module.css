@@ -86,7 +86,7 @@
   z-index: var(--cm-z-videocall);
   border-radius: var(--cm-radius-lg);
   box-shadow: var(--cm-raised), var(--cm-window-shadow);
-  overflow: visible;
+  overflow: hidden;
   background: var(--cm-titlebar);
   display: flex;
   flex-direction: column;
@@ -126,7 +126,6 @@
   min-height: 0;
   background: black;
   overflow: hidden;
-  border-radius: 0 0 var(--cm-radius-lg) var(--cm-radius-lg);
 }
 
 .remoteVideo {
@@ -135,7 +134,7 @@
   min-height: var(--cm-call-video-min-h);
   display: block;
   background: black;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 
@@ -187,6 +186,40 @@
   height: 1px;
   opacity: 0;
   pointer-events: none;
+}
+
+.localVideo {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 25%;
+  border-radius: var(--cm-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
+  z-index: 2;
+  transform: scaleX(-1);
+}
+
+.localVideoHidden {
+  display: none;
+}
+
+.localVideoOff {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 25%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--cm-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #1a1a2e;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
 }
 
 /* Resize handles — invisible hit areas around all edges and corners */
@@ -269,8 +302,8 @@
   gap: var(--cm-space-3);
   padding: var(--cm-space-2) 0;
   background: var(--cm-titlebar);
-  border-top: 1px solid var(--cm-surface);
   flex-shrink: 0;
+  border-radius: 0 0 var(--cm-radius-lg) var(--cm-radius-lg);
 }
 
 .controlBtn {

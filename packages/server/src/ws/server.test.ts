@@ -14,8 +14,8 @@ import { InMemoryPresenceTracker } from '../presence/tracker.js';
 import type { DmService } from '../dms/service.js';
 import { createImRegistry } from '../dms/registry.js';
 
-// Minimal mock for Sql — ws server only passes it through
-const mockSql = {} as never;
+// Minimal mock for Sql — must be callable as a tagged template (stats queries use sql`...`)
+const mockSql = (() => Promise.resolve([])) as never;
 
 // Minimal mock DmService — ws server only passes it through (video calls still use it)
 const mockDmService = {

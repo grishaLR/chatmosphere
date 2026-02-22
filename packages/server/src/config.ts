@@ -38,6 +38,8 @@ const envSchema = z.object({
   STUN_URL: z.string().optional(),
   TURN_URL: z.string().optional(),
   ICE_CREDENTIAL_TTL_SECS: z.coerce.number().int().min(60).default(86400),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM: z.string().default('proto instant messenger <noreply@protoimsg.app>'),
 });
 
 export type Config = z.infer<typeof envSchema>;

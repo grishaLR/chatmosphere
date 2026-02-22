@@ -81,43 +81,56 @@
   line-height: 1.4;
 }
 
-.alphaGateBox {
+.betaSignupBox {
   display: flex;
   flex-direction: column;
   gap: var(--cm-space-3);
   text-align: left;
 }
 
-.alphaGateTitle {
+.betaSignupTitle {
   font-size: var(--cm-text-lg);
   font-weight: 700;
   margin: 0;
-  color: var(--color-warning, #d97706);
+  color: var(--color-primary, #6366f1);
   text-align: center;
 }
 
-.alphaGateBody {
+.betaSignupBody {
   font-size: var(--cm-text-sm);
   color: var(--color-base-content);
   margin: 0;
   line-height: 1.6;
 }
 
-.alphaGateCta {
+.betaSignupLabel {
+  font-weight: 700;
   font-size: var(--cm-text-sm);
-  color: var(--color-base-content);
-  margin: 0;
-  line-height: 1.6;
 }
 
-.alphaGateLink {
-  color: var(--color-primary, #6366f1);
-  text-decoration: underline;
+.betaSignupInput {
+  padding: var(--cm-space-2) var(--cm-space-3);
+  background: var(--cm-surface-content);
+  color: var(--color-base-content);
+  border: none;
+  border-radius: var(--cm-radius-sm);
+  font-size: max(var(--cm-text-sm), 16px);
+  font-family: inherit;
+  box-shadow: var(--cm-sunken);
+}
+
+.betaSignupInput::placeholder {
+  color: var(--cm-border-dark);
+  opacity: 0.6;
+}
+
+.betaSignupSuccess {
+  font-size: var(--cm-text-sm);
+  color: var(--color-success, #22c55e);
+  margin: 0;
+  line-height: 1.6;
+  text-align: center;
   font-weight: 600;
-}
-
-.alphaGateLink:hover {
-  opacity: 0.8;
 }
 
 .error {

@@ -10,6 +10,7 @@ import type { GlobalAllowlistService } from '../moderation/global-allowlist-serv
 import { ERROR_CODES } from '@protoimsg/shared';
 
 import { createLogger } from '../logger.js';
+import { incUniqueLogins } from '../stats/queries.js';
 
 const log = createLogger('auth');
 
@@ -30,6 +31,7 @@ export function authRouter(
   challenges: ChallengeStoreInterface,
   globalBans: GlobalBanService,
   globalAllowlist: GlobalAllowlistService,
+  sql?: import('../db/client.js').Sql,
 ): Router {
   const router = Router();
   const requireAuth = createRequireAuth(sessions);
@@ -191,6 +193,7 @@ export function authRouter(
       }
 
       const token = await sessions.create(did, handle, config.SESSION_TTL_MS);
+      if (sql) void incUniqueLogins(sql);
       log.info({ did, handle }, 'auth/session created');
       res.status(201).json({ token, did, handle });
     } catch (err) {

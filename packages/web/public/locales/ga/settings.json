@@ -40,11 +40,12 @@
   "privacy": {
     "title": "Príobháideachas",
     "ipProtectionLabel": "Cosaint IP do ghlaonna",
-    "ipProtectionHint": "Ceileann an sealaíocht do sheoladh IP ach d'fhéadfadh sé caighdeán an ghlao a laghdú. Tá naisc dhíreacha níos tapúla ach nochtann siad do IP don ghlaoiteoir eile.",
+    "ipProtectionHint": "Tá moill íseal agus pictiúr glan, tapa ag naisc dhíreacha leis an gciorcal inmheánach ach nochtann siad do IP don ghlaoiteoir eile. Ceileann an sealaíocht do sheoladh IP ach d'fhéadfadh sé roinnt moille a chur leis.",
+    "directConnectionInfo": "Is nasc piaraí-le-piaraí glan é nasc díreach. Téann do ghlao díreach chuig an duine eile gan freastalaí ar bith eatarthu, rud a chiallaíonn moill íseal agus pictiúr glan, tapa. Is é an mhalairt ná go bhfuil do sheoladh IP le feiceáil acu. Smaoinigh ar do sheoladh IP mar dhoras tosaigh do thí ar an idirlíon. Ba cheart go mbeadh daoine i do chiorcal inmheánach a d'iontófá le do sheoladh fisiciúil. Má bheadh tú compordach leis sin, tá naisc dhíreacha go breá.",
+    "relayInfo": "Le sealaíocht, déantar do ghlao a threorú trínár bhfreastalaí in ionad dul díreach chuig an duine eile, mar sin ní fheiceann ceachtar agaibh seoladh IP an duine eile. Ní piaraí-le-piaraí é seo go teicniúil, ach ní úsáidimid é ach amháin chun do IP a cheilt. Tá do ghlao fós criptithe le DTLS-SRTP, rud a chiallaíonn go ndéantar na heochracha criptithe a chaibidliú go díreach idir tú féin agus an glaoiteoir eile. Ní dhéanann ár bhfreastalaí sealaíochta ach na paicéid a chur ar aghaidh agus ní féidir leis aon rud a fheiceáil ná a chloisteáil.",
     "options": {
-      "all": "Sealaigh gach glao (uasmhéid príobháideachais)",
-      "nonInnerCircle": "Sealaigh lasmuigh den chiorcal inmheánach amháin (molta)",
-      "off": "Ceadaigh díreach do chách (caighdeán is fearr)"
+      "nonInnerCircle": "Díreach don chiorcal inmheánach, sealaíocht do chách eile (molta)",
+      "all": "Folaigh mo IP ó chách"
     }
   },
 

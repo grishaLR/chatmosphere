@@ -1,4 +1,4 @@
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import helmet from 'helmet';
 import { corsMiddleware } from './middleware/cors.js';
 import { createErrorHandler } from './middleware/error.js';
@@ -17,6 +17,7 @@ import { channelsRouter } from './channels/router.js';
 import { translateRouter } from './translate/router.js';
 import { gifRouter } from './giphy/router.js';
 import { iceRouter } from './ice/router.js';
+import { waitlistRouter } from './waitlist/router.js';
 import type { Config } from './config.js';
 import type { Sql } from './db/client.js';
 import type { PresenceService } from './presence/service.js';
@@ -26,6 +27,10 @@ import type { BlockService } from './moderation/block-service.js';
 import type { GlobalBanService } from './moderation/global-ban-service.js';
 import type { GlobalAllowlistService } from './moderation/global-allowlist-service.js';
 import type { TranslateService } from './translate/service.js';
+import type { EmailService } from './email/service.js';
+import type { Redis } from './redis/client.js';
+import { getMetricsText, getMetricsContentType, observeHttpRequestDuration } from './metrics.js';
+import { checkHealth } from './health.js';
 
 export function createApp(
   config: Config,
@@ -44,6 +49,9 @@ export function createApp(
   giphyApiKey?: string | null,
   klipyApiKey?: string | null,
   gifRateLimiter?: RateLimiterStore | null,
+  redis?: Redis | null,
+  isJetstreamConnected?: () => boolean,
+  emailService?: EmailService | null,
 ): Express {
   const app = express();
   const requireAuth = createRequireAuth(sessions);
@@ -54,16 +62,49 @@ export function createApp(
   app.use(corsMiddleware(config));
   app.use(createRequestLogger());
 
-  // Health check (unprotected)
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
+  // Prometheus metrics (internal-only — reject requests with Fly-Client-IP header)
+  app.get('/metrics', async (req, res) => {
+    if (req.headers['fly-client-ip']) {
+      res.status(404).end();
+      return;
+    }
+    res.set('Content-Type', getMetricsContentType());
+    res.end(await getMetricsText());
+  });
+
+  // Deep health check
+  app.get('/health', async (_req, res) => {
+    const { response, httpStatus } = await checkHealth(
+      sql,
+      redis ?? null,
+      isJetstreamConnected ?? (() => true),
+    );
+    res.status(httpStatus).json(response);
+  });
+
+  // HTTP request duration metrics
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = performance.now();
+    res.on('finish', () => {
+      const seconds = (performance.now() - start) / 1000;
+      const route = (req.route as { path?: string } | undefined)?.path ?? req.path;
+      observeHttpRequestDuration(req.method, route, res.statusCode, seconds);
+    });
+    next();
   });
 
   // Auth routes (unprotected — login creates sessions; rate-limited by IP)
   app.use(
     '/api/auth',
     createRateLimitMiddleware(authRateLimiter),
-    authRouter(sessions, config, challenges, globalBans, globalAllowlist),
+    authRouter(sessions, config, challenges, globalBans, globalAllowlist, sql),
+  );
+
+  // Waitlist (public, rate-limited)
+  app.use(
+    '/api/waitlist',
+    createRateLimitMiddleware(authRateLimiter),
+    waitlistRouter(sql, emailService ?? null),
   );
 
   // Protected API routes

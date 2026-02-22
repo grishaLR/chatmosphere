@@ -27,6 +27,10 @@ primary_region = 'iad'
     timeout = '5s'
     path = '/health'
 
+[metrics]
+  port = 3000
+  path = "/metrics"
+
 [[vm]]
   memory = '256mb'
   cpu_kind = 'shared'

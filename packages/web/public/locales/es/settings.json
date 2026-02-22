@@ -40,11 +40,12 @@
   "privacy": {
     "title": "Privacidad",
     "ipProtectionLabel": "Protección IP para llamadas",
-    "ipProtectionHint": "El relay oculta tu dirección IP pero puede reducir la calidad de la llamada. Las conexiones directas son más rápidas pero exponen tu IP al otro usuario.",
+    "ipProtectionHint": "Las conexiones directas al círculo íntimo tienen baja latencia y una imagen clara y rápida, pero exponen tu IP al otro usuario. El relay oculta tu dirección IP pero puede añadir algo de latencia.",
+    "directConnectionInfo": "Una conexión directa es puramente entre pares. Tu llamada va directamente a la otra persona sin ningún servidor de por medio, lo que significa baja latencia y una imagen clara y rápida. La contrapartida es que tu dirección IP es visible para ellos. Piensa en tu dirección IP como la puerta de entrada de tu casa en internet. Tu círculo íntimo debería ser gente a la que le confiarías tu dirección física. Si te sentirías cómodo con eso, las conexiones directas están bien.",
+    "relayInfo": "Con relay, tu llamada se enruta a través de nuestro servidor en vez de ir directamente a la otra persona, así que ninguno de los dos ve la dirección IP del otro. Técnicamente no es peer-to-peer, pero lo usamos únicamente para ocultar tu IP. Tu llamada sigue cifrada con DTLS-SRTP, lo que significa que las claves de cifrado se negocian directamente entre tú y el otro. Nuestro servidor de relay solo reenvía los paquetes y no puede ver ni escuchar nada.",
     "options": {
-      "all": "Relay en todas las llamadas (máxima privacidad)",
-      "nonInnerCircle": "Relay solo fuera del círculo íntimo (recomendado)",
-      "off": "Permitir conexión directa para todos (mejor calidad)"
+      "nonInnerCircle": "Directo para el círculo íntimo, relay para todos los demás (recomendado)",
+      "all": "Ocultar mi IP de todos"
     }
   },
 
