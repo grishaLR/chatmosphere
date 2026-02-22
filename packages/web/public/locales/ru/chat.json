@@ -16,7 +16,9 @@
       "innerCircle": "Ближний круг",
       "community": "Сообщество",
       "offline": "Не в сети",
-      "blocked": "Заблокированные"
+      "blocked": "Заблокированные",
+      "followers": "Подписчики",
+      "following": "Подписки"
     }
   },
 
@@ -33,6 +35,7 @@
     "unblock": "Разблокировать",
     "remove": "Удалить",
     "messageOnGerm": "Написать в Germ",
+    "addToCommunity": "Добавить в сообщество",
     "sendImDisabled": "Пользователь не в сети",
     "videoCallDisabled": "Пользователь не в сети"
   },

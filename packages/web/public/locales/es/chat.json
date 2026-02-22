@@ -16,7 +16,9 @@
       "innerCircle": "Círculo íntimo",
       "community": "Comunidad",
       "offline": "Desconectados",
-      "blocked": "Bloqueados"
+      "blocked": "Bloqueados",
+      "followers": "Seguidores",
+      "following": "Siguiendo"
     }
   },
 
@@ -33,6 +35,7 @@
     "unblock": "Desbloquear",
     "remove": "Eliminar",
     "messageOnGerm": "Mensaje en Germ",
+    "addToCommunity": "Agregar a la Comunidad",
     "sendImDisabled": "El usuario está desconectado",
     "videoCallDisabled": "El usuario está desconectado"
   },

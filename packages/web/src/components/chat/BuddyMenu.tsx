@@ -44,6 +44,10 @@ export interface BuddyMenuProps {
   onSendIm?: () => void;
   onVideoCall?: () => void;
   onMoveBuddy: (fromGroup: string, toGroup: string) => void;
+  /** When set, shows "Add to Community" and hides community-only actions */
+  onAddToCommunity?: () => void;
+  /** True for entries in Followers/Following groups */
+  isFollowGraphEntry?: boolean;
 }
 
 export function BuddyMenu({
@@ -57,6 +61,8 @@ export function BuddyMenu({
   onSendIm,
   onVideoCall,
   onMoveBuddy,
+  onAddToCommunity,
+  isFollowGraphEntry,
 }: BuddyMenuProps) {
   const { t } = useTranslation('chat');
   const [open, setOpen] = useState(false);
@@ -97,98 +103,125 @@ export function BuddyMenu({
       </button>
       {open && (
         <div className={styles.menuDropdown}>
-          {onSendIm && (
-            <button
-              className={`${styles.menuItem} ${isOffline ? styles.menuItemDisabled : ''}`}
-              disabled={isOffline}
-              onClick={() => {
-                onSendIm();
-                setOpen(false);
-              }}
-              title={isOffline ? t('buddyMenu.sendImDisabled') : undefined}
-            >
-              {t('buddyMenu.sendIm')}
-            </button>
-          )}
-          {onVideoCall && (
-            <button
-              className={`${styles.menuItem} ${isOffline ? styles.menuItemDisabled : ''}`}
-              disabled={isOffline}
-              onClick={() => {
-                onVideoCall();
-                setOpen(false);
-              }}
-              title={isOffline ? t('buddyMenu.videoCallDisabled') : undefined}
-            >
-              <Video size={14} /> Video Call
-            </button>
-          )}
-          <GermMenuItem
-            did={buddy.did}
-            onClose={() => {
-              setOpen(false);
-            }}
-          />
-          <button
-            className={styles.menuItem}
-            onClick={() => {
-              onToggleInnerCircle();
-              setOpen(false);
-            }}
-          >
-            {buddy.isInnerCircle
-              ? t('buddyMenu.removeFromInnerCircle')
-              : t('buddyMenu.addToInnerCircle')}
-          </button>
-          {groupName !== OFFLINE_GROUP && moveTargets.length > 0 && (
-            <div className={styles.moveSubmenu}>
+          {isFollowGraphEntry ? (
+            <>
+              {onAddToCommunity && (
+                <button
+                  className={styles.menuItem}
+                  onClick={() => {
+                    onAddToCommunity();
+                    setOpen(false);
+                  }}
+                >
+                  {t('buddyMenu.addToCommunity')}
+                </button>
+              )}
               <button
                 className={styles.menuItem}
                 onClick={() => {
-                  setMoveOpen(!moveOpen);
+                  onBlock();
+                  setOpen(false);
                 }}
               >
-                <span>{t('buddyMenu.moveTo')}</span>{' '}
-                <span className={styles.moveCaret}>
-                  {moveOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                </span>
+                {isBlocked ? t('buddyMenu.unblock') : t('buddyMenu.block')}
               </button>
-              {moveOpen &&
-                moveTargets.map((g) => (
+            </>
+          ) : (
+            <>
+              {onSendIm && (
+                <button
+                  className={`${styles.menuItem} ${isOffline ? styles.menuItemDisabled : ''}`}
+                  disabled={isOffline}
+                  onClick={() => {
+                    onSendIm();
+                    setOpen(false);
+                  }}
+                  title={isOffline ? t('buddyMenu.sendImDisabled') : undefined}
+                >
+                  {t('buddyMenu.sendIm')}
+                </button>
+              )}
+              {onVideoCall && (
+                <button
+                  className={`${styles.menuItem} ${isOffline ? styles.menuItemDisabled : ''}`}
+                  disabled={isOffline}
+                  onClick={() => {
+                    onVideoCall();
+                    setOpen(false);
+                  }}
+                  title={isOffline ? t('buddyMenu.videoCallDisabled') : undefined}
+                >
+                  <Video size={14} /> Video Call
+                </button>
+              )}
+              <GermMenuItem
+                did={buddy.did}
+                onClose={() => {
+                  setOpen(false);
+                }}
+              />
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  onToggleInnerCircle();
+                  setOpen(false);
+                }}
+              >
+                {buddy.isInnerCircle
+                  ? t('buddyMenu.removeFromInnerCircle')
+                  : t('buddyMenu.addToInnerCircle')}
+              </button>
+              {groupName !== OFFLINE_GROUP && moveTargets.length > 0 && (
+                <div className={styles.moveSubmenu}>
                   <button
-                    key={g.name}
-                    className={styles.moveTarget}
+                    className={styles.menuItem}
                     onClick={() => {
-                      onMoveBuddy(groupName, g.name);
-                      setOpen(false);
-                      setMoveOpen(false);
+                      setMoveOpen(!moveOpen);
                     }}
                   >
-                    {GROUP_I18N_KEYS[g.name]
-                      ? t(GROUP_I18N_KEYS[g.name] as 'buddyList.groups.innerCircle')
-                      : g.name}
+                    <span>{t('buddyMenu.moveTo')}</span>{' '}
+                    <span className={styles.moveCaret}>
+                      {moveOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    </span>
                   </button>
-                ))}
-            </div>
+                  {moveOpen &&
+                    moveTargets.map((g) => (
+                      <button
+                        key={g.name}
+                        className={styles.moveTarget}
+                        onClick={() => {
+                          onMoveBuddy(groupName, g.name);
+                          setOpen(false);
+                          setMoveOpen(false);
+                        }}
+                      >
+                        {GROUP_I18N_KEYS[g.name]
+                          ? t(GROUP_I18N_KEYS[g.name] as 'buddyList.groups.innerCircle')
+                          : g.name}
+                      </button>
+                    ))}
+                </div>
+              )}
+              <button
+                className={styles.menuItem}
+                onClick={() => {
+                  onBlock();
+                  setOpen(false);
+                }}
+              >
+                {isBlocked ? t('buddyMenu.unblock') : t('buddyMenu.block')}
+              </button>
+              <button
+                className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                onClick={() => {
+                  onRemove();
+                  setOpen(false);
+                }}
+              >
+                {t('buddyMenu.remove')}
+              </button>
+            </>
           )}
-          <button
-            className={styles.menuItem}
-            onClick={() => {
-              onBlock();
-              setOpen(false);
-            }}
-          >
-            {isBlocked ? t('buddyMenu.unblock') : t('buddyMenu.block')}
-          </button>
-          <button
-            className={`${styles.menuItem} ${styles.menuItemDanger}`}
-            onClick={() => {
-              onRemove();
-              setOpen(false);
-            }}
-          >
-            {t('buddyMenu.remove')}
-          </button>
         </div>
       )}
     </div>

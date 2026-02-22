@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react';
 
 const STORAGE_KEY = 'protoimsg:collapsed-groups';
+const SEED_KEY = 'protoimsg:collapsed-groups-seeded';
+const SEED_GROUPS = ['Blocked', 'Followers', 'Following'];
 
 function loadCollapsed(): Set<string> {
   try {
@@ -9,6 +11,15 @@ function loadCollapsed(): Set<string> {
   } catch {
     // Ignore corrupt data
   }
+
+  // Seed defaults for new users (no existing state)
+  if (!localStorage.getItem(SEED_KEY)) {
+    localStorage.setItem(SEED_KEY, '1');
+    const seeded = new Set(SEED_GROUPS);
+    saveCollapsed(seeded);
+    return seeded;
+  }
+
   return new Set();
 }
 

@@ -16,7 +16,9 @@
       "innerCircle": "الدائرة الداخلية",
       "community": "المجتمع",
       "offline": "غير متصل",
-      "blocked": "محظور"
+      "blocked": "محظور",
+      "followers": "المتابعون",
+      "following": "المُتابَعون"
     }
   },
 
@@ -33,6 +35,7 @@
     "unblock": "إلغاء الحظر",
     "remove": "إزالة",
     "messageOnGerm": "مراسلة عبر Germ",
+    "addToCommunity": "إضافة إلى المجتمع",
     "sendImDisabled": "المستخدم غير متصل",
     "videoCallDisabled": "المستخدم غير متصل"
   },

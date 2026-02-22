@@ -16,7 +16,9 @@
       "innerCircle": "Ciorcal Inmheánach",
       "community": "Pobal",
       "offline": "As Líne",
-      "blocked": "Coiscthe"
+      "blocked": "Coiscthe",
+      "followers": "Leantóirí",
+      "following": "Ag leanúint"
     }
   },
 
@@ -33,6 +35,7 @@
     "unblock": "Díchoisc",
     "remove": "Bain",
     "messageOnGerm": "Teachtaireacht ar Germ",
+    "addToCommunity": "Cuir leis an bpobal",
     "sendImDisabled": "Tá an t-úsáideoir as líne",
     "videoCallDisabled": "Tá an t-úsáideoir as líne"
   },

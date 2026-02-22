@@ -26,26 +26,34 @@ export function UserIdentity({ did, showAvatar = false, size = 'sm' }: UserIdent
 
   const displayText = profile ? `@${profile.handle}` : truncateDid(did);
   const avatarSize = size === 'md' ? styles.avatarMd : styles.avatarSm;
+  const initialSize = size === 'md' ? styles.initialAvatarMd : styles.initialAvatarSm;
   const avatarBlurred = moderation.shouldBlur && !avatarRevealed;
+  const hasRealAvatar = profile?.avatarUrl && isSafeUrl(profile.avatarUrl);
+  const initial = (profile?.handle[0] ?? did.at(-1) ?? '?').toUpperCase();
 
   return (
     <span className={styles.identity}>
-      {showAvatar && profile?.avatarUrl && isSafeUrl(profile.avatarUrl) && (
-        <img
-          className={`${styles.avatar} ${avatarSize} ${avatarBlurred ? styles.blurred : ''}`}
-          // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
-          src={profile.avatarUrl}
-          alt=""
-          onClick={
-            avatarBlurred
-              ? () => {
-                  setAvatarRevealed(true);
-                }
-              : undefined
-          }
-          title={avatarBlurred ? 'Click to reveal' : undefined}
-        />
-      )}
+      {showAvatar &&
+        (hasRealAvatar ? (
+          <img
+            className={`${styles.avatar} ${avatarSize} ${avatarBlurred ? styles.blurred : ''}`}
+            // eslint-disable-next-line no-restricted-syntax -- validated by isSafeUrl() above
+            src={profile.avatarUrl}
+            alt=""
+            onClick={
+              avatarBlurred
+                ? () => {
+                    setAvatarRevealed(true);
+                  }
+                : undefined
+            }
+            title={avatarBlurred ? 'Click to reveal' : undefined}
+          />
+        ) : (
+          <span className={`${styles.initialAvatar} ${initialSize}`} aria-hidden="true">
+            {initial}
+          </span>
+        ))}
       <span className={styles.handle} title={did}>
         {displayText}
       </span>

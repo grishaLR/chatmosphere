@@ -14,6 +14,7 @@ import { ThreadView } from '../components/feed/ThreadView';
 import { SettingsView } from '../components/settings/SettingsView';
 import { useRooms } from '../hooks/useRooms';
 import { useBuddyList } from '../hooks/useBuddyList';
+import { useFollowGraph } from '../hooks/useFollowGraph';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { LoadingBars } from '../components/LoadingBars';
 import { useDm } from '../contexts/DmContext';
@@ -44,6 +45,14 @@ export function RoomDirectoryPage() {
     deleteGroup,
     moveBuddy,
   } = useBuddyList();
+  const {
+    followers,
+    following,
+    fetchMoreFollowers,
+    fetchMoreFollowing,
+    hasMoreFollowers,
+    hasMoreFollowing,
+  } = useFollowGraph();
   // Sync inner-circle DIDs to VideoCallContext for IP protection decisions
   useEffect(() => {
     setInnerCircleDidsForCalls(innerCircleDids);
@@ -201,6 +210,12 @@ export function RoomDirectoryPage() {
       : () => {
           setView('feed');
         },
+    followers,
+    following,
+    fetchMoreFollowers,
+    fetchMoreFollowing,
+    hasMoreFollowers,
+    hasMoreFollowing,
   };
 
   const mobileTab: MobileTab = view === 'buddies' ? 'buddies' : view === 'rooms' ? 'rooms' : 'feed';

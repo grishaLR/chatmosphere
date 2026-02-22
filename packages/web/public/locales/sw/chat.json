@@ -16,7 +16,9 @@
       "innerCircle": "Watu wa Karibu",
       "community": "Jamii",
       "offline": "Nje ya mtandao",
-      "blocked": "Waliozuiwa"
+      "blocked": "Waliozuiwa",
+      "followers": "Wafuasi",
+      "following": "Wanaofuatwa"
     }
   },
 
@@ -33,6 +35,7 @@
     "unblock": "Ondoa kuzuia",
     "remove": "Ondoa",
     "messageOnGerm": "Tuma ujumbe kwenye Germ",
+    "addToCommunity": "Ongeza kwenye jumuiya",
     "sendImDisabled": "Mtumiaji hayuko mtandaoni",
     "videoCallDisabled": "Mtumiaji hayuko mtandaoni"
   },
