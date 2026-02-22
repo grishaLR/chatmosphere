@@ -57,11 +57,13 @@ export function VideoCallOverlay() {
 
   // Display initials for camera-off (can't draw external images on captureStream canvas — CORS taints it)
   const myInitialRef = useRef('?');
-  myInitialRef.current = myProfile ? myProfile.handle[0].toUpperCase() : '?';
+  const myChar = myProfile?.handle[0];
+  myInitialRef.current = myChar ? myChar.toUpperCase() : '?';
 
   const remoteProfile = useProfile(activeCall?.recipientDid);
   const remoteInitialRef = useRef('?');
-  remoteInitialRef.current = remoteProfile ? remoteProfile.handle[0].toUpperCase() : '?';
+  const remoteChar = remoteProfile?.handle[0];
+  remoteInitialRef.current = remoteChar ? remoteChar.toUpperCase() : '?';
 
   // Track whether remote camera is muted (track.muted fires when sender disables their video)
   const isRemoteCameraOff = useRef(false);
