@@ -15,6 +15,9 @@ import { z } from 'zod';
 /** AT-URI: at://did/collection/rkey */
 const atUri = z.string().regex(/^at:\/\//, 'Expected AT-URI');
 
+/** Channel reference: AT-URI for user-created channels, synthetic:// for auto-created defaults */
+const channelRef = z.string().min(1);
+
 /** DID: did:method:identifier */
 const did = z.string().regex(/^did:/, 'Expected DID');
 
@@ -113,7 +116,7 @@ const replyRefSchema = z
   .optional();
 
 export const messageRecordSchema = z.object({
-  channel: atUri,
+  channel: channelRef,
   text: z.string().max(3000),
   facets: z.array(richTextFacetSchema).optional(),
   reply: replyRefSchema,
@@ -176,7 +179,7 @@ export const presenceRecordSchema = z.object({
 // -- Poll --
 
 export const pollRecordSchema = z.object({
-  channel: atUri,
+  channel: channelRef,
   question: z.string().max(200),
   options: z.array(z.string().max(100)).min(2).max(10),
   allowMultiple: z.boolean().optional(),

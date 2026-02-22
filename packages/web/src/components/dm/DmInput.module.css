@@ -24,6 +24,7 @@
   max-height: 4em;
   overflow-y: auto;
   background: var(--cm-surface-content);
+  color: var(--color-base-content);
   box-shadow: var(--cm-sunken);
   box-sizing: border-box;
 }

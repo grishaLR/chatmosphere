@@ -67,8 +67,11 @@ export function useDragResize(options: UseDragResizeOptions = {}): UseDragResize
     (e: React.PointerEvent) => {
       if (!enabled) return;
       if (dragging.current) {
-        const x = Math.max(0, Math.min(e.clientX - dragOffset.current.x, window.innerWidth - 100));
-        const y = Math.max(0, Math.min(e.clientY - dragOffset.current.y, window.innerHeight - 40));
+        const el = containerRef.current;
+        const elW = el?.offsetWidth ?? minWidth;
+        const elH = el?.offsetHeight ?? minHeight;
+        const x = Math.max(0, Math.min(e.clientX - dragOffset.current.x, window.innerWidth - elW));
+        const y = Math.max(0, Math.min(e.clientY - dragOffset.current.y, window.innerHeight - elH));
         setPos({ x, y });
         return;
       }
@@ -143,9 +146,12 @@ export function useDragResize(options: UseDragResizeOptions = {}): UseDragResize
     const onResize = () => {
       setPos((prev) => {
         if (!prev) return prev;
+        const el = containerRef.current;
+        const elW = el?.offsetWidth ?? minWidth;
+        const elH = el?.offsetHeight ?? minHeight;
         return {
-          x: Math.min(prev.x, window.innerWidth - 100),
-          y: Math.min(prev.y, window.innerHeight - 40),
+          x: Math.max(0, Math.min(prev.x, window.innerWidth - elW)),
+          y: Math.max(0, Math.min(prev.y, window.innerHeight - elH)),
         };
       });
     };
@@ -153,7 +159,7 @@ export function useDragResize(options: UseDragResizeOptions = {}): UseDragResize
     return () => {
       window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [minWidth, minHeight]);
 
   const posStyle: React.CSSProperties = pos
     ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' }

@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useDm } from '../../contexts/DmContext';
 import { useVideoCall } from '../../contexts/VideoCallContext';
 import { useAuth } from '../../hooks/useAuth';
+import { useDocumentPiP, documentPiPSupported } from '../../hooks/useDocumentPiP';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { IS_TAURI } from '../../lib/config';
 import { DmPopover } from './DmPopover';
@@ -24,22 +26,53 @@ export function DmPopoverContainer() {
     toggleMinimize,
     sendDm,
     sendTyping,
+    retryConnection,
     dismissNotification,
     openFromNotification,
   } = useDm();
   const { videoCall } = useVideoCall();
   const { did } = useAuth();
   const windowSize = useWindowSize();
+  const { pipWindow, open: openPiP, close: closePiP } = useDocumentPiP();
+  const [pipConvoId, setPipConvoId] = useState<string | null>(null);
+
+  const handlePopOut = useCallback(
+    async (conversationId: string) => {
+      const pip = await openPiP({ width: 320, height: 420 });
+      if (pip) setPipConvoId(conversationId);
+    },
+    [openPiP],
+  );
+
+  // Clear pipConvoId when PiP window closes
+  useEffect(() => {
+    if (!pipWindow) setPipConvoId(null);
+  }, [pipWindow]);
+
+  // Close PiP when the conversation it's showing gets closed
+  useEffect(() => {
+    if (pipConvoId && !conversations.some((c) => c.conversationId === pipConvoId)) {
+      closePiP();
+    }
+  }, [conversations, pipConvoId, closePiP]);
+
+  // Only calculate positions for in-page conversations
+  const inPageConvos = useMemo(
+    () => conversations.filter((c) => c.conversationId !== pipConvoId),
+    [conversations, pipConvoId],
+  );
+
+  const pipConvo = pipConvoId ? conversations.find((c) => c.conversationId === pipConvoId) : null;
 
   // Calculate staggered initial positions from bottom-right
   const positions = useMemo(() => {
     const vw = windowSize.width;
     const vh = windowSize.height;
-    return conversations.map((_, i) => ({
+    return inPageConvos.map((_, i) => ({
       x: vw - PANEL_WIDTH - RIGHT_MARGIN - i * (PANEL_WIDTH + GAP),
       y: vh - POPOVER_HEIGHT,
     }));
-  }, [conversations.length, windowSize.width, windowSize.height]);
+  }, [inPageConvos.length, windowSize.width, windowSize.height]);
 
   if (!did) return null;
 
@@ -48,7 +81,7 @@ export function DmPopoverContainer() {
 
   return (
     <div className={styles.container}>
-      {conversations.map((convo, i) => (
+      {inPageConvos.map((convo, i) => (
         <DmPopover
           key={convo.conversationId}
           conversation={convo}
@@ -69,11 +102,54 @@ export function DmPopoverContainer() {
           onTyping={() => {
             sendTyping(convo.conversationId);
           }}
+          onRetry={() => {
+            retryConnection(convo.conversationId);
+          }}
           onVideoCall={() => {
             videoCall(convo.recipientDid);
           }}
+          onPopOut={
+            documentPiPSupported
+              ? () => {
+                  void handlePopOut(convo.conversationId);
+                }
+              : undefined
+          }
         />
       ))}
+      {pipWindow &&
+        pipConvo &&
+        createPortal(
+          <DmPopover
+            key={pipConvo.conversationId}
+            conversation={pipConvo}
+            currentDid={did}
+            isPiP
+            onClose={() => {
+              closePiP();
+              closeDm(pipConvo.conversationId);
+            }}
+            onToggleMinimize={() => {
+              toggleMinimize(pipConvo.conversationId);
+            }}
+            onSend={(text, facets) => {
+              sendDm(pipConvo.conversationId, text, facets);
+            }}
+            onSendWithEmbed={(text, embed) => {
+              sendDm(pipConvo.conversationId, text, undefined, embed);
+            }}
+            onTyping={() => {
+              sendTyping(pipConvo.conversationId);
+            }}
+            onRetry={() => {
+              retryConnection(pipConvo.conversationId);
+            }}
+            onVideoCall={() => {
+              videoCall(pipConvo.recipientDid);
+            }}
+          />,
+          pipWindow.document.body,
+        )}
       <div aria-live="polite" aria-label={t('popoverContainer.ariaLabel')}>
         {notifications.map((n) => (
           <DmNotificationBadge
@@ -83,7 +159,7 @@ export function DmPopoverContainer() {
               openFromNotification(n);
             }}
             onDismiss={() => {
-              dismissNotification(n.conversationId);
+              dismissNotification(n.conversationId, true);
             }}
           />
         ))}

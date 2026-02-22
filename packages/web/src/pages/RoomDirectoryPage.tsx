@@ -56,11 +56,16 @@ export function RoomDirectoryPage() {
     for (const c of conversations) {
       if (c.unreadCount > 0) map.set(c.recipientDid, c.unreadCount);
     }
-    for (const n of notifications) {
-      map.set(n.senderDid, (map.get(n.senderDid) ?? 0) + 1);
-    }
     return map;
-  }, [conversations, notifications]);
+  }, [conversations]);
+
+  const imNotifySet = useMemo(() => {
+    const set = new Set<string>();
+    for (const n of notifications) {
+      set.add(n.senderDid);
+    }
+    return set;
+  }, [notifications]);
   const { videoCall } = useVideoCall();
   const { blockedDids, toggleBlock } = useBlocks();
   const isMobile = useIsMobile();
@@ -174,6 +179,7 @@ export function RoomDirectoryPage() {
       });
     },
     imUnreadMap,
+    imNotifySet,
     onSendIm: openDm,
     onVideoCall: videoCall,
     onBuddyClick: (did: string) => {

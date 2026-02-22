@@ -64,6 +64,11 @@ export async function getChannelById(sql: Sql, id: string): Promise<ChannelRow |
   return rows[0];
 }
 
+export async function getChannelByUri(sql: Sql, uri: string): Promise<ChannelRow | undefined> {
+  const rows = await sql<ChannelRow[]>`SELECT * FROM channels WHERE uri = ${uri}`;
+  return rows[0];
+}
+
 export async function getChannelsByRoom(sql: Sql, roomId: string): Promise<ChannelRow[]> {
   return sql<ChannelRow[]>`
     SELECT * FROM channels

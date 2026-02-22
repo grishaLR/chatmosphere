@@ -333,6 +333,13 @@ export async function handleClientMessage(
         break;
       }
 
+      // Notify remaining subscribers before unsubscribing
+      dmSubs.broadcast(
+        data.conversationId,
+        { type: 'dm_partner_left', data: { conversationId: data.conversationId } },
+        ws,
+      );
+
       dmSubs.unsubscribe(data.conversationId, ws);
 
       if (!dmSubs.hasSubscribers(data.conversationId)) {
@@ -341,6 +348,34 @@ export async function handleClientMessage(
         } else {
           void dmService.cleanupIfEmpty(data.conversationId);
         }
+      }
+      break;
+    }
+
+    case 'dm_reject': {
+      const isImParticipantReject = imRegistry.isParticipant(data.conversationId, did);
+      if (!isImParticipantReject) {
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            message: 'Not a participant',
+            errorCode: ERROR_CODES.NOT_PARTICIPANT,
+          }),
+        );
+        break;
+      }
+
+      // Notify the initiator that the IM was rejected
+      dmSubs.broadcast(
+        data.conversationId,
+        { type: 'dm_rejected', data: { conversationId: data.conversationId } },
+        ws,
+      );
+
+      dmSubs.unsubscribe(data.conversationId, ws);
+
+      if (!dmSubs.hasSubscribers(data.conversationId)) {
+        imRegistry.unregister(data.conversationId);
       }
       break;
     }

@@ -101,9 +101,12 @@ export class DataChannelPeer {
   }
 
   addBufferedCandidate(candidate: IceCandidateInit): void {
+    if (this.pc.signalingState === 'closed') return;
     if (this.pc.remoteDescription) {
       this.pc.addIceCandidate(new RTCIceCandidate(candidate)).catch((err: unknown) => {
-        log.error('Failed to add ICE candidate', err);
+        if (this.pc.signalingState !== 'closed') {
+          log.error('Failed to add ICE candidate', err);
+        }
       });
     } else {
       this.pendingCandidates.push(candidate);
@@ -111,9 +114,15 @@ export class DataChannelPeer {
   }
 
   flushCandidates(): void {
+    if (this.pc.signalingState === 'closed') {
+      this.pendingCandidates = [];
+      return;
+    }
     for (const c of this.pendingCandidates) {
       this.pc.addIceCandidate(new RTCIceCandidate(c)).catch((err: unknown) => {
-        log.error('Failed to add buffered ICE candidate', err);
+        if (this.pc.signalingState !== 'closed') {
+          log.error('Failed to add buffered ICE candidate', err);
+        }
       });
     }
     this.pendingCandidates = [];

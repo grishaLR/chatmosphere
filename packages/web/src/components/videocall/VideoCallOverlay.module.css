@@ -138,18 +138,6 @@
   object-fit: cover;
 }
 
-.localVideo {
-  position: absolute;
-  bottom: var(--cm-space-2);
-  right: var(--cm-space-2);
-  width: var(--cm-call-pip-w);
-  aspect-ratio: 4 / 3;
-  background: var(--cm-titlebar);
-  border-radius: var(--cm-radius-sm);
-  border: 1px solid var(--cm-surface);
-  object-fit: cover;
-  z-index: 1;
-}
 
 .headerHangUp {
   width: var(--cm-icon-lg);
@@ -176,6 +164,29 @@
   text-align: center;
   color: var(--cm-chrome-text);
   font-size: var(--cm-text-sm);
+}
+
+.failedBody {
+  padding: var(--cm-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cm-space-3);
+}
+
+.failedText {
+  color: var(--color-error);
+  font-size: var(--cm-text-sm);
+  font-weight: 600;
+}
+
+/* Hidden source videos — feed the canvas compositor, audio comes from remote */
+.hiddenSource {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Resize handles — invisible hit areas around all edges and corners */
@@ -263,9 +274,9 @@
 }
 
 .controlBtn {
-  width: var(--cm-icon-lg);
-  height: var(--cm-icon-lg);
-  border-radius: var(--cm-radius-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   border: none;
   background: var(--cm-surface-button);
   color: var(--cm-chrome-text);
@@ -283,6 +294,11 @@
 }
 
 .controlBtnActive {
+  background: color-mix(in srgb, var(--color-error) 40%, #6b21a8);
+  color: #fde8e8;
+}
+
+.hangUpBtn {
   background: var(--color-error);
   color: var(--color-error-content);
 }
