@@ -31,7 +31,7 @@ export interface RoomSettings {
 /** app.protoimsg.chat.message record */
 export interface MessageRecord {
   $type: 'app.protoimsg.chat.message';
-  room: string;
+  channel: string;
   text: string;
   facets?: RichTextFacet[];
   reply?: ReplyRef;
@@ -170,7 +170,7 @@ export interface PresenceRecord {
 /** app.protoimsg.chat.poll record */
 export interface PollRecord {
   $type: 'app.protoimsg.chat.poll';
-  room: string;
+  channel: string;
   question: string;
   options: string[];
   allowMultiple?: boolean;

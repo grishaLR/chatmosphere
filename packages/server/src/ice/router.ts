@@ -2,13 +2,9 @@ import { Router } from 'express';
 import type { IceServerConfig } from '@protoimsg/shared';
 import { generateIceCredentials } from './service.js';
 import { createLogger } from '../logger.js';
+import { incIceUnavailable } from '../metrics.js';
 
 const log = createLogger('ice');
-
-const GOOGLE_STUN_FALLBACK: IceServerConfig[] = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-];
 
 let fallbackWarned = false;
 
@@ -25,12 +21,11 @@ export function iceRouter(config: IceRouterConfig): Router {
   router.get('/', (req, res) => {
     if (!config.sharedSecret || !config.stunUrl) {
       if (!fallbackWarned) {
-        log.warn(
-          'COTURN_SHARED_SECRET or STUN_URL not configured — returning Google STUN fallback',
-        );
+        log.warn('COTURN_SHARED_SECRET or STUN_URL not configured — video calls unavailable');
         fallbackWarned = true;
       }
-      res.json({ iceServers: GOOGLE_STUN_FALLBACK });
+      incIceUnavailable();
+      res.status(503).json({ error: 'ICE servers not configured', iceServers: [] });
       return;
     }
 

@@ -40,6 +40,7 @@ const envSchema = z.object({
   ICE_CREDENTIAL_TTL_SECS: z.coerce.number().int().min(60).default(86400),
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM: z.string().default('proto instant messenger <noreply@protoimsg.app>'),
+  ADMIN_API_KEY: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema>;

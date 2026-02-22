@@ -6,15 +6,15 @@ protoimsg is a real-time communications platform built on the AT Protocol. Publi
 
 Your identity, contacts, and public chat history are yours, portable across any app that implements the [Lexicon](./PROTOCOL.md).
 
-**Early alpha.** [protoimsg.app](https://protoimsg.app) is live but gated. Reach out on [Bluesky](https://bsky.app/profile/grishalr.bsky.social) or [email](mailto:protoimsg@gmail.com) for early access.
+**Now in beta.** [protoimsg.app](https://protoimsg.app) is live with a waitlist. [Sign up for beta access](https://protoimsg.app/beta-signup) or reach out on [Bluesky](https://bsky.app/profile/grishalr.bsky.social).
 
 ## What it is
 
-- **Peer-to-peer video calling** — Free video calls powered by WebRTC. Pure P2P for your inner circle: direct connection, zero latency. Everyone else routes through our TURN relay to keep your IP address private. You can override this anytime. Tested NYC to Europe with clear video and no lag.
+- **Peer-to-peer video calling** — Free video calls powered by WebRTC. Pure P2P for your inner circle: direct connection, zero latency. Everyone else routes through our TURN relay to keep your IP address private. No third-party STUN servers — all infrastructure is self-hosted so your IP is never leaked to Google or anyone else. Tested NYC to Europe with clear video and no lag.
 
 - **Public chat rooms** — Join rooms by interest, meet people, and follow the ones you vibe with. The chat rooms have treaded replies, rich text, polls, GIF search (/giphy, /klipy), and room history that persists so you can discover people even after the conversation has moved on.
 
-- **Instant messaging** — Real-time IMs when both people are online. Same trust-aware routing as video: pure P2P for your inner circle, relay for everyone else. For offline messaging, use [Germ](https://germnetwork.com) integration for persistent E2E-encrypted DMs.
+- **Instant messaging** — Real-time IMs when both people are online. Same trust-aware routing as video: pure P2P for your inner circle, relay for everyone else. Relay is mandatory for non-inner-circle connections — users cannot override this to protect IP addresses. For offline messaging, use [Germ](https://germnetwork.com) integration for persistent E2E-encrypted DMs.
 
 - **Community list, not follow graph** — Your buddy list is separate from who you follow. You might want to chat with people you don't follow, and you might not want to chat with people you do follow. Your community list is organized into groups: **Everyone**, **Community**, and **Inner Circle**. Each tier controls who can see you online. Inner Circle controls trust-aware routing: your inner circle gets pure P2P connections, everyone else is relayed.
 
@@ -34,11 +34,11 @@ Sign in with your atproto handle from any PDS: Bluesky, Blacksky, North Sky, or 
 
 The product is built on a three-layer architecture:
 
-| Layer         | Technology                     | What it does                                                                                  |
-| ------------- | ------------------------------ | --------------------------------------------------------------------------------------------- |
-| **Identity**  | AT Protocol                    | Portable, user-owned identity. No account lock-in.                                            |
-| **Trust**     | Community lists + inner-circle | Who sees your presence, who gets P2P vs relay routing.                                        |
-| **Transport** | WebRTC                         | Trust-aware routing. Close friends get STUN (pure P2P). Others get TURN (relayed, IP hidden). |
+| Layer         | Technology                     | What it does                                                                                                                   |
+| ------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Identity**  | AT Protocol                    | Portable, user-owned identity. No account lock-in.                                                                             |
+| **Trust**     | Community lists + inner-circle | Who sees your presence, who gets P2P vs relay routing.                                                                         |
+| **Transport** | WebRTC                         | Trust-aware routing. Inner circle gets STUN (pure P2P). Everyone else gets TURN (relayed, IP hidden). No third-party fallback. |
 
 ### Messaging tiers
 

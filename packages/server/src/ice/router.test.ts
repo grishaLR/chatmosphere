@@ -31,8 +31,9 @@ function getHandler(router: ReturnType<typeof iceRouter>): (req: Request, res: R
 function mockReqRes(did?: string) {
   const req = { did } as unknown as Request;
   const json = vi.fn();
-  const res = { json } as unknown as Response;
-  return { req, res, json };
+  const status = vi.fn().mockReturnThis();
+  const res = { json, status } as unknown as Response;
+  return { req, res, json, status };
 }
 
 function parseBody(json: ReturnType<typeof vi.fn>): IceResponse {
@@ -51,16 +52,16 @@ describe('iceRouter', () => {
   const stunUrl = 'stun:turn.example.com:3478';
   const turnUrl = 'turn:turn.example.com:3478';
 
-  it('returns Google STUN fallback when not configured', () => {
+  it('returns 503 with empty iceServers when not configured', () => {
     const router = iceRouter({ ttlSeconds: 86400 });
     const handler = getHandler(router);
-    const { req, res, json } = mockReqRes('did:plc:test');
+    const { req, res, json, status } = mockReqRes('did:plc:test');
 
     handler(req, res);
 
+    expect(status).toHaveBeenCalledWith(503);
     const { iceServers } = parseBody(json);
-    expect(iceServers).toHaveLength(2);
-    expect(at(iceServers, 0).urls).toContain('stun:stun.l.google.com:19302');
+    expect(iceServers).toHaveLength(0);
   });
 
   it('returns STUN-only when TURN_URL not set', () => {

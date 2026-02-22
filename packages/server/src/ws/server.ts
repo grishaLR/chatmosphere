@@ -112,7 +112,11 @@ export function createWsServer(
     path: '/ws',
     maxPayload: 100_000, // 100KB — prevent OOM from single malicious message
     verifyClient: (info, callback) => {
-      const ip = info.req.socket.remoteAddress ?? 'unknown';
+      const flyIp = info.req.headers['fly-client-ip'];
+      const ip =
+        (typeof flyIp === 'string' ? flyIp : undefined) ??
+        info.req.socket.remoteAddress ??
+        'unknown';
       if (!connectionTracker.tryIncrement(ip)) {
         callback(false, 429, 'Too many WebSocket connections');
         return;

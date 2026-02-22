@@ -61,6 +61,14 @@ const jetstreamErrorsTotal = new client.Counter({
   registers: [register],
 });
 
+// --- ICE / TURN ---
+
+const iceUnavailableTotal = new client.Counter({
+  name: 'protoimsg_ice_unavailable_total',
+  help: 'Total ICE server requests that returned 503 (coturn not configured)',
+  registers: [register],
+});
+
 // --- HTTP ---
 
 const httpRequestDuration = new client.Histogram({
@@ -114,6 +122,10 @@ export function setJetstreamLag(seconds: number): void {
 
 export function incJetstreamError(): void {
   jetstreamErrorsTotal.inc();
+}
+
+export function incIceUnavailable(): void {
+  iceUnavailableTotal.inc();
 }
 
 export function observeHttpRequestDuration(
