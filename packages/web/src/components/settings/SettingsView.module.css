@@ -47,6 +47,7 @@
   color: var(--cm-chrome-text);
   font-size: var(--cm-text-sm);
   font-weight: 700;
+  border-radius: var(--cm-radius-md) var(--cm-radius-md) 0 0;
 }
 
 .sectionBody {
@@ -205,11 +206,27 @@
   cursor: pointer;
 }
 
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-3);
+  font-size: var(--cm-text-sm);
+  color: var(--color-base-content);
+  cursor: pointer;
+  margin-bottom: var(--cm-space-2);
+}
+
 .hint {
   font-size: var(--cm-text-xs);
   color: var(--cm-border-dark);
   margin-top: var(--cm-space-1);
-  padding-inline-start: calc(var(--cm-space-3) + 16px);
+}
+
+.hintBlock {
+  font-size: var(--cm-text-sm);
+  color: var(--cm-border-dark);
+  margin-top: var(--cm-space-3);
+  line-height: 1.4;
 }
 
 .signOutButton {

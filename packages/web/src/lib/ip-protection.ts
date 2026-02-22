@@ -1,4 +1,4 @@
-export type IpProtectionLevel = 'all' | 'non-inner-circle' | 'off';
+export type IpProtectionLevel = 'non-inner-circle' | 'all';
 
 /** Snapshot of inner-circle DIDs for IP protection checks (set from RoomDirectoryPage) */
 let innerCircleDidsSnapshot: ReadonlySet<string> = new Set();
@@ -9,7 +9,7 @@ export function setInnerCircleDidsForCalls(dids: ReadonlySet<string>) {
 
 export function getIpProtectionLevel(): IpProtectionLevel {
   const stored = localStorage.getItem('protoimsg:ipProtection');
-  if (stored === 'all' || stored === 'non-inner-circle' || stored === 'off') return stored;
+  if (stored === 'non-inner-circle' || stored === 'all') return stored;
   return 'non-inner-circle';
 }
 
@@ -27,8 +27,8 @@ const forceRelay = new URLSearchParams(window.location.search).has('forceRelay')
 export function shouldForceRelayForDid(recipientDid: string): boolean {
   if (forceRelay) return true;
   const level = getIpProtectionLevel();
+  if (isLocalDev) return false;
   if (level === 'all') return true;
-  if (level === 'off' || isLocalDev) return false;
   // 'non-inner-circle' — relay unless recipient is in inner circle
   return !innerCircleDidsSnapshot.has(recipientDid);
 }

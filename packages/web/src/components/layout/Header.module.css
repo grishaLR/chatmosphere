@@ -35,18 +35,31 @@
   width: var(--cm-button-min-h);
   height: var(--cm-button-min-h);
   padding: 0;
-  background: var(--cm-surface);
+  background: transparent;
+  color: var(--color-base-content);
   border: none;
   border-radius: var(--cm-radius-sm);
   cursor: pointer;
-  box-shadow: var(--cm-raised);
 }
 
 .hamburger:hover {
-  background: var(--cm-button-hover);
+  background: var(--cm-chrome-hover);
 }
 
 .hamburger:active {
+  background: var(--cm-button-hover);
+}
+
+:global([data-theme='aim']) .hamburger {
+  background: var(--cm-surface);
+  box-shadow: var(--cm-raised);
+}
+
+:global([data-theme='aim']) .hamburger:hover {
+  background: var(--cm-button-hover);
+}
+
+:global([data-theme='aim']) .hamburger:active {
   box-shadow: var(--cm-pressed);
 }
 

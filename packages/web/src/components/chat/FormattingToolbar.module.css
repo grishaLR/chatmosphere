@@ -1,28 +1,28 @@
 .toolbar {
   display: flex;
-  gap: var(--cm-space-1);
-  padding: var(--cm-space-1) var(--cm-space-2);
+  gap: 0;
+  padding: var(--cm-space-1) var(--cm-space-3);
 }
 
 .btn {
-  background: var(--cm-surface-button);
+  background: transparent;
   border: none;
-  box-shadow: var(--cm-raised);
-  color: var(--color-base-content);
+  color: var(--cm-border-dark);
   font-size: var(--cm-text-sm);
   font-family: inherit;
-  padding: var(--cm-space-1) var(--cm-space-3);
+  padding: var(--cm-space-1) var(--cm-space-2);
   cursor: pointer;
-  min-height: var(--cm-button-min-h);
   line-height: 1;
+  border-radius: var(--cm-radius-sm);
 }
 
 .btn:hover {
-  background: var(--cm-button-hover);
+  background: var(--cm-chrome-hover);
+  color: var(--color-base-content);
 }
 
 .btn:active {
-  box-shadow: var(--cm-pressed);
+  background: var(--cm-button-hover);
 }
 
 .bold {

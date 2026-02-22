@@ -170,36 +170,38 @@ export function VideoCallOverlay() {
         ctx.drawImage(remote, 0, 0, W, H);
       }
 
-      const pw = Math.round(W * 0.25);
-      const ph = Math.round(H * 0.25);
-      const pad = 8;
-      const lx = W - pw - pad;
-      const ly = H - ph - pad;
+      // Local inset only drawn on canvas for PiP (DOM overlay handles in-page view)
+      if (document.pictureInPictureElement === display) {
+        const pw = Math.round(W * 0.25);
+        const ph = Math.round(H * 0.25);
+        const pad = 8;
+        const lx = W - pw - pad;
+        const ly = H - ph - pad;
 
-      if (isCameraOffRef.current) {
-        // Camera off — dark background with initial
-        ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(lx, ly, pw, ph);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.font = `bold ${Math.round(ph * 0.4)}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(myInitialRef.current, lx + pw / 2, ly + ph / 2);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(lx, ly, pw, ph);
-      } else {
-        const local = localSrcRef.current;
-        if (local && local.readyState >= 2) {
-          ctx.save();
-          ctx.translate(lx + pw, ly);
-          ctx.scale(-1, 1);
-          ctx.drawImage(local, 0, 0, pw, ph);
-          ctx.restore();
-
+        if (isCameraOffRef.current) {
+          ctx.fillStyle = '#1a1a2e';
+          ctx.fillRect(lx, ly, pw, ph);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+          ctx.font = `bold ${Math.round(ph * 0.4)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(myInitialRef.current, lx + pw / 2, ly + ph / 2);
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
           ctx.lineWidth = 1;
           ctx.strokeRect(lx, ly, pw, ph);
+        } else {
+          const local = localSrcRef.current;
+          if (local && local.readyState >= 2) {
+            ctx.save();
+            ctx.translate(lx + pw, ly);
+            ctx.scale(-1, 1);
+            ctx.drawImage(local, 0, 0, pw, ph);
+            ctx.restore();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(lx, ly, pw, ph);
+          }
         }
       }
 
@@ -347,6 +349,7 @@ export function VideoCallOverlay() {
         onPointerDown={(e) => {
           onResizeStart('sw', e);
         }}
+        title={t('videoCall.dragToResize', { defaultValue: 'Drag to resize' })}
       />
 
       <div
@@ -375,6 +378,69 @@ export function VideoCallOverlay() {
           <X size={16} />
         </button>
       </div>
+
+      {activeCall.status === 'outgoing' && (
+        <div className={styles.ringing}>
+          <p>{t('videoCall.ringing')}</p>
+        </div>
+      )}
+
+      {activeCall.status === 'failed' && (
+        <div className={styles.failedBody}>
+          <p className={styles.failedText}>{t('videoCall.connectionFailed')}</p>
+          <button
+            className={styles.acceptBtn}
+            onClick={retryCall}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            title={t('videoCall.retry')}
+            aria-label={t('videoCall.retry')}
+          >
+            <RotateCcw size={16} />
+          </button>
+        </div>
+      )}
+
+      {(activeCall.status === 'active' || activeCall.status === 'reconnecting') && (
+        <div className={styles.videosContainer}>
+          {/* Hidden source videos — feed the canvas compositor */}
+          <video ref={remoteSourceRef} className={styles.hiddenSource} autoPlay playsInline />
+          <video ref={localSourceRef} className={styles.hiddenSource} autoPlay playsInline muted />
+
+          {/* Display video — plays canvas composite (remote + local inset) */}
+          <video
+            ref={displayVideoRef}
+            className={styles.remoteVideo}
+            aria-label="Video call"
+            autoPlay
+            playsInline
+            muted
+          />
+
+          {/* Local video overlay — positioned via CSS, independent of canvas */}
+          {activeCall.localStream && (
+            <video
+              ref={(el) => {
+                if (el && el.srcObject !== activeCall.localStream) {
+                  el.srcObject = activeCall.localStream;
+                  el.play().catch(() => {});
+                }
+              }}
+              className={`${styles.localVideo} ${isCameraOff ? styles.localVideoHidden : ''}`}
+              autoPlay
+              playsInline
+              muted
+            />
+          )}
+
+          {isCameraOff && <div className={styles.localVideoOff}>{myInitialRef.current}</div>}
+
+          {activeCall.status === 'reconnecting' && (
+            <div className={styles.reconnectingOverlay}>{t('videoCall.reconnecting')}</div>
+          )}
+        </div>
+      )}
 
       {(activeCall.status === 'active' || activeCall.status === 'reconnecting') && (
         <div className={styles.controlBar}>
@@ -461,51 +527,6 @@ export function VideoCallOverlay() {
           >
             <PhoneOff size={16} />
           </button>
-        </div>
-      )}
-
-      {activeCall.status === 'outgoing' && (
-        <div className={styles.ringing}>
-          <p>{t('videoCall.ringing')}</p>
-        </div>
-      )}
-
-      {activeCall.status === 'failed' && (
-        <div className={styles.failedBody}>
-          <p className={styles.failedText}>{t('videoCall.connectionFailed')}</p>
-          <button
-            className={styles.acceptBtn}
-            onClick={retryCall}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-            }}
-            title={t('videoCall.retry')}
-            aria-label={t('videoCall.retry')}
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
-      )}
-
-      {(activeCall.status === 'active' || activeCall.status === 'reconnecting') && (
-        <div className={styles.videosContainer}>
-          {/* Hidden source videos — feed the canvas compositor */}
-          <video ref={remoteSourceRef} className={styles.hiddenSource} autoPlay playsInline />
-          <video ref={localSourceRef} className={styles.hiddenSource} autoPlay playsInline muted />
-
-          {/* Display video — plays canvas composite (remote + local inset) */}
-          <video
-            ref={displayVideoRef}
-            className={styles.remoteVideo}
-            aria-label="Video call"
-            autoPlay
-            playsInline
-            muted
-          />
-
-          {activeCall.status === 'reconnecting' && (
-            <div className={styles.reconnectingOverlay}>{t('videoCall.reconnecting')}</div>
-          )}
         </div>
       )}
     </div>

@@ -40,11 +40,12 @@
   "privacy": {
     "title": "Sirri",
     "ipProtectionLabel": "Kariyar IP don kira",
-    "ipProtectionHint": "Mai watsawa yana ɓoye adireshin IP ɗinka amma yana iya rage ingancin kira. Haɗin kai tsaye ya fi sauri amma yana bayyana IP ɗinka ga mai kira.",
+    "ipProtectionHint": "Haɗin kai tsaye ga abokan kusa yana da ƙaramin jinkiri da hoto mai tsabta da sauri amma yana bayyana IP ɗinka ga mai kira. Mai watsawa yana ɓoye adireshin IP ɗinka amma yana iya ƙara ɗan jinkiri.",
+    "directConnectionInfo": "Haɗin kai tsaye shine tsantsar peer-to-peer. Kiranka tana tafiya kai tsaye zuwa ga ɗayan mutum ba tare da wani uwar garke a tsakani ba, wanda ke nufin ƙaramin jinkiri da hoto mai tsabta da sauri. Musayar ita ce cewa adireshin IP ɗinka yana ganuwa gare su. Ka yi tunanin adireshin IP ɗinka kamar ƙofar gidanka a yanar gizo. Abokan kusanka ya kamata su kasance mutanen da za ka amince musu da adireshin gidanka. Idan kana jin daɗi da hakan, haɗin kai tsaye ya dace.",
+    "relayInfo": "Da mai watsawa, ana aika kiranka ta hanyar uwar garkenmu maimakon zuwa kai tsaye ga ɗayan mutumin, don haka babu ɗayanku da yake ganin adireshin IP na ɗayan. Wannan ba peer-to-peer bane a fasaha, amma muna amfani da shi ne kawai don ɓoye IP ɗinka. Kiranka har yanzu tana ɓoye da DTLS-SRTP, ma'ana mabuɗin ɓoyayye ana sasantawa kai tsaye tsakaninka da mai kira. Uwar garken watsawa namu tana tura fakitoci kawai kuma ba ta iya gani ko ji komai ba.",
     "options": {
-      "all": "Watsawa duk kira (mafi girman sirri)",
-      "nonInnerCircle": "Watsawa waɗanda ba na kusa ba kawai (shawarar da ake ba)",
-      "off": "Yarda da haɗin tsaye ga kowa (mafi kyaun inganci)"
+      "nonInnerCircle": "Tsaye ga abokan kusa, watsawa ga sauran (shawarar da ake ba)",
+      "all": "Ɓoye IP ɗina daga kowa"
     }
   },
 

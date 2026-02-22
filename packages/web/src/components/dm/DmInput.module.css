@@ -1,14 +1,17 @@
 .inputArea {
   display: flex;
   flex-direction: column;
+  border-top: 1px solid var(--cm-border-light);
   background: var(--color-base-100);
 }
 
 .inputRow {
   display: flex;
   align-items: flex-end;
-  gap: var(--cm-space-1);
-  padding: 0 var(--cm-space-2) var(--cm-space-2);
+  margin: 0 var(--cm-space-3) var(--cm-space-3);
+  box-shadow: var(--cm-sunken);
+  border-radius: var(--cm-radius-sm);
+  background: var(--cm-surface-content);
 }
 
 .textarea {
@@ -16,28 +19,28 @@
   resize: none;
   border: none;
   border-radius: var(--cm-radius-sm);
-  padding: var(--cm-space-1.5) var(--cm-space-4);
+  padding: var(--cm-space-1.5) var(--cm-space-3);
   font-size: max(var(--cm-text-md), 16px);
   font-family: inherit;
   line-height: 1.4;
   min-height: 1.6em;
   max-height: 4em;
   overflow-y: auto;
-  background: var(--cm-surface-content);
+  scrollbar-width: thin;
+  scrollbar-color: var(--cm-scrollbar-thumb) transparent;
+  background: transparent;
   color: var(--color-base-content);
-  box-shadow: var(--cm-sunken);
   box-sizing: border-box;
 }
 
 .textarea:focus {
-  outline: var(--cm-focus-thin) solid var(--cm-focus);
-  outline-offset: var(--cm-focus-offset);
+  outline: none;
 }
 
 .sendBtn {
   padding: var(--cm-space-1) var(--cm-space-4);
-  background: var(--cm-surface-button);
-  color: var(--color-base-content);
+  background: transparent;
+  color: var(--cm-border-dark);
   border: none;
   border-radius: var(--cm-radius-sm);
   font-size: var(--cm-text-sm);
@@ -45,19 +48,18 @@
   cursor: pointer;
   flex-shrink: 0;
   line-height: 1.4;
-  box-shadow: var(--cm-raised);
   min-height: var(--cm-button-min-h);
 }
 
 .sendBtn:hover {
-  background: var(--cm-button-hover);
+  color: var(--color-base-content);
 }
 
 .sendBtn:active {
-  box-shadow: var(--cm-pressed);
+  background: var(--cm-chrome-hover);
 }
 
 .sendBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
 }
