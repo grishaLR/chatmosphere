@@ -9,6 +9,12 @@ import type { LabelerService } from '../moderation/labeler-service.js';
 import type { SessionStore } from '../auth/session-store.js';
 import { createLogger } from '../logger.js';
 import { Sentry } from '../sentry.js';
+import {
+  setJetstreamConnected,
+  setJetstreamLag,
+  incJetstreamEvent,
+  incJetstreamError,
+} from '../metrics.js';
 
 const log = createLogger('firehose');
 
@@ -57,6 +63,7 @@ type JetstreamEvent = JetstreamCommitEvent | JetstreamIdentityEvent | JetstreamA
 export interface FirehoseConsumer {
   start: () => void;
   stop: () => Promise<void>;
+  isConnected: () => boolean;
 }
 
 const RECONNECT_DELAY_MS = 3000;
@@ -102,6 +109,7 @@ export function createFirehoseConsumer(
     ws = new WebSocket(url.toString());
 
     ws.on('open', () => {
+      setJetstreamConnected(true);
       log.info('Jetstream connected');
     });
 
@@ -109,6 +117,7 @@ export function createFirehoseConsumer(
       try {
         const event = JSON.parse(raw.toString('utf-8')) as JetstreamEvent;
         lastCursor = event.time_us;
+        setJetstreamLag((Date.now() * 1000 - event.time_us) / 1_000_000);
 
         if (event.kind === 'identity') {
           const newHandle = event.identity.handle;
@@ -188,6 +197,7 @@ export function createFirehoseConsumer(
           }
           // Collection-specific indexing
           await handler(firehoseEvent);
+          incJetstreamEvent(commit.collection, commit.operation);
 
           // Save cursor periodically. Awaited inside the async block so the
           // cursor on disk always reflects events that have been processed.
@@ -198,6 +208,7 @@ export function createFirehoseConsumer(
             await saveCursor(db, event.time_us);
           }
         })().catch((err: unknown) => {
+          incJetstreamError();
           Sentry.withScope((scope) => {
             scope.setUser({ id: event.did });
             scope.setTag('collection', commit.collection);
@@ -212,6 +223,7 @@ export function createFirehoseConsumer(
     });
 
     ws.on('close', () => {
+      setJetstreamConnected(false);
       log.info('Jetstream disconnected');
       ws = null;
       if (shouldReconnect) {
@@ -233,6 +245,8 @@ export function createFirehoseConsumer(
   }
 
   return {
+    isConnected: () => ws !== null && ws.readyState === WebSocket.OPEN,
+
     start: () => {
       shouldReconnect = true;
       void getCursor(db).then((cursor) => {

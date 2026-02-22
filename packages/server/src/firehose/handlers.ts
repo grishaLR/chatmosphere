@@ -45,6 +45,7 @@ import {
 import type { PresenceService } from '../presence/service.js';
 import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
+import { incMessagesSent, incRoomsCreated } from '../stats/queries.js';
 
 const log = createLogger('firehose');
 
@@ -131,6 +132,7 @@ export function createHandlers(
 
       // Auto-create "general" default channel for new rooms
       await ensureDefaultChannel(db, event.rkey, event.uri, event.did, record.createdAt);
+      void incRoomsCreated(db);
 
       log.info({ rkey: event.rkey, name: record.name }, 'Room indexed');
     },
@@ -288,6 +290,7 @@ export function createHandlers(
         embed: record.embed,
         createdAt: record.createdAt,
       });
+      void incMessagesSent(db);
 
       // Ban check AFTER insert — if a ban and message arrive in the same
       // Jetstream batch, the ban handler may still be mid-index when the

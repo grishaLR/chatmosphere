@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
-import { initSentry } from './sentry.js';
+import { initSentry, Sentry } from './sentry.js';
 import { initLogger, createLogger } from './logger.js';
 import { createDb } from './db/client.js';
 import { createFirehoseConsumer } from './firehose/consumer.js';
@@ -31,6 +31,18 @@ async function main() {
   initSentry(config);
   initLogger(config);
   const log = createLogger('server');
+
+  process.on('unhandledRejection', (reason) => {
+    log.fatal({ err: reason }, 'Unhandled rejection');
+    Sentry.captureException(reason);
+    void Sentry.flush(2000).finally(() => process.exit(1));
+  });
+
+  process.on('uncaughtException', (err) => {
+    log.fatal({ err }, 'Uncaught exception');
+    Sentry.captureException(err);
+    void Sentry.flush(2000).finally(() => process.exit(1));
+  });
 
   const db = createDb(config.DATABASE_URL, {
     max: config.DB_POOL_MAX,
@@ -135,6 +147,8 @@ async function main() {
     config.GIPHY_API_KEY,
     config.KLIPY_API_KEY,
     gifRateLimiter,
+    redis,
+    () => firehose.isConnected(),
   );
   const httpServer = createServer(app);
 

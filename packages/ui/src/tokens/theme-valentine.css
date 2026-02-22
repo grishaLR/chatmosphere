@@ -88,9 +88,9 @@
   --cm-text-2xl: 1.5rem;
 
   /* ── Border Radii (bubbly / pill — daisyUI field: 2rem) ── */
-  --cm-radius-sm: 12px;
-  --cm-radius-md: 16px;
-  --cm-radius-lg: 32px;
+  --cm-radius-sm: 10px;
+  --cm-radius-md: 14px;
+  --cm-radius-lg: 20px;
   --cm-radius-pill: 999px;
   --cm-radius-avatar: 50%;
 

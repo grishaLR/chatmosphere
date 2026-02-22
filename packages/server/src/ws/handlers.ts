@@ -15,6 +15,7 @@ import { checkUserAccess } from '../moderation/service.js';
 import type { BlockService } from '../moderation/block-service.js';
 import type { LabelerService } from '../moderation/labeler-service.js';
 import { createLogger } from '../logger.js';
+import { incDmsSent } from '../stats/queries.js';
 import { getChannelsByRoom, ensureDefaultChannel } from '../channels/queries.js';
 import { getRoomById } from '../rooms/queries.js';
 import {
@@ -311,6 +312,7 @@ export async function handleClientMessage(
             },
           }),
         );
+        void incDmsSent(sql);
       }
       break;
     }
