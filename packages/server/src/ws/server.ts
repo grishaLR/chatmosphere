@@ -123,6 +123,7 @@ export function createWsServer(
   });
   const roomSubs = new RoomSubscriptions();
   const dmSubs = new DmSubscriptions();
+  const callSubs = new DmSubscriptions();
   const userSockets = new UserSockets();
   blockService.startSweep();
   const communityWatchers = new CommunityWatchers(sql, blockService);
@@ -278,6 +279,7 @@ export function createWsServer(
             blockService,
             imRegistry,
             labelerService,
+            callSubs,
           );
           observeWsHandlerDuration(data.type, (performance.now() - start) / 1000);
         })
@@ -310,6 +312,7 @@ export function createWsServer(
             void dmService.cleanupIfEmpty(conversationId);
           }
         }
+        callSubs.unsubscribeAll(ws);
 
         // Only tear down presence if this was the user's last connection
         const remaining = userSockets.get(did);
