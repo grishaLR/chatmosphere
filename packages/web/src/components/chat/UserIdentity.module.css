@@ -21,6 +21,31 @@
   height: var(--cm-avatar-md);
 }
 
+.initialAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cm-radius-avatar);
+  flex-shrink: 0;
+  background: var(--cm-border-dark);
+  color: var(--color-base-100);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.initialAvatarSm {
+  width: var(--cm-avatar-sm);
+  height: var(--cm-avatar-sm);
+  font-size: var(--cm-text-xs);
+}
+
+.initialAvatarMd {
+  width: var(--cm-avatar-md);
+  height: var(--cm-avatar-md);
+  font-size: var(--cm-text-sm);
+}
+
 .handle {
   overflow: hidden;
   text-overflow: ellipsis;

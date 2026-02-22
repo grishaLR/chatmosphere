@@ -112,9 +112,31 @@ export class PeerManager {
       });
   }
 
+  private iceRestartAttempted = false;
+
   private handleICEConnectionStateChangeEvent(_e: Event): void {
     const state = this.pc.iceConnectionState;
     log.debug('ICE connection state: %s', state);
+
+    if (state === 'connected' || state === 'completed') {
+      // Reset restart flag on successful connection
+      this.iceRestartAttempted = false;
+    }
+
+    if (
+      state === 'failed' &&
+      !this.iceRestartAttempted &&
+      this.type === PeerConnectionType.Caller
+    ) {
+      // Attempt ICE restart before giving up
+      this.iceRestartAttempted = true;
+      log.info('Attempting ICE restart');
+      this.pc.restartIce();
+      // Notify UI that we're reconnecting, not failed yet
+      this.onIceConnectionStateChange?.('disconnected');
+      return;
+    }
+
     this.onIceConnectionStateChange?.(state);
     if (state === 'failed') {
       log.warn('ICE connection failed');

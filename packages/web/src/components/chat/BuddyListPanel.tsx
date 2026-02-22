@@ -7,9 +7,12 @@ import { UserIdentity } from './UserIdentity';
 import { BuddyMenu } from './BuddyMenu';
 import { GroupHeaderRow } from './GroupHeaderRow';
 import { ActorSearch, type ActorSearchResult } from '../shared/ActorSearch';
+import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import { useBlocks } from '../../contexts/BlockContext';
 import { useCollapsedGroups } from '../../hooks/useCollapsedGroups';
 import { useContentTranslation } from '../../hooks/useContentTranslation';
+import { ScrollableGroup } from './ScrollableGroup';
+import type { FollowGraphEntry } from '../../hooks/useFollowGraph';
 import type { DoorEvent } from '../../hooks/useBuddyList';
 import type { MemberWithPresence, CommunityListRow } from '../../types';
 import styles from './BuddyListPanel.module.css';
@@ -36,10 +39,18 @@ interface BuddyListPanelProps {
   onMoveBuddy: (did: string, fromGroup: string, toGroup: string) => Promise<void>;
   onOpenChatRooms?: () => void;
   onOpenFeed?: () => void;
+  followers?: FollowGraphEntry[];
+  following?: FollowGraphEntry[];
+  fetchMoreFollowers?: () => void;
+  fetchMoreFollowing?: () => void;
+  hasMoreFollowers?: boolean;
+  hasMoreFollowing?: boolean;
 }
 
 const OFFLINE_GROUP = 'Offline';
 const BLOCKED_GROUP = 'Blocked';
+const FOLLOWING_GROUP = 'Following';
+const FOLLOWERS_GROUP = 'Followers';
 const PROTECTED_GROUPS = new Set(['Community', 'Inner Circle']);
 
 const STATUS_ORDER: Record<string, number> = {
@@ -69,6 +80,12 @@ export function BuddyListPanel({
   onOpenChatRooms,
   onOpenFeed,
   error,
+  followers = [],
+  following = [],
+  fetchMoreFollowers,
+  fetchMoreFollowing,
+  hasMoreFollowers,
+  hasMoreFollowing,
 }: BuddyListPanelProps) {
   const { t } = useTranslation('chat');
   const { blockedDids } = useBlocks();
@@ -245,6 +262,26 @@ export function BuddyListPanel({
     setRenameValue('');
   }, [renamingGroup, renameValue, onRenameGroup]);
 
+  // Filter follow-graph entries: exclude community members and blocked users
+  const followingFiltered: MemberWithPresence[] = useMemo(
+    () =>
+      following
+        .filter((f) => !buddyDids.has(f.did) && !blockedDids.has(f.did))
+        .map((f) => ({ did: f.did, status: 'offline', addedAt: '' })),
+    [following, buddyDids, blockedDids],
+  );
+
+  const followersFiltered: MemberWithPresence[] = useMemo(
+    () =>
+      followers
+        .filter((f) => !buddyDids.has(f.did) && !blockedDids.has(f.did))
+        .map((f) => ({ did: f.did, status: 'offline', addedAt: '' })),
+    [followers, buddyDids, blockedDids],
+  );
+
+  const isFollowingCollapsed = collapsed.has(FOLLOWING_GROUP);
+  const isFollowersCollapsed = collapsed.has(FOLLOWERS_GROUP);
+
   const hasAnyRows = rows.length > 0;
 
   return (
@@ -253,13 +290,7 @@ export function BuddyListPanel({
         <label className={styles.searchLabel} htmlFor="add-buddy-search">
           {t('buddyList.addBuddyLabel')}
         </label>
-        <ActorSearch
-          id="add-buddy-search"
-          onSelect={handleBuddySelect}
-          isOptionDisabled={(actor) => buddyDids.has(actor.did)}
-          placeholder={t('buddyList.searchPlaceholder')}
-          variant="compact"
-        />
+        <AddBuddySearch onSelect={handleBuddySelect} buddyDids={buddyDids} />
       </div>
 
       {loading ? (
@@ -460,6 +491,64 @@ export function BuddyListPanel({
         </div>
       )}
 
+      {/* Following group */}
+      {followingFiltered.length > 0 && (
+        <>
+          <GroupHeaderRow
+            groupName={FOLLOWING_GROUP}
+            onlineCount={0}
+            totalCount={followingFiltered.length + (hasMoreFollowing ? 1 : 0)}
+            isCollapsed={isFollowingCollapsed}
+            onToggleCollapse={() => {
+              toggleCollapse(FOLLOWING_GROUP);
+            }}
+            isProtected
+          />
+          {!isFollowingCollapsed && (
+            <ScrollableGroup
+              items={followingFiltered}
+              groupName={FOLLOWING_GROUP}
+              allGroups={groups}
+              onLoadMore={fetchMoreFollowing}
+              hasMore={hasMoreFollowing}
+              onBuddyClick={onBuddyClick}
+              onAddToCommunity={(did) => void onAddBuddy(did)}
+              onBlock={onBlockBuddy}
+              blockedDids={blockedDids}
+            />
+          )}
+        </>
+      )}
+
+      {/* Followers group */}
+      {followersFiltered.length > 0 && (
+        <>
+          <GroupHeaderRow
+            groupName={FOLLOWERS_GROUP}
+            onlineCount={0}
+            totalCount={followersFiltered.length + (hasMoreFollowers ? 1 : 0)}
+            isCollapsed={isFollowersCollapsed}
+            onToggleCollapse={() => {
+              toggleCollapse(FOLLOWERS_GROUP);
+            }}
+            isProtected
+          />
+          {!isFollowersCollapsed && (
+            <ScrollableGroup
+              items={followersFiltered}
+              groupName={FOLLOWERS_GROUP}
+              allGroups={groups}
+              onLoadMore={fetchMoreFollowers}
+              hasMore={hasMoreFollowers}
+              onBuddyClick={onBuddyClick}
+              onAddToCommunity={(did) => void onAddBuddy(did)}
+              onBlock={onBlockBuddy}
+              blockedDids={blockedDids}
+            />
+          )}
+        </>
+      )}
+
       {/* Create group UI */}
       {creatingGroup ? (
         <div className={styles.addSection}>
@@ -507,5 +596,25 @@ export function BuddyListPanel({
         </div>
       )}
     </div>
+  );
+}
+
+/** Isolated component so the 3s placeholder interval only re-renders this subtree. */
+function AddBuddySearch({
+  onSelect,
+  buddyDids,
+}: {
+  onSelect: (actor: ActorSearchResult) => void;
+  buddyDids: Set<string>;
+}) {
+  const placeholder = useRotatingPlaceholder('buddy');
+  return (
+    <ActorSearch
+      id="add-buddy-search"
+      onSelect={onSelect}
+      isOptionDisabled={(actor) => buddyDids.has(actor.did)}
+      placeholder={placeholder}
+      variant="compact"
+    />
   );
 }

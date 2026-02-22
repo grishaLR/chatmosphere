@@ -16,7 +16,9 @@
       "innerCircle": "Близьке коло",
       "community": "Спільнота",
       "offline": "Офлайн",
-      "blocked": "Заблоковані"
+      "blocked": "Заблоковані",
+      "followers": "Підписники",
+      "following": "Підписки"
     }
   },
 
@@ -33,6 +35,7 @@
     "unblock": "Розблокувати",
     "remove": "Видалити",
     "messageOnGerm": "Написати в Germ",
+    "addToCommunity": "Додати до спільноти",
     "sendImDisabled": "Користувач не в мережі",
     "videoCallDisabled": "Користувач не в мережі"
   },

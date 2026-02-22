@@ -58,6 +58,9 @@ const RoomDirectoryWindowPage = lazy(() =>
 const FeedWindowPage = lazy(() =>
   reloadOnChunkError(import('./pages/FeedWindowPage').then((m) => ({ default: m.FeedWindowPage }))),
 );
+const BetaSignupPage = lazy(() =>
+  reloadOnChunkError(import('./pages/BetaSignupPage').then((m) => ({ default: m.BetaSignupPage }))),
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -109,6 +112,14 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/beta-signup"
+        element={
+          <Suspense fallback={null}>
+            <BetaSignupPage />
+          </Suspense>
+        }
+      />
       <Route
         path="/"
         element={

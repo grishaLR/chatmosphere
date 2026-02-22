@@ -26,25 +26,29 @@ export async function syncCommunityMembers(
   ownerDid: string,
   members: Array<{ did: string; addedAt: string }>,
 ): Promise<void> {
-  await sql`DELETE FROM community_members WHERE owner_did = ${ownerDid}`;
+  /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call -- postgres.js TransactionSql type loses tagged template call signature via Omit */
+  await sql.begin(async (tx: any) => {
+    await tx`DELETE FROM community_members WHERE owner_did = ${ownerDid}`;
 
-  if (members.length > 0) {
-    // Deduplicate by DID (a member can appear in multiple groups)
-    const seen = new Set<string>();
-    const unique: Array<{ did: string; addedAt: string }> = [];
-    for (const m of members) {
-      if (!seen.has(m.did)) {
-        seen.add(m.did);
-        unique.push(m);
+    if (members.length > 0) {
+      // Deduplicate by DID (a member can appear in multiple groups)
+      const seen = new Set<string>();
+      const unique: Array<{ did: string; addedAt: string }> = [];
+      for (const m of members) {
+        if (!seen.has(m.did)) {
+          seen.add(m.did);
+          unique.push(m);
+        }
       }
+      const rows = unique.map((m) => ({
+        owner_did: ownerDid,
+        member_did: m.did,
+        added_at: m.addedAt,
+      }));
+      await tx`INSERT INTO community_members ${sql(rows)}`;
     }
-    const rows = unique.map((m) => ({
-      owner_did: ownerDid,
-      member_did: m.did,
-      added_at: m.addedAt,
-    }));
-    await sql`INSERT INTO community_members ${sql(rows)}`;
-  }
+  });
+  /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call */
 }
 
 export async function getCommunityList(

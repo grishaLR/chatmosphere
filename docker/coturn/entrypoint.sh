@@ -31,9 +31,14 @@ exec turnserver -n \
   --no-cli \
   --fingerprint \
   --no-multicast-peers \
+  --denied-peer-ip=10.0.0.0-10.255.255.255 \
+  --denied-peer-ip=192.168.0.0-192.168.255.255 \
+  --denied-peer-ip=169.254.0.0-169.254.255.255 \
+  --denied-peer-ip=127.0.0.0-127.255.255.255 \
+  --denied-peer-ip=0.0.0.0-0.255.255.255 \
   --secure-stun \
   --min-port=49152 \
   --max-port=49252 \
-  --total-quota=52428800 \
-  --user-quota=5242880 \
+  --total-quota=1000 \
+  --user-quota=10 \
   --verbose

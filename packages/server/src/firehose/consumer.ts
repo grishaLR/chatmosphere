@@ -84,6 +84,8 @@ export function createFirehoseConsumer(
   let shouldReconnect = true;
   let eventCount = 0;
   let lastCursor: number | undefined;
+  /** Sequential processing queue — prevents unbounded DB concurrency */
+  let processQueue: Promise<void> = Promise.resolve();
 
   function connect(cursor: number | undefined) {
     // Staleness check: warn if cursor is beyond Jetstream's retention window
@@ -181,40 +183,45 @@ export function createFirehoseConsumer(
           operation: commit.operation,
         };
 
-        void (async () => {
-          // Generic records table — ATProto convention: universal audit trail
-          if (commit.operation === 'delete') {
-            await db`DELETE FROM records WHERE uri = ${uri}`;
-          } else {
-            await db`
-              INSERT INTO records (uri, cid, did, collection, json, indexed_at)
-              VALUES (${uri}, ${firehoseEvent.cid}, ${event.did}, ${commit.collection}, ${db.json(commit.record as JsonValue)}, NOW())
-              ON CONFLICT (uri) DO UPDATE SET
-                cid = EXCLUDED.cid,
-                json = EXCLUDED.json,
-                indexed_at = NOW()
-            `;
-          }
-          // Collection-specific indexing
-          await handler(firehoseEvent);
-          incJetstreamEvent(commit.collection, commit.operation);
+        // Serialize processing to prevent unbounded DB concurrency.
+        // Each event waits for the previous to finish before starting.
+        // Errors are caught per-event so the queue continues.
+        processQueue = processQueue.then(async () => {
+          try {
+            // Generic records table — ATProto convention: universal audit trail
+            if (commit.operation === 'delete') {
+              await db`DELETE FROM records WHERE uri = ${uri}`;
+            } else {
+              await db`
+                INSERT INTO records (uri, cid, did, collection, json, indexed_at)
+                VALUES (${uri}, ${firehoseEvent.cid}, ${event.did}, ${commit.collection}, ${db.json(commit.record as JsonValue)}, NOW())
+                ON CONFLICT (uri) DO UPDATE SET
+                  cid = EXCLUDED.cid,
+                  json = EXCLUDED.json,
+                  indexed_at = NOW()
+              `;
+            }
+            // Collection-specific indexing
+            await handler(firehoseEvent);
+            incJetstreamEvent(commit.collection, commit.operation);
 
-          // Save cursor periodically. Awaited inside the async block so the
-          // cursor on disk always reflects events that have been processed.
-          // On crash, we may re-process up to CURSOR_SAVE_INTERVAL events —
-          // all handlers use upsert (ON CONFLICT) so replays are idempotent.
-          eventCount++;
-          if (eventCount % CURSOR_SAVE_INTERVAL === 0) {
-            await saveCursor(db, event.time_us);
+            // Save cursor periodically. Awaited inside the async block so the
+            // cursor on disk always reflects events that have been processed.
+            // On crash, we may re-process up to CURSOR_SAVE_INTERVAL events —
+            // all handlers use upsert (ON CONFLICT) so replays are idempotent.
+            eventCount++;
+            if (eventCount % CURSOR_SAVE_INTERVAL === 0) {
+              await saveCursor(db, event.time_us);
+            }
+          } catch (err: unknown) {
+            incJetstreamError();
+            Sentry.withScope((scope) => {
+              scope.setUser({ id: event.did });
+              scope.setTag('collection', commit.collection);
+              Sentry.captureException(err);
+            });
+            log.error({ err, collection: commit.collection }, 'Error handling commit event');
           }
-        })().catch((err: unknown) => {
-          incJetstreamError();
-          Sentry.withScope((scope) => {
-            scope.setUser({ id: event.did });
-            scope.setTag('collection', commit.collection);
-            Sentry.captureException(err);
-          });
-          log.error({ err, collection: commit.collection }, 'Error handling commit event');
         });
       } catch (err) {
         Sentry.captureException(err);

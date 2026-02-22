@@ -86,25 +86,29 @@ const roomSettings = z
   })
   .optional();
 
-export const roomRecordSchema = z.object({
-  name: z.string().max(100),
-  topic: z.string().max(200),
-  description: z.string().max(500).optional(),
-  purpose: z.string(), // knownValues: discussion, event, community, support
-  createdAt: datetime,
-  settings: roomSettings,
-});
+export const roomRecordSchema = z
+  .object({
+    name: z.string().max(100),
+    topic: z.string().max(200),
+    description: z.string().max(500).optional(),
+    purpose: z.string(), // knownValues: discussion, event, community, support
+    createdAt: datetime,
+    settings: roomSettings,
+  })
+  .passthrough();
 
 // -- Channel --
 
-export const channelRecordSchema = z.object({
-  room: atUri,
-  name: z.string().max(100),
-  description: z.string().max(500).optional(),
-  position: z.number().int().min(0).optional(),
-  postPolicy: z.string().optional(), // knownValues: everyone, owner, moderators
-  createdAt: datetime,
-});
+export const channelRecordSchema = z
+  .object({
+    room: atUri,
+    name: z.string().max(100),
+    description: z.string().max(500).optional(),
+    position: z.number().int().min(0).optional(),
+    postPolicy: z.string().optional(), // knownValues: everyone, owner, moderators
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Message --
 
@@ -115,32 +119,38 @@ const replyRefSchema = z
   })
   .optional();
 
-export const messageRecordSchema = z.object({
-  channel: channelRef,
-  text: z.string().max(3000),
-  facets: z.array(richTextFacetSchema).optional(),
-  reply: replyRefSchema,
-  embed: embedSchema,
-  createdAt: datetime,
-});
+export const messageRecordSchema = z
+  .object({
+    channel: channelRef,
+    text: z.string().max(3000),
+    facets: z.array(richTextFacetSchema).optional(),
+    reply: replyRefSchema,
+    embed: embedSchema,
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Ban --
 
-export const banRecordSchema = z.object({
-  room: atUri,
-  subject: did,
-  reason: z.string().max(300).optional(),
-  createdAt: datetime,
-});
+export const banRecordSchema = z
+  .object({
+    room: atUri,
+    subject: did,
+    reason: z.string().max(300).optional(),
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Role --
 
-export const roleRecordSchema = z.object({
-  room: atUri,
-  subject: did,
-  role: z.string(), // knownValues: moderator, owner
-  createdAt: datetime,
-});
+export const roleRecordSchema = z
+  .object({
+    room: atUri,
+    subject: did,
+    role: z.string(), // knownValues: moderator, owner
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Community --
 
@@ -155,45 +165,55 @@ const communityGroupSchema = z.object({
   members: z.array(communityMemberSchema).max(500),
 });
 
-export const communityRecordSchema = z.object({
-  groups: z.array(communityGroupSchema).max(50),
-});
+export const communityRecordSchema = z
+  .object({
+    groups: z.array(communityGroupSchema).max(50),
+  })
+  .passthrough();
 
 // -- Allowlist --
 
-export const allowlistRecordSchema = z.object({
-  room: atUri,
-  subject: did,
-  createdAt: datetime,
-});
+export const allowlistRecordSchema = z
+  .object({
+    room: atUri,
+    subject: did,
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Presence --
 
-export const presenceRecordSchema = z.object({
-  status: z.string(), // knownValues: online, away, idle, offline, invisible
-  visibleTo: z.string(), // knownValues: everyone, community, inner-circle, no-one
-  awayMessage: z.string().max(300).optional(),
-  updatedAt: datetime,
-});
+export const presenceRecordSchema = z
+  .object({
+    status: z.string(), // knownValues: online, away, idle, offline, invisible
+    visibleTo: z.string(), // knownValues: everyone, community, inner-circle, no-one
+    awayMessage: z.string().max(300).optional(),
+    updatedAt: datetime,
+  })
+  .passthrough();
 
 // -- Poll --
 
-export const pollRecordSchema = z.object({
-  channel: channelRef,
-  question: z.string().max(200),
-  options: z.array(z.string().max(100)).min(2).max(10),
-  allowMultiple: z.boolean().optional(),
-  expiresAt: datetime.optional(),
-  createdAt: datetime,
-});
+export const pollRecordSchema = z
+  .object({
+    channel: channelRef,
+    question: z.string().max(200),
+    options: z.array(z.string().max(100)).min(2).max(10),
+    allowMultiple: z.boolean().optional(),
+    expiresAt: datetime.optional(),
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Vote --
 
-export const voteRecordSchema = z.object({
-  poll: atUri,
-  selectedOptions: z.array(z.number().int().min(0)).max(10),
-  createdAt: datetime,
-});
+export const voteRecordSchema = z
+  .object({
+    poll: atUri,
+    selectedOptions: z.array(z.number().int().min(0)).max(10),
+    createdAt: datetime,
+  })
+  .passthrough();
 
 // -- Inferred types --
 

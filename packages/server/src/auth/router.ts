@@ -72,8 +72,8 @@ export function authRouter(
         log.warn({ did: data.did, handle }, 'auth/preflight rejected: not on allowlist');
 
         res.status(403).json({
-          error: 'This account is not permitted to use this service.',
-          errorCode: ERROR_CODES.BANNED,
+          error: 'This account is not yet on the beta allowlist.',
+          errorCode: ERROR_CODES.NOT_ON_ALLOWLIST,
         });
 
         return;
@@ -110,8 +110,8 @@ export function authRouter(
       if (!globalAllowlist.isAllowed(parsed.data.did)) {
         log.warn({ did: parsed.data.did }, 'auth/challenge rejected: not on allowlist');
         res.status(403).json({
-          error: 'This account is not permitted to use this service.',
-          errorCode: ERROR_CODES.BANNED,
+          error: 'This account is not yet on the beta allowlist.',
+          errorCode: ERROR_CODES.NOT_ON_ALLOWLIST,
         });
         return;
       }
@@ -153,8 +153,8 @@ export function authRouter(
         log.warn({ did, handle }, 'auth/session rejected: not on allowlist');
 
         res.status(403).json({
-          error: 'This account is not permitted to use this service.',
-          errorCode: ERROR_CODES.BANNED,
+          error: 'This account is not yet on the beta allowlist.',
+          errorCode: ERROR_CODES.NOT_ON_ALLOWLIST,
         });
 
         return;

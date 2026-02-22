@@ -18,6 +18,7 @@ import { translateRouter } from './translate/router.js';
 import { gifRouter } from './giphy/router.js';
 import { iceRouter } from './ice/router.js';
 import { waitlistRouter } from './waitlist/router.js';
+import { adminRouter } from './admin/router.js';
 import type { Config } from './config.js';
 import type { Sql } from './db/client.js';
 import type { PresenceService } from './presence/service.js';
@@ -106,6 +107,20 @@ export function createApp(
     createRateLimitMiddleware(authRateLimiter),
     waitlistRouter(sql, emailService ?? null),
   );
+
+  // Admin routes (API key protected — only mounted when ADMIN_API_KEY is set)
+  if (config.ADMIN_API_KEY) {
+    app.use(
+      '/api/admin',
+      adminRouter(
+        sql,
+        globalAllowlist,
+        config.ADMIN_API_KEY,
+        config.PUBLIC_API_URL,
+        emailService ?? null,
+      ),
+    );
+  }
 
   // Protected API routes
   app.use('/api/rooms', requireAuth, createRateLimitMiddleware(rateLimiter), roomsRouter(sql));

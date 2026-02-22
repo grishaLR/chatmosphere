@@ -25,6 +25,8 @@ import { ChallengeStore } from './auth/challenge.js';
 import { RedisChallengeStore } from './auth/challenge-redis.js';
 import { LIMITS } from '@protoimsg/shared';
 import { pruneOldMessages } from './messages/queries.js';
+import { pruneTypingThrottle } from './ws/handlers.js';
+import { pruneSlowModeTracker } from './firehose/handlers.js';
 import { EmailService } from './email/service.js';
 
 async function main() {
@@ -197,6 +199,8 @@ async function main() {
     void sessions.prune();
     void rateLimiter.prune();
     void dmService.pruneExpired();
+    pruneTypingThrottle();
+    pruneSlowModeTracker();
     void pruneOldMessages(db, LIMITS.defaultRetentionDays).then((count) => {
       if (count > 0) log.info({ count }, 'Pruned old room messages');
     });

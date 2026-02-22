@@ -81,6 +81,14 @@ export interface FirehoseEvent {
 /** Tracks last message timestamp per user per room for slow mode enforcement. */
 const slowModeTracker = new Map<string, number>();
 
+/** Remove stale entries from the slow mode tracker (older than 10 minutes). */
+export function pruneSlowModeTracker(): void {
+  const cutoff = Date.now() - 600_000;
+  for (const [key, ts] of slowModeTracker) {
+    if (ts < cutoff) slowModeTracker.delete(key);
+  }
+}
+
 function isSlowModeViolation(roomId: string, did: string, slowModeSeconds: number): boolean {
   if (slowModeSeconds <= 0) return false;
   const key = `${roomId}:${did}`;

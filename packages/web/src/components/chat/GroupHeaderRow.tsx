@@ -10,6 +10,8 @@ const GROUP_I18N_KEYS: Record<string, string> = {
   Community: 'buddyList.groups.community',
   Offline: 'buddyList.groups.offline',
   Blocked: 'buddyList.groups.blocked',
+  Followers: 'buddyList.groups.followers',
+  Following: 'buddyList.groups.following',
 };
 
 export interface GroupHeaderRowProps {

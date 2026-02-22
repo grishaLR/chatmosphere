@@ -37,6 +37,33 @@ export const schemaDict = {
       },
     },
   },
+  AppProtoimsgChatAuthVerify: {
+    lexicon: 1,
+    id: 'app.protoimsg.chat.authVerify',
+    defs: {
+      main: {
+        type: 'record',
+        description:
+          'Ephemeral challenge-response auth record. Client writes this to prove PDS write access during login, server verifies the nonce, then client deletes it immediately.',
+        key: 'tid',
+        record: {
+          type: 'object',
+          required: ['nonce', 'createdAt'],
+          properties: {
+            nonce: {
+              type: 'string',
+              description: 'Server-issued challenge nonce to prove write access.',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'datetime',
+              description: 'When this verification record was created.',
+            },
+          },
+        },
+      },
+    },
+  },
   AppProtoimsgChatBan: {
     lexicon: 1,
     id: 'app.protoimsg.chat.ban',
@@ -733,6 +760,7 @@ export const schemas = Object.values(schemaDict);
 export const lexicons: Lexicons = new Lexicons(schemas);
 export const ids = {
   AppProtoimsgChatAllowlist: 'app.protoimsg.chat.allowlist',
+  AppProtoimsgChatAuthVerify: 'app.protoimsg.chat.authVerify',
   AppProtoimsgChatBan: 'app.protoimsg.chat.ban',
   AppProtoimsgChatChannel: 'app.protoimsg.chat.channel',
   AppProtoimsgChatCommunity: 'app.protoimsg.chat.community',

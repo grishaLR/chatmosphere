@@ -12,6 +12,7 @@ import type { OAuthSession } from '@atproto/oauth-client-browser';
 import { getOAuthClient } from '../lib/oauth';
 import {
   AccountBannedError,
+  NotOnAllowlistError,
   preflightCheck,
   fetchChallenge,
   createServerSession,
@@ -186,8 +187,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 });
               }
             } catch (err: unknown) {
-              if (err instanceof AccountBannedError) {
-                // Account is globally banned — revoke OAuth so it doesn't auto-restore
+              if (err instanceof AccountBannedError || err instanceof NotOnAllowlistError) {
+                // Account is banned or not on allowlist — revoke OAuth so it doesn't auto-restore
                 const oauthClient = getOAuthClient();
                 void oauthClient.revoke(restoredSession.did);
                 setAuthError(err.message);
@@ -227,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await preflightCheck(inputHandle);
     } catch (err: unknown) {
-      if (err instanceof AccountBannedError) throw err;
+      if (err instanceof AccountBannedError || err instanceof NotOnAllowlistError) throw err;
     }
 
     // Flag that an OAuth redirect is in progress — checked on return to

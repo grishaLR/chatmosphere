@@ -18,7 +18,9 @@
       "innerCircle": "Inner Circle",
       "community": "Community",
       "offline": "Offline",
-      "blocked": "Blocked"
+      "blocked": "Blocked",
+      "followers": "Followers",
+      "following": "Following"
     }
   },
 
@@ -35,6 +37,7 @@
     "unblock": "Unblock",
     "remove": "Remove",
     "messageOnGerm": "Message on Germ",
+    "addToCommunity": "Add to Community",
     "sendImDisabled": "User is offline",
     "videoCallDisabled": "User is offline"
   },

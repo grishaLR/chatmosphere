@@ -5,6 +5,7 @@ import { XrpcClient, FetchHandler, FetchHandlerOptions } from '@atproto/xrpc';
 import { schemas } from './lexicons';
 import { CID } from 'multiformats/cid';
 import * as AppProtoimsgChatAllowlist from './types/app/protoimsg/chat/allowlist';
+import * as AppProtoimsgChatAuthVerify from './types/app/protoimsg/chat/authVerify';
 import * as AppProtoimsgChatBan from './types/app/protoimsg/chat/ban';
 import * as AppProtoimsgChatChannel from './types/app/protoimsg/chat/channel';
 import * as AppProtoimsgChatCommunity from './types/app/protoimsg/chat/community';
@@ -16,6 +17,7 @@ import * as AppProtoimsgChatRoom from './types/app/protoimsg/chat/room';
 import * as AppProtoimsgChatVote from './types/app/protoimsg/chat/vote';
 
 export * as AppProtoimsgChatAllowlist from './types/app/protoimsg/chat/allowlist';
+export * as AppProtoimsgChatAuthVerify from './types/app/protoimsg/chat/authVerify';
 export * as AppProtoimsgChatBan from './types/app/protoimsg/chat/ban';
 export * as AppProtoimsgChatChannel from './types/app/protoimsg/chat/channel';
 export * as AppProtoimsgChatCommunity from './types/app/protoimsg/chat/community';
@@ -63,6 +65,7 @@ export class AppProtoimsgNS {
 export class AppProtoimsgChatNS {
   _client: XrpcClient;
   allowlist: AllowlistRecord;
+  authVerify: AuthVerifyRecord;
   ban: BanRecord;
   channel: ChannelRecord;
   community: CommunityRecord;
@@ -76,6 +79,7 @@ export class AppProtoimsgChatNS {
   constructor(client: XrpcClient) {
     this._client = client;
     this.allowlist = new AllowlistRecord(client);
+    this.authVerify = new AuthVerifyRecord(client);
     this.ban = new BanRecord(client);
     this.channel = new ChannelRecord(client);
     this.community = new CommunityRecord(client);
@@ -141,6 +145,64 @@ export class AllowlistRecord {
       'com.atproto.repo.deleteRecord',
       undefined,
       { collection: 'app.protoimsg.chat.allowlist', ...params },
+      { headers },
+    );
+  }
+}
+
+export class AuthVerifyRecord {
+  _client: XrpcClient;
+
+  constructor(client: XrpcClient) {
+    this._client = client;
+  }
+
+  async list(params: Omit<ComAtprotoRepoListRecords.QueryParams, 'collection'>): Promise<{
+    cursor?: string;
+    records: { uri: string; value: AppProtoimsgChatAuthVerify.Record }[];
+  }> {
+    const res = await this._client.call('com.atproto.repo.listRecords', {
+      collection: 'app.protoimsg.chat.authVerify',
+      ...params,
+    });
+    return res.data;
+  }
+
+  async get(params: Omit<ComAtprotoRepoGetRecord.QueryParams, 'collection'>): Promise<{
+    uri: string;
+    cid: string;
+    value: AppProtoimsgChatAuthVerify.Record;
+  }> {
+    const res = await this._client.call('com.atproto.repo.getRecord', {
+      collection: 'app.protoimsg.chat.authVerify',
+      ...params,
+    });
+    return res.data;
+  }
+
+  async create(
+    params: Omit<ComAtprotoRepoCreateRecord.InputSchema, 'collection' | 'record'>,
+    record: AppProtoimsgChatAuthVerify.Record,
+    headers?: Record<string, string>,
+  ): Promise<{ uri: string; cid: string }> {
+    record.$type = 'app.protoimsg.chat.authVerify';
+    const res = await this._client.call(
+      'com.atproto.repo.createRecord',
+      undefined,
+      { collection: 'app.protoimsg.chat.authVerify', ...params, record },
+      { encoding: 'application/json', headers },
+    );
+    return res.data;
+  }
+
+  async delete(
+    params: Omit<ComAtprotoRepoDeleteRecord.InputSchema, 'collection'>,
+    headers?: Record<string, string>,
+  ): Promise<void> {
+    await this._client.call(
+      'com.atproto.repo.deleteRecord',
+      undefined,
+      { collection: 'app.protoimsg.chat.authVerify', ...params },
       { headers },
     );
   }

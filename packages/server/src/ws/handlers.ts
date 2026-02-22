@@ -35,6 +35,14 @@ const log = createLogger('ws');
 const TYPING_THROTTLE_MS = 3000;
 const typingThrottle = new Map<string, number>();
 
+/** Remove stale entries from the typing throttle map (older than 60s). */
+export function pruneTypingThrottle(): void {
+  const cutoff = Date.now() - 60_000;
+  for (const [key, ts] of typingThrottle) {
+    if (ts < cutoff) typingThrottle.delete(key);
+  }
+}
+
 export async function handleClientMessage(
   ws: WebSocket,
   did: string,
